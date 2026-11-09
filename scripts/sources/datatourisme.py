@@ -23,7 +23,7 @@ LICENCE_URL = "https://www.data.gouv.fr/fr/datasets/datatourisme-2/"
 TRAIL_WORDS = re.compile(r"\b(trail|ultra[- ]?trail|skyrace|sky race|kilom[eè]tre vertical|kv)\b", re.I)
 EXCLUDE_WORDS = re.compile(
     r"\b(vtt|v[ée]lo|cyclo|gravel|canicross|cheval|animations?|bal|cr[êe]pes?|brasero|ravitaillements?|concert|"
-    r"exposition|soir[ée]e|repas|conf[ée]rence|projection|march[ée]|buvette|village|stand|bénévoles?)\b",
+    r"exposition|soir[ée]e|repas|conf[ée]rence|projection|march[ée]|buvette|stand|bénévoles?)\b",
     re.I,
 )
 # « 30 km - 2200 m D+ », « 42km / 2 350m D+ », « 18 km et 900 m de dénivelé »
