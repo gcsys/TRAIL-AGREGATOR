@@ -7,8 +7,13 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - run: |
-          curl -sSL -o occ.csv https://static.data.gouv.fr/resources/datatourisme-la-plateforme-nationale-des-donnees-touristiques/20261029-040619/datatourisme-reg-occ.csv
-          curl -sSL -o fma.csv https://static.data.gouv.fr/resources/datatourisme-la-plateforme-nationale-des-donnees-touristiques/20261029-034950/datatourisme-fma.csv
+          curl -sSL https://www.data.gouv.fr/api/1/datasets/5b598be088ee387c0c353714/ > ds.json
+          python3 -c "import json;d=json.load(open('ds.json'));[print(r['title'],r['url']) for r in d['resources']]"
+          OCC=$(python3 -c "import json;d=json.load(open('ds.json'));print([r['url'] for r in d['resources'] if r['title']=='datatourisme-reg-occ.csv'][0])")
+          FMA=$(python3 -c "import json;d=json.load(open('ds.json'));print([r['url'] for r in d['resources'] if r['title']=='datatourisme-fma.csv'][0])")
+          curl -sSL -o occ.csv "$OCC"
+          curl -sSL -o fma.csv "$FMA"
+          head -c 600 occ.csv; echo
           ls -la
           python3 - <<'PY'
           import csv, sys, re
