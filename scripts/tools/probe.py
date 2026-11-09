@@ -26,4 +26,6 @@ for u in URLS:
     print(body[i:i + 7000])
     for m in re.findall(r'<script type="application/ld\+json">([\s\S]*?)</script>', html)[:2]:
         print("LDJSON:", m[:2500])
+    hrefs = list(dict.fromkeys(re.findall(r'href="([^"]+)"', html)))
+    print("HREFS", len(hrefs)); print("\n".join(h for h in hrefs if not h.startswith("https://storage"))[:6000])
     time.sleep(2)
