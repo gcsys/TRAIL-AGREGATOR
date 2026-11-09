@@ -2,7 +2,7 @@ name: Collecte RunTrail
 
 on:
   schedule:
-    - cron: "0 2 1 * *" # le 1er de chaque mois
+    - cron: "0 2 * * 0" # chaque dimanche (incrémental : seules les nouvelles courses sont lues)
   workflow_dispatch:
     inputs:
       regions:

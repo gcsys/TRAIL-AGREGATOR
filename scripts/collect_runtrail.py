@@ -21,7 +21,7 @@ BASE = "https://www.runtrail.run"
 REGIONS = ["occitanie", "provence-alpes-cote-d-azur", "auvergne-rhone-alpes"]
 UA = "Mozilla/5.0 (compatible; trail-agregator/1.0; projet perso non commercial)"
 OUT = Path(__file__).resolve().parents[1] / "data" / "sources" / "runtrail.csv"
-DELAY = 1.5
+DELAY = 3.0
 FIELDS = ["id", "nom", "course", "date", "date_confirmee", "ville", "code_postal", "departement", "lat", "lon",
           "distance_km", "denivele_pos_m", "organisateur", "site_web", "lien_inscription", "utmb_world_series",
           "type", "nocturne", "prix_eur", "notes", "source_url"]
@@ -47,9 +47,17 @@ def get(url):
                 return r.read().decode("utf-8", "replace")
         except Exception as e:
             print(f"  {url} : {e}", file=sys.stderr)
-            if getattr(e, "code", None) == 404:
+            code = getattr(e, "code", None)
+            if code == 404:
                 break
-            time.sleep(5 * (attempt + 1))
+            if code == 429:  # le site demande de ralentir : on attend franchement
+                try:
+                    pause = int(e.headers.get("Retry-After", 0))
+                except (TypeError, ValueError):
+                    pause = 0
+                time.sleep(max(pause, 60 * (attempt + 1)))
+            else:
+                time.sleep(5 * (attempt + 1))
     _last = time.time()
     return None
 
@@ -104,7 +112,7 @@ def num(s):
 def parse_event(path, dep, today):
     html = get(BASE + path)
     if not html:
-        return []
+        return None
     ev = sports_event(html)
     if not ev:
         return []
@@ -167,12 +175,27 @@ def main():
     events = {}
     for reg in regions:
         events.update(list_region(reg))
-    print(f"{len(events)} événements à lire", flush=True)
-    rows = []
-    for i, (path, dep) in enumerate(events.items(), 1):
-        rows.extend(parse_event(path, dep, today))
+    # Mode incrémental : les événements déjà collectés (et encore à venir) sont
+    # gardés tels quels ; on ne lit que les nouveaux, pour ménager le site.
+    known = {}
+    if OUT.exists():
+        with OUT.open(encoding="utf-8") as f:
+            for r in csv.DictReader(f):
+                if r["date"] >= today:
+                    known.setdefault(r["source_url"][len(BASE):], []).append(r)
+    rows = [r for path, rs in known.items() if path in events for r in rs]
+    todo = [(p, d) for p, d in events.items() if p not in known]
+    print(f"{len(events)} événements, {len(todo)} nouveaux à lire", flush=True)
+    failed = 0
+    for i, (path, dep) in enumerate(todo, 1):
+        got = parse_event(path, dep, today)
+        if got is None:
+            failed += 1
+        else:
+            rows.extend(got)
         if i % 50 == 0:
-            print(f"  {i}/{len(events)} événements, {len(rows)} formats", flush=True)
+            print(f"  {i}/{len(todo)} événements, {len(rows)} formats", flush=True)
+    print(f"{failed} pages illisibles (retentées au prochain passage)")
     if not rows:
         sys.exit("Aucune course récupérée : fichier non modifié")
     rows.sort(key=lambda r: (r["date"], r["nom"], r["distance_km"]))
