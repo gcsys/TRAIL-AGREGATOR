@@ -2,104 +2,191 @@
 <html lang="fr">
 <head>
   <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#1f5c3a">
   <title>Trail Agrégateur</title>
   <meta name="description" content="Trouvez les trails autour de vous : sélection par département, région ou périmètre dessiné, filtres distance, dénivelé, UTMB Index, ITRA.">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⛰️</text></svg>">
   <link rel="stylesheet" href="vendor/leaflet/leaflet.css">
   <link rel="stylesheet" href="vendor/leaflet-draw/leaflet.draw.css">
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
-<header>
-  <h1>⛰️ Trail Agrégateur</h1>
-  <p class="sub">Sélectionnez une zone sur la carte, affinez avec les filtres. <span id="meta"></span></p>
+<header class="topbar">
+  <div class="brand">
+    <span class="logo" aria-hidden="true">⛰️</span>
+    <div>
+      <h1>Trail Agrégateur</h1>
+      <p class="sub" id="meta">Chargement des courses…</p>
+    </div>
+  </div>
+  <a class="gh" href="https://github.com/gcsys/TRAIL-AGREGATOR/blob/main/data/sources/catalogue.csv" target="_blank" rel="noopener">+ Ajouter une course</a>
 </header>
 
 <main>
-  <section class="map-wrap">
-    <div class="toolbar">
-      <div class="group" role="group" aria-label="Couche cliquable">
-        <span class="label">Cliquer sur :</span>
+  <!-- ===== Carte ===== -->
+  <section class="map-card" aria-label="Carte">
+    <div class="map-box">
+    <div id="map"></div>
+
+    <div class="map-tools">
+      <div class="seg" role="group" aria-label="Sélection au clic">
         <button data-layer="departements" class="active">Départements</button>
         <button data-layer="regions">Régions</button>
         <button data-layer="none">Aucun</button>
       </div>
-      <div class="group" role="group" aria-label="Dessin">
-        <span class="label">Dessiner :</span>
-        <button id="draw-free" title="Maintenir le clic et dessiner">✏️ Main levée</button>
-        <button id="draw-poly">⬠ Polygone</button>
-        <button id="draw-rect">▭ Rectangle</button>
-        <button id="draw-circle">◯ Cercle</button>
+      <div class="seg" role="group" aria-label="Dessiner un périmètre">
+        <button id="draw-free" title="Tracer à main levée"><span aria-hidden="true">✏️</span><span class="lbl"> Main levée</span></button>
+        <button id="draw-poly" title="Polygone"><span aria-hidden="true">⬠</span><span class="lbl"> Polygone</span></button>
+        <button id="draw-rect" title="Rectangle"><span aria-hidden="true">▭</span><span class="lbl"> Rectangle</span></button>
+        <button id="draw-circle" title="Cercle"><span aria-hidden="true">◯</span><span class="lbl"> Cercle</span></button>
       </div>
-      <button id="clear-sel" class="danger">Effacer la sélection</button>
+      <button id="locate" class="seg-btn" title="Centrer sur ma position" aria-label="Centrer sur ma position">◎</button>
     </div>
-    <div id="map"></div>
-    <p id="selection-summary" class="hint">Aucune zone sélectionnée : toutes les courses sont affichées.</p>
+
+    <div class="legend" aria-label="Légende des distances">
+      <span><i style="--c:var(--d1)"></i>&lt; 20 km</span>
+      <span><i style="--c:var(--d2)"></i>20–42</span>
+      <span><i style="--c:var(--d3)"></i>42–80</span>
+      <span><i style="--c:var(--d4)"></i>80 km +</span>
+    </div>
+    </div>
+
+    <div class="map-status">
+      <p id="selection-summary">Touchez un département ou dessinez une zone pour filtrer.</p>
+      <button id="clear-sel" class="link danger" hidden>Effacer la zone</button>
+    </div>
   </section>
 
+  <!-- ===== Filtres ===== -->
   <section class="filters" aria-label="Filtres">
-    <label>Recherche<input type="search" id="f-q" placeholder="Nom, ville, organisateur…"></label>
-    <label>Du<input type="date" id="f-from"></label>
-    <label>Au<input type="date" id="f-to"></label>
-    <label>Km min<input type="number" id="f-km-min" min="0" step="1"></label>
-    <label>Km max<input type="number" id="f-km-max" min="0" step="1"></label>
-    <label>D+ min<input type="number" id="f-d-min" min="0" step="100"></label>
-    <label>D+ max<input type="number" id="f-d-max" min="0" step="100"></label>
-    <label>Km-effort min<input type="number" id="f-ke-min" min="0" step="5"></label>
-    <label>Km-effort max<input type="number" id="f-ke-max" min="0" step="5"></label>
-    <label>UTMB Index
-      <select id="f-utmb">
-        <option value="">Tous</option>
-        <option value="any">Avec catégorie</option>
-        <option value="none">Sans catégorie</option>
-        <option>20K</option><option>50K</option><option>100K</option><option>100M</option>
-      </select>
-    </label>
-    <label>UTMB World Series
-      <select id="f-ws"><option value="">Tous</option><option value="yes">Oui</option><option value="no">Non</option></select>
-    </label>
-    <label>Points ITRA min<input type="number" id="f-itra" min="0" max="6" step="1"></label>
-    <label>Type
-      <select id="f-type"><option value="">Tous</option><option value="trail">Trail</option><option value="ultra">Ultra</option><option value="kv">KV</option></select>
-    </label>
-    <label class="check"><input type="checkbox" id="f-night"> Nocturne</label>
-    <button id="reset-filters">Réinitialiser</button>
+    <div class="filter-main">
+      <label class="search">
+        <span class="sr">Recherche</span>
+        <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+        <input type="search" id="f-q" placeholder="Course, ville, organisateur…" autocomplete="off">
+      </label>
+      <button id="toggle-more" class="btn" aria-expanded="false" aria-controls="more-filters">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16M7 12h10M10 18h4"/></svg>
+        Filtres<span id="filter-badge" class="badge" hidden>0</span>
+      </button>
+    </div>
+
+    <div class="chips" role="group" aria-label="Filtres rapides">
+      <button class="chip" data-km="0-20">&lt; 20 km</button>
+      <button class="chip" data-km="20-42">20–42 km</button>
+      <button class="chip" data-km="42-80">42–80 km</button>
+      <button class="chip" data-km="80-">80 km +</button>
+      <span class="chips-sep"></span>
+      <button class="chip" data-when="30">30 jours</button>
+      <button class="chip" data-when="90">3 mois</button>
+      <button class="chip" data-type="ultra">Ultra</button>
+      <button class="chip" data-night>🌙 Nocturne</button>
+    </div>
+
+    <div id="more-filters" class="more" hidden>
+      <fieldset>
+        <legend>Dates</legend>
+        <label>Du<input type="date" id="f-from"></label>
+        <label>Au<input type="date" id="f-to"></label>
+      </fieldset>
+      <fieldset>
+        <legend>Distance (km)</legend>
+        <label>Min<input type="number" inputmode="numeric" id="f-km-min" min="0" step="1" placeholder="0"></label>
+        <label>Max<input type="number" inputmode="numeric" id="f-km-max" min="0" step="1" placeholder="∞"></label>
+      </fieldset>
+      <fieldset>
+        <legend>Dénivelé D+ (m)</legend>
+        <label>Min<input type="number" inputmode="numeric" id="f-d-min" min="0" step="100" placeholder="0"></label>
+        <label>Max<input type="number" inputmode="numeric" id="f-d-max" min="0" step="100" placeholder="∞"></label>
+      </fieldset>
+      <fieldset>
+        <legend>Km-effort</legend>
+        <label>Min<input type="number" inputmode="numeric" id="f-ke-min" min="0" step="5" placeholder="0"></label>
+        <label>Max<input type="number" inputmode="numeric" id="f-ke-max" min="0" step="5" placeholder="∞"></label>
+      </fieldset>
+      <fieldset>
+        <legend>Labels</legend>
+        <label>UTMB Index
+          <select id="f-utmb">
+            <option value="">Tous</option>
+            <option value="any">Avec catégorie</option>
+            <option value="none">Sans catégorie</option>
+            <option>20K</option><option>50K</option><option>100K</option><option>100M</option>
+          </select>
+        </label>
+        <label>World Series
+          <select id="f-ws"><option value="">Tous</option><option value="yes">Oui</option><option value="no">Non</option></select>
+        </label>
+        <label>Pts ITRA min<input type="number" inputmode="numeric" id="f-itra" min="0" max="6" step="1" placeholder="0"></label>
+      </fieldset>
+      <fieldset>
+        <legend>Format</legend>
+        <label>Type
+          <select id="f-type"><option value="">Tous</option><option value="trail">Trail</option><option value="ultra">Ultra</option><option value="kv">KV</option></select>
+        </label>
+        <label class="check"><input type="checkbox" id="f-night"> Nocturne</label>
+        <label class="check"><input type="checkbox" id="f-dplus"> D+ connu</label>
+      </fieldset>
+      <div class="more-actions">
+        <button id="reset-filters" class="btn ghost">Tout réinitialiser</button>
+        <button id="close-more" class="btn primary">Voir <span class="count-inline">0</span> courses</button>
+      </div>
+    </div>
   </section>
 
-  <section class="results">
+  <!-- ===== Résultats ===== -->
+  <section class="results" aria-label="Résultats">
     <div class="results-head">
-      <h2><span id="count">0</span> courses</h2>
-      <button id="export">Exporter CSV</button>
+      <h2><span id="count">0</span> <span id="count-label">courses</span></h2>
+      <div class="results-actions">
+        <label class="sort">
+          <span class="sr">Trier par</span>
+          <select id="sort-select">
+            <option value="date:1">Date ↑</option>
+            <option value="date:-1">Date ↓</option>
+            <option value="distance_km:1">Distance ↑</option>
+            <option value="distance_km:-1">Distance ↓</option>
+            <option value="denivele_pos_m:-1">D+ ↓</option>
+            <option value="km_effort:-1">Km-effort ↓</option>
+            <option value="nom:1">Nom A→Z</option>
+          </select>
+        </label>
+        <button id="export" class="btn ghost" title="Exporter les résultats en CSV">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4v11m0 0-4-4m4 4 4-4M5 20h14"/></svg><span class="lbl">CSV</span>
+        </button>
+      </div>
     </div>
+
     <div class="table-wrap">
       <table id="races">
         <thead><tr>
           <th data-k="date">Date</th>
           <th data-k="nom">Course</th>
-          <th data-k="ville">Ville</th>
-          <th data-k="departement">Dépt</th>
-          <th data-k="region">Région</th>
+          <th data-k="ville">Lieu</th>
           <th data-k="distance_km" class="num">Km</th>
           <th data-k="denivele_pos_m" class="num">D+</th>
           <th data-k="km_effort" class="num" title="km + D+/100">Km-effort</th>
-          <th data-k="utmb_index">UTMB Index</th>
-          <th data-k="utmb_world_series">World Series</th>
-          <th data-k="itra_points_estimes" class="num" title="Estimation d'après le km-effort">Pts ITRA*</th>
-          <th data-k="type">Type</th>
-          <th data-k="organisateur">Organisateur</th>
+          <th data-k="utmb_index">Labels</th>
           <th>Liens</th>
         </tr></thead>
         <tbody></tbody>
       </table>
     </div>
-    <p class="hint">* Catégorie UTMB Index et points ITRA estimés à partir du km-effort, à titre indicatif. Dates marquées « ~ » non confirmées (parfois connues seulement au mois près). D+ encore inconnu pour beaucoup de courses.</p>
+    <ul id="cards" class="cards"></ul>
+    <p id="empty" class="empty" hidden>Aucune course ne correspond. Essayez d'élargir la zone ou les filtres.</p>
+    <button id="more" class="btn more-btn" hidden>Afficher plus</button>
+
+    <p class="hint">Catégorie UTMB Index et points ITRA estimés à partir du km-effort, à titre indicatif. Dates marquées « ~ » non confirmées. Le D+ est encore inconnu pour beaucoup de courses.</p>
   </section>
 </main>
 
 <footer>
-  Fonds de carte © contributeurs <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> · Contours administratifs : <a href="https://github.com/gregoiredavid/france-geojson">france-geojson</a> ·
+  Fonds de carte © <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> · Contours : <a href="https://github.com/gregoiredavid/france-geojson">france-geojson</a> ·
   Une course manquante ? <a href="https://github.com/gcsys/TRAIL-AGREGATOR/blob/main/data/sources/catalogue.csv">Ajoutez-la au catalogue</a>.
 </footer>
+
+<button id="to-top" class="fab" aria-label="Revenir à la carte" hidden>↑ Carte</button>
 
 <script src="vendor/leaflet/leaflet.js"></script>
 <script src="vendor/leaflet-draw/leaflet.draw.js"></script>
