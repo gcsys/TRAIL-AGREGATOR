@@ -48,9 +48,11 @@ changé et redéploie le site. On peut aussi la lancer à la main depuis l'ongle
 |---|---|---|
 | `data/sources/catalogue.csv` | catalogue principal (dont ~820 trails Occitanie/PACA relevés sur les listes publiques de Miles Republic) | — |
 | [DATAtourisme](https://www.data.gouv.fr/fr/datasets/datatourisme-2/) | événements trail saisis par les offices de tourisme : dates exactes, site officiel, parfois le D+ | Licence Ouverte 2.0 |
+| [RunTrail](https://www.runtrail.run) | trails Occitanie, PACA, ARA : D+ par format (collecte hebdomadaire incrémentale, 3 s entre requêtes) | robots.txt ouvert, usage perso |
+| [GoTrail](https://gotrail.run) | calendriers régionaux : dates exactes, coordonnées GPS, distances | robots.txt ouvert, usage perso |
 | `data/sources/denivele.csv` | D+ relevés sur les sites des organisateurs ou proposés via le formulaire | — |
 
-Non utilisées car leurs conditions l'interdisent : Finishers, ATS Sport, Ultra Race Calendar.
+Non utilisées car leurs conditions ou leur robots.txt l'interdisent : Finishers, ATS Sport, Ultra Race Calendar, ITRA, UTMB World, Betrail, Kikourou (robots.txt bloque les IA), Ahotu (refuse les robots).
 
 ### Compléter un D+
 
