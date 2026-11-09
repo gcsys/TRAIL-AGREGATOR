@@ -23,7 +23,11 @@ for u in URLS:
     body = re.sub(r"<script(?![^>]*ld\+json)[\s\S]*?</script>|<style[\s\S]*?</style>|<svg[\s\S]*?</svg>", "", html)
     body = re.sub(r"\s+", " ", body)
     i = max(0, (re.search(r"\d\s?km", body) or re.search(r"<main", body) or re.search("x", body)).start() - 1500)
-    print(body[i:i + 7000])
+    if "TEXT" in __import__("os").environ:
+        txt = re.sub(r"<[^>]+>", " | ", body); txt = re.sub(r"(\s*\|\s*)+", " | ", txt)
+        print("TEXT:", txt[:20000])
+    else:
+        print(body[i:i + 7000])
     for m in re.findall(r'<script type="application/ld\+json">([\s\S]*?)</script>', html)[:2]:
         print("LDJSON:", m[:2500])
     hrefs = list(dict.fromkeys(re.findall(r'href="([^"]+)"', html)))
