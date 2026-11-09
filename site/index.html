@@ -125,6 +125,9 @@
         <button class="chip" data-profil="montagne"><svg aria-hidden="true"><use href="#i-mountain"/></svg>Montagne</button>
         <button class="chip" data-type="ultra">Ultra</button>
         <button class="chip" data-night><svg aria-hidden="true"><use href="#i-moon"/></svg>Nocturne</button>
+        <span class="chips-sep"></span>
+        <button class="chip dispo" id="dispo-toggle" aria-pressed="false" title="Pastille verte, orange ou rouge selon vos week-ends indisponibles (bêta)"><i class="dot-trio" aria-hidden="true"></i>Dispo</button>
+        <button class="chip dispo icon" id="dispo-settings" title="Régler les week-ends indisponibles" aria-label="Régler les week-ends indisponibles">⚙</button>
       </div>
     </div>
   </div>
@@ -513,6 +516,42 @@
   </form>
 </dialog>
 
+<!-- ===== Dialogue : week-ends indisponibles (bêta) ===== -->
+<dialog id="dlg-dispo" class="dlg">
+  <form method="dialog" class="dlg-inner" id="dispo-form">
+    <header class="dlg-head">
+      <div>
+        <p class="dlg-kicker">Disponibilités · bêta</p>
+        <h3>Week-ends indisponibles</h3>
+        <p class="dlg-sub">Indiquez un week-end où vous n'êtes pas disponible : il se répète ensuite à intervalle régulier, dans le passé comme dans le futur.</p>
+      </div>
+      <button class="dlg-x" value="cancel" formnovalidate aria-label="Fermer"><svg><use href="#i-x"/></svg></button>
+    </header>
+    <div class="edit-grid">
+      <label>Un week-end indisponible (samedi)<input type="date" id="dispo-ref" required></label>
+      <label>Revient toutes les
+        <select id="dispo-every">
+          <option value="1">semaines</option>
+          <option value="2" selected>2 semaines</option>
+          <option value="3">3 semaines</option>
+          <option value="4">4 semaines</option>
+        </select>
+      </label>
+      <label class="check wide"><input type="checkbox" id="dispo-hide"> Masquer les courses qui tombent un week-end indisponible</label>
+    </div>
+    <p class="dlg-note" id="dispo-preview" aria-live="polite"></p>
+    <ul class="dispo-legend">
+      <li><i class="dispo-dot ok"></i> Date confirmée, week-end disponible</li>
+      <li><i class="dispo-dot unsure"></i> Date pas encore confirmée</li>
+      <li><i class="dispo-dot busy"></i> Date confirmée, week-end indisponible</li>
+    </ul>
+    <p class="dlg-note">Réglage enregistré dans ce navigateur uniquement. Une date que vous avez complétée et cochée « confirmée » compte comme confirmée.</p>
+    <footer class="dlg-foot">
+      <button class="btn primary" value="save">Enregistrer et activer</button>
+    </footer>
+  </form>
+</dialog>
+
 <div id="toast" class="toast" role="status" aria-live="polite" hidden></div>
 
 <script src="vendor/leaflet/leaflet.js"></script>
@@ -520,6 +559,7 @@
 <script src="vendor/markercluster/leaflet.markercluster.js"></script>
 <script src="vendor/turf/turf.min.js"></script>
 <script src="favoris.js"></script>
+<script src="dispo.js"></script>
 <script src="app.js"></script>
 </body>
 </html>

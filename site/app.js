@@ -568,7 +568,7 @@
     const now = new Date();
     return [iso(now), iso(new Date(now.getTime() + w * 864e5))];
   };
-  $$(".chip").forEach((c) =>
+  $$(".chip:not(.dispo)").forEach((c) =>
     c.addEventListener("click", () => {
       const on = c.classList.contains("active");
       if (c.dataset.km) {
@@ -592,7 +592,7 @@
   );
   function syncChips() {
     const kmMin = $("#f-km-min").value, kmMax = $("#f-km-max").value;
-    $$(".chip").forEach((c) => {
+    $$(".chip:not(.dispo)").forEach((c) => {
       let on = false;
       if (c.dataset.km) {
         const [a, b] = c.dataset.km.split("-");
@@ -669,6 +669,7 @@
     if ($("#f-dplus").checked && r.denivele_pos_m == null) return false;
     if ($("#f-confirmed").checked && !(r.date && r.date.length === 10 && r.date_confirmee)) return false;
     if ($("#f-site").checked && !(safeUrl(r.site_web) || safeUrl(r.lien_inscription))) return false;
+    if (Dispo.hiding() && Dispo.status(r) === "busy") return false;
     return true;
   }
   const hay = (r) => (r._hay ??= " " + norm([r.nom, r.course, r.ville, r.organisateur, r.departement, r.departement_code, r.region].join(" ")));
@@ -944,7 +945,17 @@
   const place = (r) => [r.ville, r.departement_code && `(${r.departement_code})`].filter(Boolean).join(" ");
   const placeLong = (r) => [r.ville, r.departement && `${r.departement}${r.departement_code ? ` (${r.departement_code})` : ""}`].filter(Boolean).join(" · ");
 
+  // Pastille disponibilités (bêta) : rien quand l'indicateur est coupé.
+  const dispoDot = (st) => (st ? `<i class="dispo-dot ${st}" title="${Dispo.label[st]}" role="img" aria-label="${Dispo.label[st]}"></i>` : "");
+  // Pour une course à plusieurs formats, on retient le cas le moins favorable.
+  const evStatus = (ev) => {
+    const sts = ev.rows.map((r) => Dispo.status(r));
+    return sts.includes("busy") ? "busy" : sts.includes("unsure") ? "unsure" : sts[0] || null;
+  };
   function dateCell(r) {
+    return dispoDot(Dispo.status(r)) + dateCellInner(r);
+  }
+  function dateCellInner(r) {
     if (!r.date) return `<span class="dim">Date inconnue</span>`;
     const d = toDate(r.date);
     if (r.date.length === 7)
@@ -952,6 +963,10 @@
     return `<span class="d-day">${d.toLocaleDateString("fr-FR", { weekday: "short", day: "numeric", month: "short" })}</span><span class="d-sub">${d.getFullYear()}${r.date_confirmee ? "" : " · à confirmer"}</span>`;
   }
   function dateBox(ev) {
+    const dot = dispoDot(evStatus(ev));
+    return dot ? dateBoxInner(ev).replace(/<\/div>$/, dot + "</div>") : dateBoxInner(ev);
+  }
+  function dateBoxInner(ev) {
     const r = ev.first;
     if (!r.date) return `<div class="ev-date approx"><span class="wd">date</span><span class="d">?</span><span class="m">&nbsp;</span></div>`;
     const d = toDate(r.date);
@@ -1007,7 +1022,7 @@
   const cardHtml = (ev) => {
     const links = linksHtml(ev.links);
     const also = ev.others.length ? `Aussi : ${ev.others.map((r) => (r.distance_km == null ? "?" : fmtNum(r.distance_km)) + " km").join(", ")}` : "";
-    return `<li class="ev${ev.rows.every((r) => r._absent) ? " absent" : ""}" data-key="${esc(ev.key)}">
+    return `<li class="ev${ev.rows.every((r) => r._absent) ? " absent" : ""}${evStatus(ev) === "busy" ? " dispo-busy" : ""}" data-key="${esc(ev.key)}">
       ${dateBox(ev)}
       <div class="ev-main">
         <div class="ev-head"><h3 class="ev-name">${esc(ev.first.nom)}</h3>${ev.near != null ? `<span class="ev-near">à ${fmtKm(ev.near)} km</span>` : ""}</div>
@@ -1019,7 +1034,7 @@
     </li>`;
   };
   const popupHtml = (ev) => `<div class="pop">
-      <div class="pop-date">${esc(fmtDate(ev.first))}</div>
+      <div class="pop-date">${dispoDot(evStatus(ev))}${esc(fmtDate(ev.first))}</div>
       <div class="pop-title">${esc(ev.first.nom)}</div>
       <div class="pop-sub">${esc(placeLong(ev.first))}${ev.near != null ? ` · à ${fmtKm(ev.near)} km` : ""}</div>
       <ul class="fmts">${ev.rows.map(fmtRow).join("")}</ul>
@@ -1440,6 +1455,53 @@
     syncStick();
     flushMove();
   });
+
+  // ---------- Disponibilités (bêta) ----------
+  function syncDispoUi() {
+    const on = Dispo.active();
+    $("#dispo-toggle").classList.toggle("active", on);
+    $("#dispo-toggle").setAttribute("aria-pressed", on);
+    document.body.classList.toggle("dispo-on", on);
+  }
+  const fmtWe = (iso) => {
+    const d = new Date(iso + "T00:00");
+    const e = new Date(d.getTime() + 864e5);
+    return `${d.getDate()}${d.getMonth() === e.getMonth() ? "" : " " + d.toLocaleDateString("fr-FR", { month: "short" })}-${e.toLocaleDateString("fr-FR", { day: "numeric", month: "short" })}`;
+  };
+  function dispoPreview() {
+    const ref = $("#dispo-ref").value, every = Number($("#dispo-every").value);
+    if (!ref) return ($("#dispo-preview").textContent = "Choisissez une date pour voir les prochains week-ends concernés.");
+    const keep = Dispo.config();
+    Dispo.set({ ref, every });
+    const nx = Dispo.next(4);
+    Dispo.set({ ref: keep.ref, every: keep.every });
+    $("#dispo-preview").textContent = "Prochains week-ends indisponibles : " + nx.map(fmtWe).join(", ") + ", etc.";
+  }
+  function openDispo() {
+    const c = Dispo.config();
+    $("#dispo-ref").value = c.ref || "";
+    $("#dispo-every").value = String(c.every || 2);
+    $("#dispo-hide").checked = !!c.hide;
+    dispoPreview();
+    $("#dlg-dispo").returnValue = "";
+    openDlg("#dlg-dispo");
+  }
+  ["#dispo-ref", "#dispo-every"].forEach((id) => $(id).addEventListener("input", dispoPreview));
+  $("#dlg-dispo").addEventListener("close", () => {
+    if ($("#dlg-dispo").returnValue !== "save" || !$("#dispo-ref").value) return;
+    Dispo.set({ ref: $("#dispo-ref").value, every: $("#dispo-every").value, hide: $("#dispo-hide").checked, on: true });
+    syncDispoUi();
+    refresh({ keep: true });
+    toast("Indicateur de disponibilité activé");
+  });
+  $("#dispo-toggle").addEventListener("click", () => {
+    if (!Dispo.ready()) return openDispo(); // premier usage : on règle d'abord
+    Dispo.set({ on: !Dispo.config().on });
+    syncDispoUi();
+    refresh({ keep: true });
+  });
+  $("#dispo-settings").addEventListener("click", openDispo);
+  syncDispoUi();
 
   // ---------- Export ----------
   $("#export").addEventListener("click", () => {
