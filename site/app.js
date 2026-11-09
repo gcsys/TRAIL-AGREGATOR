@@ -1,4 +1,4 @@
-/* Trail Agrégateur : recherche, carte, zones, fiches par course, favoris. */
+/* Agregatrail : recherche, carte, zones, fiches par course, favoris. */
 (async function () {
   const $ = (s) => document.querySelector(s);
   const $$ = (s, el = document) => [...el.querySelectorAll(s)];
@@ -1856,7 +1856,7 @@
       date: v("#e-date") || (o.date && o.date.length === 10 ? o.date : ""),
       formats: `${km} ; ${dplus}`,
       site: v("#e-inscription") || v("#e-site") || o.site_web || "",
-      source: `Correction depuis Trail Agrégateur (id ${o.id}). Source : `,
+      source: `Correction depuis Agregatrail (id ${o.id}). Source : `,
     });
     window.open(`https://github.com/gcsys/TRAIL-AGREGATOR/issues/new?${p}`, "_blank", "noopener");
   });

@@ -1,4 +1,4 @@
-# ⛰️ Trail Agrégateur
+# ⛰️ Agregatrail
 
 Agrégateur de courses de trail en France : sélectionnez une zone sur la carte
 (départements, régions, périmètre dessiné à main levée, polygone, rectangle ou
