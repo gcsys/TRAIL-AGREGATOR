@@ -1,0 +1,43 @@
+name: Collecte GoTrail
+
+on:
+  schedule:
+    - cron: "30 1 1 * *" # le 1er de chaque mois
+  workflow_dispatch:
+    inputs:
+      regions:
+        description: "Régions GoTrail (vide = Occitanie, PACA, ARA)"
+        required: false
+
+permissions:
+  contents: write
+  actions: write
+
+jobs:
+  collect:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Collecte
+        env:
+          REGIONS: ${{ github.event.inputs.regions }}
+        run: python scripts/collect_gotrail.py $REGIONS
+      - name: Commit et reconstruction de la base
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          git config user.name "trail-bot"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add data/sources/gotrail.csv
+          if git diff --cached --quiet; then
+            echo "Aucun changement"
+          else
+            git commit -m "data: collecte GoTrail"
+            git pull --rebase origin main
+            git push origin HEAD:main
+            gh workflow run build-deploy.yml --ref main
+          fi
