@@ -8,6 +8,6 @@ Règle : n'ajouter que des sources dont les conditions d'utilisation autorisent
 la réutilisation (API ouvertes, open data, partenariats, flux fournis par les
 organisateurs). Pas de scraping de sites qui l'interdisent.
 """
-from . import catalogue, datatourisme
+from . import catalogue, datatourisme, runtrail
 
-SOURCES = [catalogue, datatourisme]
+SOURCES = [catalogue, datatourisme, runtrail]
