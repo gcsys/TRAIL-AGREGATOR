@@ -8,14 +8,21 @@ cercle), puis filtrez les courses dans un tableau.
 
 ## Fonctionnalités
 
-- Carte Leaflet / OpenStreetMap avec contours des départements et régions cliquables.
-- Dessin de périmètres (main levée, polygone, rectangle, cercle), combinables entre eux.
-- Filtres : recherche texte, dates, distance min/max, D+ min/max, km-effort,
-  catégorie UTMB Index (20K/50K/100K/100M), UTMB World Series, points ITRA,
-  type (trail/ultra/KV), nocturne.
-- Tableau triable, clic sur une ligne pour centrer la carte, export CSV.
-- Favoris : étoile ☆ sur chaque course, listes nommées (« 20 km », « 50 km »…),
-  consultables depuis « Mes listes » et partageables par lien (`#liste=…`).
+- Page d'accueil avec recherche intelligente : une ville (« autour de Millau »), un département,
+  une région ou le nom d'une course.
+- Fiches par course : tous les formats d'un même événement (distance, D+, labels) sur une seule fiche.
+- Sur ordinateur, liste et carte côte à côte ; sur téléphone, bascule « Carte / Liste » en bas d'écran.
+- Zone de recherche pensée pour le tactile : rayon autour d'une ville, de sa position ou d'un point
+  touché (centre déplaçable, rayon réglable), « Rechercher dans cette zone » après avoir cadré la carte,
+  départements et régions (au toucher ou par liste), tracé au doigt. Sur ordinateur : polygone et rectangle en plus.
+- Carte : points regroupés, fonds Plan, Relief (OpenTopoMap) et Satellite.
+- Filtres : mois, dates, distance, D+, profil (roulant, vallonné, montagne en m D+/km), km-effort,
+  UTMB Index, World Series, ITRA, type, nocturne, D+ connu, date confirmée, site officiel.
+  Filtres actifs affichés en étiquettes supprimables ; la recherche est enregistrée dans l'adresse de la page.
+- Tri (date, proximité, distance, D+, km-effort, nom), vue tableau sur ordinateur, export CSV.
+- Favoris : étoile sur chaque format, listes nommées consultables depuis « Mes listes »
+  (adresse `?liste=…`, retour à l'accueil par le bouton « Toutes les courses », le logo ou le retour du téléphone)
+  et partageables par lien (`#liste=…`).
 - Corrections personnelles (date officielle, km exact, D+, lien d'inscription,
   site, notes) qui remplacent les données affichées et recalculent km-effort,
   UTMB Index et ITRA ; bouton « Proposer à la base » vers le formulaire d'issue.
