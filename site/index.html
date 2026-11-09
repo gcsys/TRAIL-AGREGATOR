@@ -3,178 +3,185 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <meta name="theme-color" content="#1f5c3a">
-  <title>Trail Agrégateur</title>
-  <meta name="description" content="Trouvez les trails autour de vous : sélection par département, région ou périmètre dessiné, filtres distance, dénivelé, UTMB Index, ITRA.">
-  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⛰️</text></svg>">
+  <meta name="theme-color" content="#0d2a20">
+  <title>Agregatrail · Le calendrier des trails en France</title>
+  <meta name="description" content="Toutes les courses de trail en France sur une carte : recherche autour d'une ville, par département ou région, filtres distance, dénivelé, date, UTMB Index et ITRA.">
+  <meta property="og:title" content="Agregatrail · Le calendrier des trails en France">
+  <meta property="og:description" content="Trouvez votre prochain trail : carte, filtres distance et dénivelé, listes de favoris partageables.">
+  <meta property="og:type" content="website">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%230d2a20'/%3E%3Cpath d='M4 24 12.5 10l4.2 6.8L19.5 13 28 24z' fill='%2334c27a'/%3E%3Cpath d='m12.5 10 2.6 4.3-2.6-1-2.4 1.4z' fill='%23fff'/%3E%3C/svg%3E">
+  <link rel="preload" href="fonts/inter-latin-wght.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="preload" href="fonts/barlow-condensed-latin-700-normal.woff2" as="font" type="font/woff2" crossorigin>
   <link rel="stylesheet" href="vendor/leaflet/leaflet.css">
   <link rel="stylesheet" href="vendor/leaflet-draw/leaflet.draw.css">
+  <link rel="stylesheet" href="vendor/markercluster/MarkerCluster.css">
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
-<header class="topbar">
-  <div class="brand">
-    <span class="logo" aria-hidden="true">⛰️</span>
-    <div>
-      <h1>Trail Agrégateur</h1>
-      <p class="sub" id="meta">Chargement des courses…</p>
-    </div>
-  </div>
-  <div class="top-actions">
-    <button id="open-lists" class="gh my-lists" aria-haspopup="dialog">
-      <span aria-hidden="true">★</span> Mes listes<span id="lists-badge" class="badge" hidden>0</span>
-    </button>
-    <a class="gh add-race" href="https://github.com/gcsys/TRAIL-AGREGATOR/blob/main/data/sources/catalogue.csv" target="_blank" rel="noopener">+ Ajouter une course</a>
+<!-- Pictogrammes -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <symbol id="i-search" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></symbol>
+    <symbol id="i-filter" viewBox="0 0 24 24"><path d="M4 6h16M7 12h10M10 18h4"/></symbol>
+    <symbol id="i-pin" viewBox="0 0 24 24"><path d="M12 21s-7-6.1-7-11.5a7 7 0 0 1 14 0C19 14.9 12 21 12 21z"/><circle cx="12" cy="9.5" r="2.5"/></symbol>
+    <symbol id="i-locate" viewBox="0 0 24 24"><circle cx="12" cy="12" r="7"/><circle cx="12" cy="12" r="2.5"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/></symbol>
+    <symbol id="i-map" viewBox="0 0 24 24"><path d="m9 4-6 2.5v13.5l6-2.5 6 2.5 6-2.5V4l-6 2.5z"/><path d="M9 4v13.5M15 6.5V20"/></symbol>
+    <symbol id="i-list" viewBox="0 0 24 24"><path d="M9 6h11M9 12h11M9 18h11"/><circle cx="4.5" cy="6" r="1"/><circle cx="4.5" cy="12" r="1"/><circle cx="4.5" cy="18" r="1"/></symbol>
+    <symbol id="i-star" viewBox="0 0 24 24"><path d="m12 3 2.7 5.6 6.1.9-4.4 4.3 1 6.1L12 17l-5.4 2.9 1-6.1-4.4-4.3 6.1-.9z"/></symbol>
+    <symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></symbol>
+    <symbol id="i-x" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6 6 18"/></symbol>
+    <symbol id="i-back" viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"/></symbol>
+    <symbol id="i-down" viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"/></symbol>
+    <symbol id="i-download" viewBox="0 0 24 24"><path d="M12 4v11m0 0-4-4m4 4 4-4M5 20h14"/></symbol>
+    <symbol id="i-share" viewBox="0 0 24 24"><circle cx="18" cy="5" r="2.5"/><circle cx="6" cy="12" r="2.5"/><circle cx="18" cy="19" r="2.5"/><path d="m8.2 10.8 7.6-4.4M8.2 13.2l7.6 4.4"/></symbol>
+    <symbol id="i-edit" viewBox="0 0 24 24"><path d="M4 20h4L19 9l-4-4L4 16z"/><path d="m13.5 6.5 4 4"/></symbol>
+    <symbol id="i-trash" viewBox="0 0 24 24"><path d="M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3"/></symbol>
+    <symbol id="i-ext" viewBox="0 0 24 24"><path d="M14 4h6v6M20 4l-9 9M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5"/></symbol>
+    <symbol id="i-layers" viewBox="0 0 24 24"><path d="m12 3 9 5-9 5-9-5z"/><path d="m3 13 9 5 9-5"/></symbol>
+    <symbol id="i-pencil" viewBox="0 0 24 24"><path d="M3 17c3-4 5 2 8-2s4-8 7-6 1 6 3 6"/></symbol>
+    <symbol id="i-poly" viewBox="0 0 24 24"><path d="m12 3 8 6-3 11H7L4 9z"/></symbol>
+    <symbol id="i-rect" viewBox="0 0 24 24"><rect x="4" y="6" width="16" height="12" rx="1"/></symbol>
+    <symbol id="i-circle" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="1" fill="currentColor"/></symbol>
+    <symbol id="i-frame" viewBox="0 0 24 24"><path d="M4 8V4h4M16 4h4v4M20 16v4h-4M8 20H4v-4"/></symbol>
+    <symbol id="i-hand" viewBox="0 0 24 24"><path d="M8 13V5.5a1.5 1.5 0 0 1 3 0V11M11 10V4.5a1.5 1.5 0 0 1 3 0V11M14 10.5V6a1.5 1.5 0 0 1 3 0v8a6 6 0 0 1-6 6h-1a6 6 0 0 1-4.6-2.2L3 15a1.5 1.5 0 0 1 2.3-1.9L8 15"/></symbol>
+    <symbol id="i-moon" viewBox="0 0 24 24"><path d="M20 14.5A8 8 0 1 1 9.5 4a6.5 6.5 0 0 0 10.5 10.5z"/></symbol>
+    <symbol id="i-mountain" viewBox="0 0 24 24"><path d="m3 20 6.5-11 4 6.5L16 12l5 8z"/></symbol>
+    <symbol id="i-calendar" viewBox="0 0 24 24"><rect x="4" y="5" width="16" height="15" rx="2"/><path d="M4 10h16M9 3v4M15 3v4"/></symbol>
+    <symbol id="i-github" viewBox="0 0 24 24"><path d="M9 19c-4.3 1.4-4.3-2.5-6-3m12 5v-3.5c0-1 .1-1.4-.5-2 2.8-.3 5.5-1.4 5.5-6a4.6 4.6 0 0 0-1.3-3.2 4.2 4.2 0 0 0-.1-3.2s-1.1-.3-3.5 1.3a12.3 12.3 0 0 0-6.2 0C6.5 2.8 5.4 3.1 5.4 3.1a4.2 4.2 0 0 0-.1 3.2A4.6 4.6 0 0 0 4 9.5c0 4.6 2.7 5.7 5.5 6-.6.6-.6 1.2-.5 2V21"/></symbol>
+  </defs>
+</svg>
+
+<a class="skip" href="#results">Aller aux résultats</a>
+
+<header class="site-header">
+  <div class="wrap hdr">
+    <a href="./" class="brand" id="home-link" aria-label="Agregatrail, accueil">
+      <svg class="brand-mark" viewBox="0 0 32 32" aria-hidden="true"><rect width="32" height="32" rx="8" fill="#0d2a20"/><path d="M4 24 12.5 10l4.2 6.8L19.5 13 28 24z" fill="#34c27a"/><path d="m12.5 10 2.6 4.3-2.6-1-2.4 1.4z" fill="#fff"/></svg>
+      <span class="brand-name">Agrega<span>trail</span></span>
+    </a>
+    <nav class="nav" aria-label="Navigation principale">
+      <a href="./" class="nav-link" id="nav-home" aria-current="page">Courses</a>
+      <button type="button" id="open-lists" class="nav-link" aria-haspopup="dialog">
+        <svg aria-hidden="true"><use href="#i-star"/></svg><span class="nl-txt">Mes listes</span><span id="lists-badge" class="badge" hidden>0</span>
+      </button>
+      <a class="btn btn-cta add-race" href="https://github.com/gcsys/TRAIL-AGREGATOR/issues/new?template=completer-course.yml" target="_blank" rel="noopener">
+        <svg aria-hidden="true"><use href="#i-plus"/></svg>Ajouter une course
+      </a>
+    </nav>
   </div>
 </header>
 
-<main>
-  <!-- ===== Carte ===== -->
-  <section class="map-card" aria-label="Carte">
-    <div class="map-box">
-    <div id="map"></div>
+<!-- ===== Bandeau d'accueil ===== -->
+<section class="hero" id="hero">
+  <svg class="hero-art" viewBox="0 0 1440 360" preserveAspectRatio="xMidYMax slice" aria-hidden="true">
+    <defs>
+      <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#081d16"/><stop offset=".62" stop-color="#11402f"/><stop offset="1" stop-color="#1c5a40"/></linearGradient>
+      <radialGradient id="sun" cx=".78" cy=".72" r=".45"><stop offset="0" stop-color="#ff9a4d" stop-opacity=".55"/><stop offset=".45" stop-color="#ff7a3d" stop-opacity=".12"/><stop offset="1" stop-color="#ff7a3d" stop-opacity="0"/></radialGradient>
+    </defs>
+    <rect width="1440" height="360" fill="url(#sky)"/>
+    <rect width="1440" height="360" fill="url(#sun)"/>
+    <path d="M0 250 120 190l90 40 140-110 110 80 80-40 170 120 120-70 90 40 160-150 140 110 90-30 130 70V360H0z" fill="#174a37" opacity=".85"/>
+    <path d="M0 290 160 220l120 50 150-90 130 90 110-50 170 90 140-80 160 60 130-70 170 90V360H0z" fill="#123d2d"/>
+    <path d="M0 320 200 270l160 40 200-60 180 60 150-30 220 50 180-40 150 30V360H0z" fill="#0d3024"/>
+    <path d="M820 300c40-12 70-6 110-22s70-10 120-30 80-8 120-34" fill="none" stroke="#ffb36b" stroke-width="2" stroke-dasharray="4 7" stroke-linecap="round" opacity=".7"/>
+  </svg>
+  <div class="wrap hero-inner">
+    <p class="eyebrow">Le calendrier des trails en France</p>
+    <h1>Trouvez votre prochain trail</h1>
+    <p class="hero-sub" id="meta">Chargement des courses…</p>
+  </div>
+</section>
 
-    <div class="map-tools">
-      <div class="seg" role="group" aria-label="Sélection au clic">
-        <button data-layer="departements" class="active">Départements</button>
-        <button data-layer="regions">Régions</button>
-        <button data-layer="none">Aucun</button>
+<!-- ===== Barre de recherche (collante) ===== -->
+<div class="searchbar" id="searchbar">
+  <div class="wrap">
+    <div class="sb-card">
+      <div class="sb-row">
+        <div class="search" id="search-wrap">
+          <svg aria-hidden="true"><use href="#i-search"/></svg>
+          <label class="sr" for="f-q">Rechercher une course, une ville, un département</label>
+          <input type="search" id="f-q" placeholder="Course, ville, département…" autocomplete="off" enterkeyhint="search"
+                 role="combobox" aria-autocomplete="list" aria-expanded="false" aria-controls="suggest">
+          <button type="button" class="search-clear" id="q-clear" aria-label="Effacer la recherche" hidden><svg><use href="#i-x"/></svg></button>
+          <ul id="suggest" class="suggest" role="listbox" hidden></ul>
+        </div>
+        <button type="button" id="open-zone" class="btn sb-btn" aria-haspopup="dialog">
+          <svg aria-hidden="true"><use href="#i-pin"/></svg><span class="sb-lbl" id="zone-btn-lbl">Zone</span><span id="zone-badge" class="badge" hidden>0</span>
+        </button>
+        <button type="button" id="toggle-more" class="btn sb-btn" aria-haspopup="dialog" aria-expanded="false" aria-controls="more-filters">
+          <svg aria-hidden="true"><use href="#i-filter"/></svg><span class="sb-lbl">Filtres</span><span id="filter-badge" class="badge" hidden>0</span>
+        </button>
       </div>
-      <div class="seg" role="group" aria-label="Dessiner un périmètre">
-        <button id="draw-free" title="Tracer à main levée"><span aria-hidden="true">✏️</span><span class="lbl"> Main levée</span></button>
-        <button id="draw-poly" title="Polygone"><span aria-hidden="true">⬠</span><span class="lbl"> Polygone</span></button>
-        <button id="draw-rect" title="Rectangle"><span aria-hidden="true">▭</span><span class="lbl"> Rectangle</span></button>
-        <button id="draw-circle" title="Cercle"><span aria-hidden="true">◯</span><span class="lbl"> Cercle</span></button>
-      </div>
-      <button id="locate" class="seg-btn" title="Centrer sur ma position" aria-label="Centrer sur ma position">◎</button>
-    </div>
-
-    <div class="legend" aria-label="Légende des distances">
-      <span><i style="--c:var(--d1)"></i>&lt; 20 km</span>
-      <span><i style="--c:var(--d2)"></i>20–42</span>
-      <span><i style="--c:var(--d3)"></i>42–80</span>
-      <span><i style="--c:var(--d4)"></i>80 km +</span>
-    </div>
-    </div>
-
-    <div class="map-status">
-      <p id="selection-summary">Touchez un département ou dessinez une zone pour filtrer.</p>
-      <button id="clear-sel" class="link danger" hidden>Effacer la zone</button>
-    </div>
-  </section>
-
-  <!-- ===== Filtres ===== -->
-  <section class="filters" aria-label="Filtres">
-    <div class="filter-main">
-      <label class="search">
-        <span class="sr">Recherche</span>
-        <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
-        <input type="search" id="f-q" placeholder="Course, ville, organisateur…" autocomplete="off">
-      </label>
-      <button id="toggle-more" class="btn" aria-expanded="false" aria-controls="more-filters">
-        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16M7 12h10M10 18h4"/></svg>
-        Filtres<span id="filter-badge" class="badge" hidden>0</span>
-      </button>
-    </div>
-
-    <div class="chips" role="group" aria-label="Filtres rapides">
-      <button class="chip" data-km="0-20">&lt; 20 km</button>
-      <button class="chip" data-km="20-42">20–42 km</button>
-      <button class="chip" data-km="42-80">42–80 km</button>
-      <button class="chip" data-km="80-">80 km +</button>
-      <span class="chips-sep"></span>
-      <button class="chip" data-when="30">30 jours</button>
-      <button class="chip" data-when="90">3 mois</button>
-      <button class="chip" data-type="ultra">Ultra</button>
-      <button class="chip" data-night>🌙 Nocturne</button>
-      <span class="chips-sep"></span>
-      <button class="chip dispo" id="dispo-toggle" aria-pressed="false" title="Pastille verte, orange ou rouge selon vos week-ends indisponibles (bêta)"><i class="dot-trio" aria-hidden="true"></i> Dispo</button>
-      <button class="chip dispo icon" id="dispo-settings" title="Régler les week-ends indisponibles" aria-label="Régler les week-ends indisponibles">⚙</button>
-    </div>
-
-    <div id="more-filters" class="more" hidden>
-      <fieldset>
-        <legend>Dates</legend>
-        <label>Du<input type="date" id="f-from"></label>
-        <label>Au<input type="date" id="f-to"></label>
-      </fieldset>
-      <fieldset>
-        <legend>Distance (km)</legend>
-        <label>Min<input type="number" inputmode="numeric" id="f-km-min" min="0" step="1" placeholder="0"></label>
-        <label>Max<input type="number" inputmode="numeric" id="f-km-max" min="0" step="1" placeholder="∞"></label>
-      </fieldset>
-      <fieldset>
-        <legend>Dénivelé D+ (m)</legend>
-        <label>Min<input type="number" inputmode="numeric" id="f-d-min" min="0" step="100" placeholder="0"></label>
-        <label>Max<input type="number" inputmode="numeric" id="f-d-max" min="0" step="100" placeholder="∞"></label>
-      </fieldset>
-      <fieldset>
-        <legend>Km-effort</legend>
-        <label>Min<input type="number" inputmode="numeric" id="f-ke-min" min="0" step="5" placeholder="0"></label>
-        <label>Max<input type="number" inputmode="numeric" id="f-ke-max" min="0" step="5" placeholder="∞"></label>
-      </fieldset>
-      <fieldset>
-        <legend>Labels</legend>
-        <label>UTMB Index
-          <select id="f-utmb">
-            <option value="">Tous</option>
-            <option value="any">Avec catégorie</option>
-            <option value="none">Sans catégorie</option>
-            <option>20K</option><option>50K</option><option>100K</option><option>100M</option>
-          </select>
-        </label>
-        <label>World Series
-          <select id="f-ws"><option value="">Tous</option><option value="yes">Oui</option><option value="no">Non</option></select>
-        </label>
-        <label>Pts ITRA min<input type="number" inputmode="numeric" id="f-itra" min="0" max="6" step="1" placeholder="0"></label>
-      </fieldset>
-      <fieldset>
-        <legend>Format</legend>
-        <label>Type
-          <select id="f-type"><option value="">Tous</option><option value="trail">Trail</option><option value="ultra">Ultra</option><option value="kv">KV</option></select>
-        </label>
-        <label class="check"><input type="checkbox" id="f-night"> Nocturne</label>
-        <label class="check"><input type="checkbox" id="f-dplus"> D+ connu</label>
-      </fieldset>
-      <div class="more-actions">
-        <button id="reset-filters" class="btn ghost">Tout réinitialiser</button>
-        <button id="close-more" class="btn primary">Voir <span class="count-inline">0</span> courses</button>
+      <div class="chips" role="group" aria-label="Filtres rapides">
+        <button class="chip" data-km="0-20"><i class="dot" style="--dc:var(--d1)"></i>&lt; 20 km</button>
+        <button class="chip" data-km="20-42"><i class="dot" style="--dc:var(--d2)"></i>20–42 km</button>
+        <button class="chip" data-km="42-80"><i class="dot" style="--dc:var(--d3)"></i>42–80 km</button>
+        <button class="chip" data-km="80-"><i class="dot" style="--dc:var(--d4)"></i>80 km +</button>
+        <span class="chips-sep"></span>
+        <button class="chip" data-when="we">Ce week-end</button>
+        <button class="chip" data-when="30">30 jours</button>
+        <button class="chip" data-when="90">3 mois</button>
+        <span class="chips-sep"></span>
+        <button class="chip" data-profil="montagne"><svg aria-hidden="true"><use href="#i-mountain"/></svg>Montagne</button>
+        <button class="chip" data-type="ultra">Ultra</button>
+        <button class="chip" data-night><svg aria-hidden="true"><use href="#i-moon"/></svg>Nocturne</button>
+        <span class="chips-sep"></span>
+        <button class="chip dispo" id="dispo-toggle" aria-pressed="false" title="Pastille verte, orange ou rouge selon vos week-ends indisponibles (bêta)"><i class="dot-trio" aria-hidden="true"></i>Dispo</button>
+        <button class="chip dispo icon" id="dispo-settings" title="Régler les week-ends indisponibles" aria-label="Régler les week-ends indisponibles">⚙</button>
       </div>
     </div>
-  </section>
+  </div>
+</div>
 
-  <!-- ===== Résultats ===== -->
-  <section class="results" aria-label="Résultats">
+<!-- ===== Résultats + carte ===== -->
+<main class="layout wrap" id="layout">
+  <section class="results" id="results" aria-label="Résultats" tabindex="-1">
     <div id="list-banner" class="list-banner" hidden>
-      <div class="lb-main">
-        <span class="lb-kicker" id="lb-kicker">Ma liste</span>
-        <strong id="lb-name"></strong>
-        <span class="lb-note" id="lb-note"></span>
+      <button type="button" class="back-btn" id="lb-back"><svg aria-hidden="true"><use href="#i-back"/></svg>Toutes les courses</button>
+      <div class="lb-row">
+        <div class="lb-main">
+          <span class="lb-kicker" id="lb-kicker">Ma liste</span>
+          <h2 id="lb-name"></h2>
+          <span class="lb-note" id="lb-note"></span>
+        </div>
+        <div class="lb-actions" id="lb-actions"></div>
       </div>
-      <div class="lb-actions" id="lb-actions"></div>
     </div>
+
     <div class="results-head">
-      <h2><span id="count">0</span> <span id="count-label">courses</span></h2>
+      <div class="rh-count">
+        <h2><span id="count">0</span> <span id="count-label">courses</span></h2>
+        <span class="rh-sub" id="count-sub"></span>
+      </div>
       <div class="results-actions">
         <label class="sort">
           <span class="sr">Trier par</span>
           <select id="sort-select">
-            <option value="date:1">Date ↑</option>
-            <option value="date:-1">Date ↓</option>
-            <option value="distance_km:1">Distance ↑</option>
-            <option value="distance_km:-1">Distance ↓</option>
-            <option value="denivele_pos_m:-1">D+ ↓</option>
-            <option value="km_effort:-1">Km-effort ↓</option>
-            <option value="nom:1">Nom A→Z</option>
+            <option value="date:1">Date la plus proche</option>
+            <option value="date:-1">Date la plus lointaine</option>
+            <option value="near:1" data-near hidden>Les plus proches</option>
+            <option value="distance_km:1">Distance croissante</option>
+            <option value="distance_km:-1">Distance décroissante</option>
+            <option value="denivele_pos_m:-1">D+ décroissant</option>
+            <option value="km_effort:-1">Km-effort décroissant</option>
+            <option value="nom:1">Nom A → Z</option>
           </select>
         </label>
-        <button id="export" class="btn ghost" title="Exporter les résultats en CSV">
-          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4v11m0 0-4-4m4 4 4-4M5 20h14"/></svg><span class="lbl">CSV</span>
+        <div class="seg view-seg" role="group" aria-label="Affichage">
+          <button type="button" data-mode="cards" class="active" title="Fiches"><svg aria-hidden="true"><use href="#i-list"/></svg><span class="sr">Fiches</span></button>
+          <button type="button" data-mode="table" title="Tableau"><svg aria-hidden="true" viewBox="0 0 24 24"><rect x="4" y="5" width="16" height="14" rx="1.5"/><path d="M4 10h16M4 14.5h16M10 5v14"/></svg><span class="sr">Tableau</span></button>
+        </div>
+        <button id="export" class="btn icon-only" title="Exporter les résultats en CSV" aria-label="Exporter en CSV">
+          <svg aria-hidden="true"><use href="#i-download"/></svg>
         </button>
       </div>
     </div>
+    <div class="active-filters" id="active-filters" hidden></div>
 
-    <div class="table-wrap">
+    <ul id="cards" class="cards" aria-live="polite">
+      <li class="ev skel" aria-hidden="true"></li><li class="ev skel" aria-hidden="true"></li><li class="ev skel" aria-hidden="true"></li>
+    </ul>
+    <div class="table-wrap" hidden>
       <table id="races">
         <thead><tr>
           <th data-k="date">Date</th>
@@ -189,18 +196,234 @@
         <tbody></tbody>
       </table>
     </div>
-    <ul id="cards" class="cards"></ul>
-    <p id="empty" class="empty" hidden>Aucune course ne correspond. Essayez d'élargir la zone ou les filtres.</p>
+    <div id="empty" class="empty" hidden>
+      <svg aria-hidden="true"><use href="#i-mountain"/></svg>
+      <p id="empty-title">Aucune course ne correspond</p>
+      <p class="empty-sub" id="empty-sub">Élargissez la zone ou retirez un filtre.</p>
+      <button type="button" class="btn" id="empty-reset">Effacer les filtres et la zone</button>
+    </div>
     <button id="more" class="btn more-btn" hidden>Afficher plus</button>
+    <div id="sentinel" aria-hidden="true"></div>
 
-    <p class="hint">Catégorie UTMB Index et points ITRA estimés à partir du km-effort, à titre indicatif. Dates marquées « ~ » non confirmées. Le D+ est encore inconnu pour beaucoup de courses.</p>
+    <p class="hint">Catégorie UTMB Index et points ITRA estimés à partir du km-effort (km + D+/100), à titre indicatif. Les dates marquées « à confirmer » viennent de calendriers et doivent être vérifiées sur le site de l'organisateur.</p>
   </section>
+
+  <aside class="map-pane" id="map-pane" aria-label="Carte">
+    <div id="map"></div>
+
+    <div class="map-tools" id="map-tools">
+      <div class="seg" role="group" aria-label="Sélection au clic">
+        <span class="seg-lbl">Clic</span>
+        <button data-layer="departements" class="active">Départements</button>
+        <button data-layer="regions">Régions</button>
+        <button data-layer="none">Aucun</button>
+      </div>
+      <div class="seg" role="group" aria-label="Dessiner un périmètre">
+        <button id="draw-radius" title="Autour d'un point, avec un rayon"><svg aria-hidden="true"><use href="#i-circle"/></svg><span class="lbl">Rayon</span></button>
+        <button id="draw-free" title="Tracer à main levée"><svg aria-hidden="true"><use href="#i-pencil"/></svg><span class="lbl">Main levée</span></button>
+        <button id="draw-poly" title="Polygone"><svg aria-hidden="true"><use href="#i-poly"/></svg><span class="lbl">Polygone</span></button>
+        <button id="draw-rect" title="Rectangle"><svg aria-hidden="true"><use href="#i-rect"/></svg><span class="lbl">Rectangle</span></button>
+      </div>
+    </div>
+    <div class="map-side">
+      <button id="locate" class="map-btn" title="Autour de ma position" aria-label="Autour de ma position"><svg><use href="#i-locate"/></svg></button>
+      <button id="basemap" class="map-btn" title="Fond de carte" aria-label="Changer le fond de carte"><svg><use href="#i-layers"/></svg></button>
+      <div id="basemap-menu" class="basemap-menu" hidden role="menu">
+        <button data-base="plan" role="menuitemradio">Plan</button>
+        <button data-base="relief" role="menuitemradio">Relief</button>
+        <button data-base="sat" role="menuitemradio">Satellite</button>
+      </div>
+    </div>
+
+    <!-- Mobile : un seul bouton « Zone » sur la carte -->
+    <button type="button" class="map-zone-btn" id="map-zone-btn"><svg aria-hidden="true"><use href="#i-pin"/></svg><span id="map-zone-lbl">Choisir une zone</span></button>
+
+    <button type="button" class="search-here" id="search-here" hidden><svg aria-hidden="true"><use href="#i-frame"/></svg>Rechercher dans cette zone</button>
+
+    <div class="draw-hint" id="draw-hint" hidden>
+      <span id="draw-hint-txt"></span>
+      <button type="button" class="btn small primary" id="draw-done">Terminé</button>
+    </div>
+
+    <div class="legend" aria-label="Légende des distances">
+      <span><i style="--c:var(--d1)"></i>&lt; 20</span>
+      <span><i style="--c:var(--d2)"></i>20–42</span>
+      <span><i style="--c:var(--d3)"></i>42–80</span>
+      <span><i style="--c:var(--d4)"></i>80+ km</span>
+    </div>
+
+    <div class="map-status" id="map-status" hidden>
+      <div class="ms-row">
+        <span id="selection-summary"></span>
+        <button id="clear-sel" class="link danger">Effacer</button>
+      </div>
+      <div class="ms-radius" id="ms-radius" hidden>
+        <input type="range" id="radius-map" min="5" max="200" step="5" value="30" aria-label="Rayon en kilomètres">
+        <output id="radius-map-out">30 km</output>
+      </div>
+    </div>
+  </aside>
 </main>
 
-<footer>
-  Fonds de carte © <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> · Contours : <a href="https://github.com/gregoiredavid/france-geojson">france-geojson</a> ·
-  Une course manquante ? <a href="https://github.com/gcsys/TRAIL-AGREGATOR/blob/main/data/sources/catalogue.csv">Ajoutez-la au catalogue</a>.
+<!-- Mobile : bascule liste / carte -->
+<button id="view-toggle" class="fab" type="button">
+  <span class="fab-map"><svg aria-hidden="true"><use href="#i-map"/></svg>Carte</span>
+  <span class="fab-list"><svg aria-hidden="true"><use href="#i-list"/></svg>Liste · <b id="fab-count">0</b></span>
+</button>
+
+<footer class="site-footer">
+  <div class="wrap foot">
+    <div class="foot-brand">
+      <a href="./" class="brand"><svg class="brand-mark" viewBox="0 0 32 32" aria-hidden="true"><rect width="32" height="32" rx="8" fill="#0d2a20"/><path d="M4 24 12.5 10l4.2 6.8L19.5 13 28 24z" fill="#34c27a"/><path d="m12.5 10 2.6 4.3-2.6-1-2.4 1.4z" fill="#fff"/></svg><span class="brand-name">Agrega<span>trail</span></span></a>
+      <p>Toutes les courses de trail en France réunies sur une carte, mises à jour chaque semaine à partir de sources ouvertes et de calendriers publics.</p>
+    </div>
+    <div class="foot-col">
+      <h4>Participer</h4>
+      <a href="https://github.com/gcsys/TRAIL-AGREGATOR/issues/new?template=completer-course.yml" target="_blank" rel="noopener">Ajouter ou corriger une course</a>
+      <a href="https://github.com/gcsys/TRAIL-AGREGATOR/blob/main/data/sources/denivele.csv" target="_blank" rel="noopener">Compléter un dénivelé</a>
+      <a href="https://github.com/gcsys/TRAIL-AGREGATOR" target="_blank" rel="noopener">Code source</a>
+    </div>
+    <div class="foot-col">
+      <h4>Données</h4>
+      <span>RunTrail, GoTrail, DATAtourisme, organisateurs</span>
+      <span>Fonds de carte © <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>, CARTO, OpenTopoMap, Esri</span>
+      <span>Contours : <a href="https://github.com/gregoiredavid/france-geojson">france-geojson</a></span>
+    </div>
+  </div>
+  <div class="wrap foot-legal">
+    <span id="foot-meta"></span>
+    <span>Vérifiez toujours les informations auprès de l'organisateur avant de vous inscrire.</span>
+  </div>
 </footer>
+
+<div class="scrim" id="scrim" hidden></div>
+
+<!-- ===== Panneau : filtres ===== -->
+<aside id="more-filters" class="panel" aria-label="Filtres" hidden>
+  <header class="panel-head">
+    <h3>Filtres</h3>
+    <button type="button" class="dlg-x" data-close aria-label="Fermer"><svg><use href="#i-x"/></svg></button>
+  </header>
+  <div class="panel-body">
+    <section class="fsec">
+      <h4>Quand</h4>
+      <div class="month-grid" id="months" role="group" aria-label="Mois"></div>
+      <div class="frow">
+        <label>Du<input type="date" id="f-from"></label>
+        <label>Au<input type="date" id="f-to"></label>
+      </div>
+    </section>
+    <section class="fsec">
+      <h4>Distance</h4>
+      <div class="frow">
+        <label>Min (km)<input type="number" inputmode="numeric" id="f-km-min" min="0" step="1" placeholder="0"></label>
+        <label>Max (km)<input type="number" inputmode="numeric" id="f-km-max" min="0" step="1" placeholder="Illimité"></label>
+      </div>
+    </section>
+    <section class="fsec">
+      <h4>Dénivelé</h4>
+      <div class="opt-grid" role="group" aria-label="Profil">
+        <button type="button" class="opt" data-prof="roulant"><b>Roulant</b><small>moins de 25 m D+/km</small></button>
+        <button type="button" class="opt" data-prof="vallonne"><b>Vallonné</b><small>25 à 50 m D+/km</small></button>
+        <button type="button" class="opt" data-prof="montagne"><b>Montagne</b><small>plus de 50 m D+/km</small></button>
+      </div>
+      <div class="frow">
+        <label>D+ min (m)<input type="number" inputmode="numeric" id="f-d-min" min="0" step="100" placeholder="0"></label>
+        <label>D+ max (m)<input type="number" inputmode="numeric" id="f-d-max" min="0" step="100" placeholder="Illimité"></label>
+      </div>
+      <div class="frow">
+        <label>Km-effort min<input type="number" inputmode="numeric" id="f-ke-min" min="0" step="5" placeholder="0"></label>
+        <label>Km-effort max<input type="number" inputmode="numeric" id="f-ke-max" min="0" step="5" placeholder="Illimité"></label>
+      </div>
+    </section>
+    <section class="fsec">
+      <h4>Format</h4>
+      <div class="frow">
+        <label>Type
+          <select id="f-type"><option value="">Tous</option><option value="trail">Trail</option><option value="ultra">Ultra</option><option value="kv">Kilomètre vertical</option></select>
+        </label>
+        <label>UTMB Index
+          <select id="f-utmb">
+            <option value="">Tous</option>
+            <option value="any">Avec catégorie</option>
+            <option value="none">Sans catégorie</option>
+            <option>20K</option><option>50K</option><option>100K</option><option>100M</option>
+          </select>
+        </label>
+      </div>
+      <div class="frow">
+        <label>World Series
+          <select id="f-ws"><option value="">Toutes</option><option value="yes">Oui</option><option value="no">Non</option></select>
+        </label>
+        <label>Points ITRA min<input type="number" inputmode="numeric" id="f-itra" min="0" max="6" step="1" placeholder="0"></label>
+      </div>
+      <label class="switch"><input type="checkbox" id="f-night"><span>Course nocturne</span></label>
+    </section>
+    <section class="fsec">
+      <h4>Informations disponibles</h4>
+      <label class="switch"><input type="checkbox" id="f-dplus"><span>Dénivelé connu</span></label>
+      <label class="switch"><input type="checkbox" id="f-confirmed"><span>Date confirmée</span></label>
+      <label class="switch"><input type="checkbox" id="f-site"><span>Site officiel renseigné</span></label>
+    </section>
+  </div>
+  <footer class="panel-foot">
+    <button id="reset-filters" class="btn ghost">Tout effacer</button>
+    <button id="close-more" class="btn primary" data-close>Voir <span class="count-inline">0</span> courses</button>
+  </footer>
+</aside>
+
+<!-- ===== Panneau : zone ===== -->
+<aside id="zone-panel" class="panel" aria-label="Zone de recherche" hidden>
+  <header class="panel-head">
+    <h3>Où courir ?</h3>
+    <button type="button" class="dlg-x" data-close aria-label="Fermer"><svg><use href="#i-x"/></svg></button>
+  </header>
+  <div class="panel-body">
+    <section class="fsec">
+      <h4>Autour d'un lieu</h4>
+      <div class="search small" id="place-wrap">
+        <svg aria-hidden="true"><use href="#i-search"/></svg>
+        <label class="sr" for="place-q">Ville</label>
+        <input type="search" id="place-q" placeholder="Ville ou village" autocomplete="off" role="combobox" aria-autocomplete="list" aria-expanded="false" aria-controls="place-suggest">
+        <ul id="place-suggest" class="suggest" role="listbox" hidden></ul>
+      </div>
+      <div class="frow tight">
+        <button type="button" class="btn" id="zp-me"><svg aria-hidden="true"><use href="#i-locate"/></svg>Ma position</button>
+        <button type="button" class="btn" id="zp-pick"><svg aria-hidden="true"><use href="#i-hand"/></svg>Toucher la carte</button>
+      </div>
+      <div class="radius-box" id="radius-box">
+        <div class="radius-head"><span>Rayon</span><output id="radius-out">30 km</output></div>
+        <input type="range" id="radius" min="5" max="200" step="5" value="30" aria-label="Rayon en kilomètres">
+        <div class="radius-presets" role="group" aria-label="Rayons courants">
+          <button type="button" data-r="10">10 km</button><button type="button" data-r="25">25 km</button><button type="button" data-r="50">50 km</button><button type="button" data-r="100">100 km</button>
+        </div>
+        <p class="radius-center" id="radius-center">Aucun point choisi.</p>
+      </div>
+    </section>
+    <section class="fsec">
+      <h4>Départements et régions</h4>
+      <div class="frow">
+        <label>Ajouter un département<select id="zp-dep"><option value="">Choisir…</option></select></label>
+        <label>Ajouter une région<select id="zp-reg"><option value="">Choisir…</option></select></label>
+      </div>
+      <div class="zone-tags" id="zone-tags"></div>
+      <div class="frow tight">
+        <button type="button" class="btn" id="zp-tap-dep"><svg aria-hidden="true"><use href="#i-hand"/></svg>Toucher sur la carte</button>
+      </div>
+    </section>
+    <section class="fsec">
+      <h4>Sur la carte</h4>
+      <div class="opt-grid two">
+        <button type="button" class="opt" id="zp-view"><b>Zone affichée</b><small>Cadrez la carte puis limitez la recherche</small></button>
+        <button type="button" class="opt" id="zp-free"><b>Tracer au doigt</b><small>Entourez librement une zone</small></button>
+      </div>
+    </section>
+  </div>
+  <footer class="panel-foot">
+    <button id="zp-clear" class="btn ghost">Effacer la zone</button>
+    <button class="btn primary" data-close>Voir <span class="count-inline">0</span> courses</button>
+  </footer>
+</aside>
 
 <!-- ===== Dialogue : ajouter une course à des listes ===== -->
 <dialog id="dlg-fav" class="dlg">
@@ -211,7 +434,7 @@
         <h3 id="fav-title"></h3>
         <p class="dlg-sub" id="fav-sub"></p>
       </div>
-      <button class="dlg-x" value="close" aria-label="Fermer">✕</button>
+      <button class="dlg-x" value="close" aria-label="Fermer"><svg><use href="#i-x"/></svg></button>
     </header>
     <ul id="fav-lists" class="check-list"></ul>
     <div class="new-list">
@@ -219,7 +442,7 @@
       <button type="button" id="fav-new-btn" class="btn">Créer</button>
     </div>
     <footer class="dlg-foot">
-      <button type="button" class="btn ghost" id="fav-edit">✎ Compléter les infos</button>
+      <button type="button" class="btn ghost" id="fav-edit"><svg aria-hidden="true"><use href="#i-edit"/></svg>Compléter les infos</button>
       <button class="btn primary" value="close">Terminé</button>
     </footer>
   </form>
@@ -233,10 +456,10 @@
         <p class="dlg-kicker">Favoris</p>
         <h3>Mes listes</h3>
       </div>
-      <button class="dlg-x" value="close" aria-label="Fermer">✕</button>
+      <button class="dlg-x" value="close" aria-label="Fermer"><svg><use href="#i-x"/></svg></button>
     </header>
     <ul id="lists-list" class="lists-list"></ul>
-    <p id="lists-empty" class="dlg-sub" hidden>Aucune liste pour l'instant. Touchez l'étoile ☆ d'une course pour commencer.</p>
+    <p id="lists-empty" class="dlg-sub" hidden>Aucune liste pour l'instant. Touchez l'étoile d'une course pour commencer.</p>
     <div class="new-list">
       <input id="lists-new" type="text" placeholder="Nouvelle liste (ex. 20 km)" maxlength="60" autocomplete="off">
       <button type="button" id="lists-new-btn" class="btn">Créer</button>
@@ -254,7 +477,7 @@
         <h3 id="edit-title"></h3>
         <p class="dlg-sub" id="edit-sub"></p>
       </div>
-      <button class="dlg-x" value="cancel" formnovalidate aria-label="Fermer">✕</button>
+      <button class="dlg-x" value="cancel" formnovalidate aria-label="Fermer"><svg><use href="#i-x"/></svg></button>
     </header>
     <div class="edit-grid">
       <label>Date officielle<input type="date" id="e-date"><small id="o-date"></small></label>
@@ -268,7 +491,7 @@
     <p class="dlg-note">Vos modifications remplacent les données affichées sur ce navigateur et voyagent avec vos listes partagées (sauf les notes perso). Pour corriger la base pour tout le monde, utilisez « Proposer à la base ».</p>
     <footer class="dlg-foot">
       <button type="button" class="btn ghost danger-text" id="edit-reset">Rétablir l'origine</button>
-      <button type="button" class="btn ghost" id="edit-propose" title="Ouvre un formulaire GitHub pré-rempli">Proposer à la base ↗</button>
+      <button type="button" class="btn ghost" id="edit-propose" title="Ouvre un formulaire GitHub pré-rempli">Proposer à la base<svg aria-hidden="true"><use href="#i-ext"/></svg></button>
       <button class="btn primary" value="save">Enregistrer</button>
     </footer>
   </form>
@@ -282,7 +505,7 @@
         <p class="dlg-kicker">Partager la liste</p>
         <h3 id="share-title"></h3>
       </div>
-      <button class="dlg-x" value="close" aria-label="Fermer">✕</button>
+      <button class="dlg-x" value="close" aria-label="Fermer"><svg><use href="#i-x"/></svg></button>
     </header>
     <p class="dlg-sub">Toute personne qui ouvre ce lien voit la liste, avec vos corrections, et peut l'enregistrer chez elle.</p>
     <div class="new-list">
@@ -302,7 +525,7 @@
         <h3>Week-ends indisponibles</h3>
         <p class="dlg-sub">Indiquez un week-end où vous n'êtes pas disponible : il se répète ensuite à intervalle régulier, dans le passé comme dans le futur.</p>
       </div>
-      <button class="dlg-x" value="cancel" formnovalidate aria-label="Fermer">✕</button>
+      <button class="dlg-x" value="cancel" formnovalidate aria-label="Fermer"><svg><use href="#i-x"/></svg></button>
     </header>
     <div class="edit-grid">
       <label>Un week-end indisponible (samedi)<input type="date" id="dispo-ref" required></label>
@@ -322,7 +545,7 @@
       <li><i class="dispo-dot unsure"></i> Date pas encore confirmée</li>
       <li><i class="dispo-dot busy"></i> Date confirmée, week-end indisponible</li>
     </ul>
-    <p class="dlg-note">Réglage enregistré dans ce navigateur uniquement. Une date que vous avez complétée via « ✎ Compléter » compte comme confirmée si vous l'avez cochée ainsi.</p>
+    <p class="dlg-note">Réglage enregistré dans ce navigateur uniquement. Une date que vous avez complétée et cochée « confirmée » compte comme confirmée.</p>
     <footer class="dlg-foot">
       <button class="btn primary" value="save">Enregistrer et activer</button>
     </footer>
@@ -331,10 +554,9 @@
 
 <div id="toast" class="toast" role="status" aria-live="polite" hidden></div>
 
-<button id="to-top" class="fab" aria-label="Revenir à la carte" hidden>↑ Carte</button>
-
 <script src="vendor/leaflet/leaflet.js"></script>
 <script src="vendor/leaflet-draw/leaflet.draw.js"></script>
+<script src="vendor/markercluster/leaflet.markercluster.js"></script>
 <script src="vendor/turf/turf.min.js"></script>
 <script src="favoris.js"></script>
 <script src="dispo.js"></script>
