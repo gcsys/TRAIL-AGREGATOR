@@ -16,7 +16,11 @@
       return {};
     }
   };
-  let cfg = { on: false, ref: "", every: 2, hide: false, ...read() };
+  // Réglage par défaut : un week-end sur deux, en partant du samedi ci-dessous.
+  // Modifiable depuis le site (bouton ⚙), sans toucher au code.
+  const DEFAULT_REF = "2027-05-08";
+  const saved = read();
+  let cfg = { on: false, every: 2, hide: true, ...saved, ref: saved.ref || DEFAULT_REF };
   const save = () => {
     try {
       root.localStorage.setItem(KEY, JSON.stringify(cfg));
