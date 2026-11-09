@@ -10,8 +10,9 @@ Aucune dépendance externe : bibliothèque standard Python uniquement.
 """
 import json
 import os
+import re
 import sys
-import time
+import unicodedata
 import urllib.parse
 import urllib.request
 from datetime import date, datetime, timezone
@@ -85,39 +86,67 @@ def dep_to_region(deps, regs):
 
 
 # ---------- géocodage ----------
-def _get_json(url):
+def _get_json(url, timeout=15):
     req = urllib.request.Request(url, headers={"User-Agent": "trail-agregator/1.0"})
-    with urllib.request.urlopen(req, timeout=15) as resp:
+    with urllib.request.urlopen(req, timeout=timeout) as resp:
         return json.load(resp)
 
 
-def geocode(ville, cp, dep, cache):
-    """Coordonnées [lon, lat] d'une commune (API Découpage administratif puis API Adresse)."""
-    key = f"{ville}|{cp}|{dep}"
-    if key in cache:
-        return cache[key]
-    res = None
-    try:
+def norm(s):
+    s = unicodedata.normalize("NFKD", s).encode("ascii", "ignore").decode().lower()
+    s = re.sub(r"[^a-z0-9]+", " ", s).strip()
+    s = re.sub(r"\bst\b", "saint", s)
+    s = re.sub(r"\bste\b", "sainte", s)
+    return s
+
+
+class Geocoder:
+    """Géocodage des communes : une seule requête pour toutes les communes de France
+    (API Découpage administratif), puis recherche locale par nom + département."""
+
+    def __init__(self, cache):
+        self.cache = cache
+        self.index = {}
+        try:
+            url = "https://geo.api.gouv.fr/communes?fields=nom,codeDepartement,centre,population&format=json"
+            communes = _get_json(url, timeout=120)
+            for c in communes:
+                if not c.get("centre"):
+                    continue
+                key = (norm(c["nom"]), c.get("codeDepartement", ""))
+                prev = self.index.get(key)
+                if not prev or (c.get("population") or 0) > (prev[1] or 0):
+                    self.index[key] = (c["centre"]["coordinates"], c.get("population") or 0)
+            print(f"  {len(communes)} communes chargées pour le géocodage")
+        except Exception as e:
+            print(f"  liste des communes indisponible ({e}) : seul le cache sera utilisé", file=sys.stderr)
+
+    def _lookup(self, ville, dep):
+        n = norm(ville)
         if dep:
-            q = urllib.parse.urlencode({"nom": ville, "codeDepartement": dep, "fields": "centre", "boost": "population", "limit": 1})
-            found = _get_json(f"https://geo.api.gouv.fr/communes?{q}")
-            if found and found[0].get("centre"):
-                res = found[0]["centre"]["coordinates"]
-        if res is None:
-            params = {"q": ville, "type": "municipality", "limit": 1}
-            if cp:
-                params["postcode"] = cp
-            feats = _get_json("https://api-adresse.data.gouv.fr/search/?" + urllib.parse.urlencode(params)).get("features", [])
-            if feats:
-                props = feats[0]["properties"]
-                if not dep or str(props.get("citycode", "")).startswith(dep):
-                    res = feats[0]["geometry"]["coordinates"]
-    except Exception as e:  # réseau indisponible : on réessaiera au prochain run
-        print(f"  géocodage impossible pour {ville}: {e}", file=sys.stderr)
-        return None
-    cache[key] = res
-    time.sleep(0.05)
-    return res
+            hit = self.index.get((n, dep))
+            if hit:
+                return hit[0]
+            # ex. « Digne » -> « Digne-les-Bains » : préfixe unique dans le département
+            cands = [v for (name, d), v in self.index.items() if d == dep and (name.startswith(n + " ") or n.startswith(name + " "))]
+            if len(cands) == 1:
+                return cands[0][0]
+            return None
+        cands = [v for (name, d), v in self.index.items() if name == n]
+        return max(cands, key=lambda v: v[1])[0] if cands else None
+
+    def __call__(self, ville, cp, dep):
+        key = f"{ville}|{cp}|{dep}"
+        if self.cache.get(key):
+            return self.cache[key]
+        if not self.index:
+            return None
+        res = self._lookup(ville, dep)
+        if res:
+            self.cache[key] = res
+        else:
+            print(f"  commune introuvable : {ville} ({dep or '?'})", file=sys.stderr)
+        return res
 
 
 # ---------- champs calculés ----------
@@ -206,10 +235,11 @@ def main():
         races.append(n)
 
     cache = json.loads(GEOCODE_CACHE.read_text()) if GEOCODE_CACHE.exists() else {}
-    offline = os.environ.get("NO_GEOCODE") == "1"  # utile en local sans réseau
-    for n in races:
-        if not offline and (n["lat"] is None or n["lon"] is None):
-            res = geocode(n["ville"], n["code_postal"], n["departement_saisi"], cache)
+    missing = [n for n in races if n["lat"] is None or n["lon"] is None]
+    geocode = Geocoder(cache) if missing and os.environ.get("NO_GEOCODE") != "1" else None
+    for n in missing:
+        if geocode:
+            res = geocode(n["ville"], n["code_postal"], n["departement_saisi"])
             if res:
                 n["lon"], n["lat"] = res
     GEOCODE_CACHE.write_text(json.dumps(cache, ensure_ascii=False, indent=1, sort_keys=True) + "\n")
