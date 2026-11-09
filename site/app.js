@@ -11,7 +11,7 @@
   };
 
   // ---------- Carte ----------
-  const map = L.map("map", { zoomSnap: 0.5 }).setView([46.6, 2.4], 5.5);
+  const map = L.map("map", { zoomSnap: 0.5, preferCanvas: true }).setView([46.6, 2.4], 5.5);
   L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
     maxZoom: 18,
     attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
@@ -189,8 +189,8 @@
     const q = $("#f-q").value.trim().toLowerCase();
     if (q && ![r.nom, r.course, r.ville, r.organisateur, r.departement].join(" ").toLowerCase().includes(q)) return false;
     const from = $("#f-from").value, to = $("#f-to").value;
-    if (from && (!r.date || r.date < from)) return false;
-    if (to && (!r.date || r.date > to)) return false;
+    if (from && (!r.date || dateEnd(r.date) < from)) return false;
+    if (to && (!r.date || dateStart(r.date) > to)) return false;
     if (!between(r.distance_km, num("#f-km-min"), num("#f-km-max"))) return false;
     if (!between(r.denivele_pos_m, num("#f-d-min"), num("#f-d-max"))) return false;
     if (!between(r.km_effort, num("#f-ke-min"), num("#f-ke-max"))) return false;
@@ -211,7 +211,13 @@
   // ---------- Tableau ----------
   const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
   const safeUrl = (u) => (/^https?:\/\//i.test(u || "") ? u : null);
-  const fmtDate = (r) => (r.date ? (r.date_confirmee ? "" : "~") + new Date(r.date + "T00:00").toLocaleDateString("fr-FR") : "—");
+  const fmtDate = (r) => {
+    if (!r.date) return "—";
+    if (r.date.length === 7) return new Date(r.date + "-01T00:00").toLocaleDateString("fr-FR", { month: "long", year: "numeric" }) + " ~";
+    return (r.date_confirmee ? "" : "~") + new Date(r.date + "T00:00").toLocaleDateString("fr-FR");
+  };
+  const dateStart = (d) => (d.length === 7 ? d + "-01" : d);
+  const dateEnd = (d) => (d.length === 7 ? d + "-31" : d);
   const fmtNum = (v) => (v == null ? "—" : Number(v).toLocaleString("fr-FR"));
 
   document.querySelectorAll("th[data-k]").forEach((th) =>
@@ -244,6 +250,7 @@
         const links = [
           safeUrl(r.site_web) && `<a href="${esc(r.site_web)}" target="_blank" rel="noopener">Site</a>`,
           safeUrl(r.lien_inscription) && `<a href="${esc(r.lien_inscription)}" target="_blank" rel="noopener">Inscription</a>`,
+          safeUrl(r.source_url) && `<a href="${esc(r.source_url)}" target="_blank" rel="noopener">Source</a>`,
         ].filter(Boolean).join(" · ");
         return `<tr data-id="${esc(r.id)}">
           <td>${fmtDate(r)}</td>

@@ -9,6 +9,7 @@ points ITRA estimés) -> écriture du JSON.
 Aucune dépendance externe : bibliothèque standard Python uniquement.
 """
 import json
+import os
 import sys
 import time
 import urllib.parse
@@ -63,23 +64,59 @@ def locate(lon, lat, features):
     return None, None
 
 
+def dep_to_region(deps, regs):
+    """Région de chaque département, via un point intérieur du département."""
+    out = {}
+    for ft in deps:
+        geom = ft["geometry"]
+        ring = _rings(geom)[0][0]
+        lon = sum(p[0] for p in ring) / len(ring)
+        lat = sum(p[1] for p in ring) / len(ring)
+        if not _in_geom(lon, lat, geom):  # centroïde hors du polygone : on prend un sommet décalé
+            lon, lat = ring[0]
+        code, nom = locate(lon, lat, regs)
+        if code is None:
+            for p in ring:
+                code, nom = locate(p[0], p[1], regs)
+                if code:
+                    break
+        out[ft["properties"]["code"]] = (code, nom)
+    return out
+
+
 # ---------- géocodage ----------
-def geocode(ville, cp, cache):
-    key = f"{ville}|{cp}"
+def _get_json(url):
+    req = urllib.request.Request(url, headers={"User-Agent": "trail-agregator/1.0"})
+    with urllib.request.urlopen(req, timeout=15) as resp:
+        return json.load(resp)
+
+
+def geocode(ville, cp, dep, cache):
+    """Coordonnées [lon, lat] d'une commune (API Découpage administratif puis API Adresse)."""
+    key = f"{ville}|{cp}|{dep}"
     if key in cache:
         return cache[key]
-    q = urllib.parse.urlencode({"q": ville, "type": "municipality", "limit": 1, **({"postcode": cp} if cp else {})})
-    url = f"https://api-adresse.data.gouv.fr/search/?{q}"
+    res = None
     try:
-        req = urllib.request.Request(url, headers={"User-Agent": "trail-agregator/1.0"})
-        with urllib.request.urlopen(req, timeout=15) as resp:
-            feats = json.load(resp).get("features", [])
-        res = feats[0]["geometry"]["coordinates"] if feats else None  # [lon, lat]
+        if dep:
+            q = urllib.parse.urlencode({"nom": ville, "codeDepartement": dep, "fields": "centre", "boost": "population", "limit": 1})
+            found = _get_json(f"https://geo.api.gouv.fr/communes?{q}")
+            if found and found[0].get("centre"):
+                res = found[0]["centre"]["coordinates"]
+        if res is None:
+            params = {"q": ville, "type": "municipality", "limit": 1}
+            if cp:
+                params["postcode"] = cp
+            feats = _get_json("https://api-adresse.data.gouv.fr/search/?" + urllib.parse.urlencode(params)).get("features", [])
+            if feats:
+                props = feats[0]["properties"]
+                if not dep or str(props.get("citycode", "")).startswith(dep):
+                    res = feats[0]["geometry"]["coordinates"]
     except Exception as e:  # réseau indisponible : on réessaiera au prochain run
         print(f"  géocodage impossible pour {ville}: {e}", file=sys.stderr)
         return None
     cache[key] = res
-    time.sleep(0.1)
+    time.sleep(0.05)
     return res
 
 
@@ -132,6 +169,7 @@ def normalize(r):
         "date_confirmee": to_bool(r.get("date_confirmee")),
         "ville": r.get("ville", "").strip(),
         "code_postal": r.get("code_postal", "").strip(),
+        "departement_saisi": r.get("departement", "").strip().zfill(2) if r.get("departement", "").strip() else "",
         "lat": to_float(r.get("lat")),
         "lon": to_float(r.get("lon")),
         "distance_km": km,
@@ -148,6 +186,7 @@ def normalize(r):
         "lien_inscription": r.get("lien_inscription", "").strip(),
         "notes": r.get("notes", "").strip(),
         "source": r.get("source", ""),
+        "source_url": r.get("source_url", "").strip(),
     }
 
 
@@ -167,23 +206,30 @@ def main():
         races.append(n)
 
     cache = json.loads(GEOCODE_CACHE.read_text()) if GEOCODE_CACHE.exists() else {}
+    offline = os.environ.get("NO_GEOCODE") == "1"  # utile en local sans réseau
     for n in races:
-        if n["lat"] is None or n["lon"] is None:
-            res = geocode(n["ville"], n["code_postal"], cache)
+        if not offline and (n["lat"] is None or n["lon"] is None):
+            res = geocode(n["ville"], n["code_postal"], n["departement_saisi"], cache)
             if res:
                 n["lon"], n["lat"] = res
     GEOCODE_CACHE.write_text(json.dumps(cache, ensure_ascii=False, indent=1, sort_keys=True) + "\n")
 
     deps, regs = load_layer("departements"), load_layer("regions")
+    dep_names = {f["properties"]["code"]: f["properties"]["nom"] for f in deps}
+    dep_region = dep_to_region(deps, regs)
     for n in races:
+        dc = dn = None
         if n["lat"] is not None:
-            n["departement_code"], n["departement"] = locate(n["lon"], n["lat"], deps)
-            n["region_code"], n["region"] = locate(n["lon"], n["lat"], regs)
-        else:
-            n["departement_code"] = n["departement"] = n["region_code"] = n["region"] = None
+            dc, dn = locate(n["lon"], n["lat"], deps)
+        if dc is None and n["departement_saisi"] in dep_names:  # repli : département saisi
+            dc, dn = n["departement_saisi"], dep_names[n["departement_saisi"]]
+        n["departement_code"], n["departement"] = dc, dn
+        n["region_code"], n["region"] = dep_region.get(dc, (None, None))
+        del n["departement_saisi"]
 
     today = date.today().isoformat()
-    races = [n for n in races if not n["date"] or n["date"] >= today]  # courses à venir
+    # courses à venir (une date peut n'être connue qu'au mois près : AAAA-MM)
+    races = [n for n in races if not n["date"] or n["date"] >= today[: len(n["date"])]]
     races.sort(key=lambda n: (n["date"] or "9999", n["nom"]))
 
     OUT.parent.mkdir(parents=True, exist_ok=True)
