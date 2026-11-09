@@ -47,6 +47,8 @@ def get(url):
                 return r.read().decode("utf-8", "replace")
         except Exception as e:
             print(f"  {url} : {e}", file=sys.stderr)
+            if getattr(e, "code", None) == 404:
+                break
             time.sleep(5 * (attempt + 1))
     _last = time.time()
     return None
