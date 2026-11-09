@@ -1,0 +1,24 @@
+id,nom,course,date,date_confirmee,ville,code_postal,lat,lon,distance_km,denivele_pos_m,organisateur,site_web,lien_inscription,utmb_world_series,type,nocturne,prix_eur,notes
+utmb-2027-utmb,UTMB Mont-Blanc,UTMB,2027-08-27,false,Chamonix-Mont-Blanc,74400,45.9237,6.8694,174,10000,UTMB Group,https://montblanc.utmb.world,,true,ultra,true,,Données d'exemple à vérifier
+utmb-2027-mcc,UTMB Mont-Blanc,MCC,2027-08-25,false,Chamonix-Mont-Blanc,74400,45.9237,6.8694,40,2300,UTMB Group,https://montblanc.utmb.world,,true,trail,false,,Données d'exemple à vérifier
+marathon-mont-blanc-2027,Marathon du Mont-Blanc,Marathon,2027-06-27,false,Chamonix-Mont-Blanc,74400,45.9237,6.8694,42,2500,Club des Sports de Chamonix,,,false,trail,false,,Données d'exemple à vérifier
+templiers-2027-gt,Festival des Templiers,Grand Trail des Templiers,2027-10-24,false,Millau,12100,44.0975,3.0778,80,3500,,,,false,trail,true,,Données d'exemple à vérifier
+templiers-2027-endurance,Festival des Templiers,Endurance Trail,2027-10-22,false,Millau,12100,44.0975,3.0778,100,5000,,,,false,ultra,true,,Données d'exemple à vérifier
+saintelyon-2026,SaintéLyon,SaintéLyon solo,2026-11-28,false,Saint-Étienne,42000,45.4397,4.3872,78,2100,,https://www.saintelyon.com,,false,trail,true,,Données d'exemple à vérifier
+maxirace-2027,MaXi-Race Annecy,MaXi-Race,2027-05-29,false,Annecy,74000,45.8992,6.1294,90,5200,,,,false,ultra,true,,Données d'exemple à vérifier
+grp-2027-ultra,Grand Raid des Pyrénées,Ultra,2027-08-19,false,Vielle-Aure,65170,42.8306,0.3322,160,10000,,,,false,ultra,true,,Données d'exemple à vérifier
+echappee-belle-2027,L'Échappée Belle,Intégrale,2027-08-20,false,Vizille,38220,45.0777,5.7708,149,11400,,,,false,ultra,true,,Données d'exemple à vérifier
+restonica-2027,Restonica Trail,Ultra,2027-07-08,false,Corte,20250,42.3064,9.1505,110,7000,,,,false,ultra,true,,Données d'exemple à vérifier
+utb-2027,Ultra-Tour du Beaufortain,Ultra,2027-07-17,false,Beaufort,73270,45.7189,6.5733,105,6200,,,,false,ultra,true,,Données d'exemple à vérifier
+6000d-2027,La 6000D,6000D,2027-07-24,false,La Plagne Tarentaise,73210,45.5070,6.6770,65,3600,,,,false,trail,false,,Données d'exemple à vérifier
+ventoux-2027,Trail du Ventoux,Trail,2027-10-17,false,Bédoin,84410,44.1247,5.1786,46,2500,,,,false,trail,false,,Données d'exemple à vérifier
+itv-2027,Infernal Trail des Vosges,200 km,2027-09-10,false,Saint-Nabord,88200,48.0517,6.5822,200,8000,,,,false,ultra,true,,Données d'exemple à vérifier
+ultramarin-2027,Ultra Marin Grand Raid du Golfe du Morbihan,Grand Raid,2027-06-25,false,Vannes,56000,47.6582,-2.7608,177,1000,,,,false,ultra,true,,Données d'exemple à vérifier
+ecotrail-paris-2027,EcoTrail Paris,80 km,2027-03-20,false,Saint-Quentin-en-Yvelines,78180,48.7820,2.0460,80,1500,,,,false,trail,true,,Données d'exemple à vérifier
+vulcain-2027,Trail de Vulcain,Ultra,2027-03-06,false,Volvic,63530,45.8722,3.0386,74,2700,,,,false,trail,true,,Données d'exemple à vérifier
+vvx-2027,Volvic Volcanic Experience,Trail,2027-05-22,false,Volvic,63530,45.8722,3.0386,46,1900,,,,false,trail,false,,Données d'exemple à vérifier
+utcam-2027,Ultra Trail Côte d'Azur Mercantour,Ultra,2027-09-17,false,Nice,06000,43.7102,7.2620,140,9000,,,,false,ultra,true,,Données d'exemple à vérifier
+trail-aiguilles-rouges-2027,Trail des Aiguilles Rouges,TAR,2027-09-25,false,Chamonix-Mont-Blanc,74400,45.9237,6.8694,50,3800,,,,false,trail,false,,Données d'exemple à vérifier
+raid28-2027,Raid 28,Trail,2027-04-11,false,Chartres,28000,48.4439,1.4890,30,300,,,,false,trail,false,,Données d'exemple à vérifier
+cote-opale-2027,Trail de la Côte d'Opale,Trail,2027-04-25,false,Boulogne-sur-Mer,62200,50.7264,1.6147,32,600,,,,false,trail,false,,Données d'exemple à vérifier
+guerledan-2027,Trail de Guerlédan,Trail,2027-03-14,false,Mûr-de-Bretagne,22530,48.2000,-3.0000,40,900,,,,false,trail,false,,Données d'exemple à vérifier

@@ -1,0 +1,109 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Trail Agrégateur</title>
+  <meta name="description" content="Trouvez les trails autour de vous : sélection par département, région ou périmètre dessiné, filtres distance, dénivelé, UTMB Index, ITRA.">
+  <link rel="stylesheet" href="vendor/leaflet/leaflet.css">
+  <link rel="stylesheet" href="vendor/leaflet-draw/leaflet.draw.css">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+<header>
+  <h1>⛰️ Trail Agrégateur</h1>
+  <p class="sub">Sélectionnez une zone sur la carte, affinez avec les filtres. <span id="meta"></span></p>
+</header>
+
+<main>
+  <section class="map-wrap">
+    <div class="toolbar">
+      <div class="group" role="group" aria-label="Couche cliquable">
+        <span class="label">Cliquer sur :</span>
+        <button data-layer="departements" class="active">Départements</button>
+        <button data-layer="regions">Régions</button>
+        <button data-layer="none">Aucun</button>
+      </div>
+      <div class="group" role="group" aria-label="Dessin">
+        <span class="label">Dessiner :</span>
+        <button id="draw-free" title="Maintenir le clic et dessiner">✏️ Main levée</button>
+        <button id="draw-poly">⬠ Polygone</button>
+        <button id="draw-rect">▭ Rectangle</button>
+        <button id="draw-circle">◯ Cercle</button>
+      </div>
+      <button id="clear-sel" class="danger">Effacer la sélection</button>
+    </div>
+    <div id="map"></div>
+    <p id="selection-summary" class="hint">Aucune zone sélectionnée : toutes les courses sont affichées.</p>
+  </section>
+
+  <section class="filters" aria-label="Filtres">
+    <label>Recherche<input type="search" id="f-q" placeholder="Nom, ville, organisateur…"></label>
+    <label>Du<input type="date" id="f-from"></label>
+    <label>Au<input type="date" id="f-to"></label>
+    <label>Km min<input type="number" id="f-km-min" min="0" step="1"></label>
+    <label>Km max<input type="number" id="f-km-max" min="0" step="1"></label>
+    <label>D+ min<input type="number" id="f-d-min" min="0" step="100"></label>
+    <label>D+ max<input type="number" id="f-d-max" min="0" step="100"></label>
+    <label>Km-effort min<input type="number" id="f-ke-min" min="0" step="5"></label>
+    <label>Km-effort max<input type="number" id="f-ke-max" min="0" step="5"></label>
+    <label>UTMB Index
+      <select id="f-utmb">
+        <option value="">Tous</option>
+        <option value="any">Avec catégorie</option>
+        <option value="none">Sans catégorie</option>
+        <option>20K</option><option>50K</option><option>100K</option><option>100M</option>
+      </select>
+    </label>
+    <label>UTMB World Series
+      <select id="f-ws"><option value="">Tous</option><option value="yes">Oui</option><option value="no">Non</option></select>
+    </label>
+    <label>Points ITRA min<input type="number" id="f-itra" min="0" max="6" step="1"></label>
+    <label>Type
+      <select id="f-type"><option value="">Tous</option><option value="trail">Trail</option><option value="ultra">Ultra</option><option value="kv">KV</option></select>
+    </label>
+    <label class="check"><input type="checkbox" id="f-night"> Nocturne</label>
+    <button id="reset-filters">Réinitialiser</button>
+  </section>
+
+  <section class="results">
+    <div class="results-head">
+      <h2><span id="count">0</span> courses</h2>
+      <button id="export">Exporter CSV</button>
+    </div>
+    <div class="table-wrap">
+      <table id="races">
+        <thead><tr>
+          <th data-k="date">Date</th>
+          <th data-k="nom">Course</th>
+          <th data-k="ville">Ville</th>
+          <th data-k="departement">Dépt</th>
+          <th data-k="region">Région</th>
+          <th data-k="distance_km" class="num">Km</th>
+          <th data-k="denivele_pos_m" class="num">D+</th>
+          <th data-k="km_effort" class="num" title="km + D+/100">Km-effort</th>
+          <th data-k="utmb_index">UTMB Index</th>
+          <th data-k="utmb_world_series">World Series</th>
+          <th data-k="itra_points_estimes" class="num" title="Estimation d'après le km-effort">Pts ITRA*</th>
+          <th data-k="type">Type</th>
+          <th data-k="organisateur">Organisateur</th>
+          <th>Liens</th>
+        </tr></thead>
+        <tbody></tbody>
+      </table>
+    </div>
+    <p class="hint">* Catégorie UTMB Index et points ITRA estimés à partir du km-effort, à titre indicatif. Dates marquées « ~ » non confirmées.</p>
+  </section>
+</main>
+
+<footer>
+  Fonds de carte © contributeurs <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> · Contours administratifs : <a href="https://github.com/gregoiredavid/france-geojson">france-geojson</a> ·
+  Une course manquante ? <a href="https://github.com/gcsys/trail-agregator/blob/main/data/sources/catalogue.csv">Ajoutez-la au catalogue</a>.
+</footer>
+
+<script src="vendor/leaflet/leaflet.js"></script>
+<script src="vendor/leaflet-draw/leaflet.draw.js"></script>
+<script src="vendor/turf/turf.min.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
