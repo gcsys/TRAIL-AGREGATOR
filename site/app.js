@@ -1495,10 +1495,11 @@
     toast("Indicateur de disponibilité activé");
   });
   $("#dispo-toggle").addEventListener("click", () => {
-    if (!Dispo.ready()) return openDispo(); // premier usage : on règle d'abord
+    if (!Dispo.ready()) return openDispo(); // réglage effacé : on le redemande
     Dispo.set({ on: !Dispo.config().on });
     syncDispoUi();
     refresh({ keep: true });
+    if (Dispo.active()) toast(Dispo.config().hide ? "Week-ends indisponibles retirés, pastilles affichées" : "Pastilles de disponibilité affichées");
   });
   $("#dispo-settings").addEventListener("click", openDispo);
   syncDispoUi();
