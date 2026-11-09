@@ -1,0 +1,33 @@
+name: explore-datatourisme
+on:
+  push:
+    branches: [explore-datatourisme]
+jobs:
+  explore:
+    runs-on: ubuntu-latest
+    steps:
+      - run: |
+          curl -sSL -o occ.csv https://static.data.gouv.fr/resources/datatourisme-la-plateforme-nationale-des-donnees-touristiques/20261029-040619/datatourisme-reg-occ.csv
+          curl -sSL -o fma.csv https://static.data.gouv.fr/resources/datatourisme-la-plateforme-nationale-des-donnees-touristiques/20261029-034950/datatourisme-fma.csv
+          ls -la
+          python3 - <<'PY'
+          import csv, sys, re
+          csv.field_size_limit(10**9)
+          for fn in ("occ.csv", "fma.csv"):
+              with open(fn, encoding="utf-8", errors="replace") as f:
+                  sample = f.read(4096); f.seek(0)
+                  dialect = csv.Sniffer().sniff(sample.split("\n")[0])
+                  r = csv.reader(f, dialect)
+                  head = next(r)
+                  print("=====", fn, "delimiter", repr(dialect.delimiter))
+                  print("HEADER", head)
+                  n = 0; hits = 0
+                  for row in r:
+                      n += 1
+                      line = " ".join(row)
+                      if re.search(r"\btrail\b", line, re.I):
+                          hits += 1
+                          if hits <= 15:
+                              print("ROW", [x[:150] for x in row])
+                  print("rows", n, "trail hits", hits)
+          PY
