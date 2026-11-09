@@ -2,7 +2,7 @@ name: Collecte GoTrail
 
 on:
   schedule:
-    - cron: "30 1 1 * *" # le 1er de chaque mois
+    - cron: "30 1 * * 0" # chaque dimanche (incrémental)
   workflow_dispatch:
     inputs:
       regions:
@@ -16,7 +16,7 @@ permissions:
 jobs:
   collect:
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: 180
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
