@@ -250,6 +250,7 @@ rt-32985-2026-12-20-24k,Urban Trail d’Amplepuis,Trail court - 24 km,2026-12-20
 rt-32985-2026-12-20-6k,Urban Trail d’Amplepuis,Trail court - 6 km,2026-12-20,true,Amplepuis,,69,,,6,75,,,,false,trail,false,,,https://www.runtrail.run/event/32985-urban-trail-d-amplepuis
 rt-26613-2026-12-26-12k,Trail de la Via Romana Occitana,Trail court - 12 km,2026-12-26,true,Lavaur,,81,,,12,,,,,false,trail,false,,,https://www.runtrail.run/event/26613-trail-de-la-via-romana-occitana
 rt-26613-2026-12-26-18k,Trail de la Via Romana Occitana,Trail court - 18 km,2026-12-26,true,Lavaur,,81,,,18,,,,,false,trail,false,,,https://www.runtrail.run/event/26613-trail-de-la-via-romana-occitana
+rt-822-2027-01-01-9-4k,Snow Trail Valberg,Snow Trail - 9.4 km,2027-01-01,true,Péone,,06,,,9.4,400,,,,false,trail,false,,,https://www.runtrail.run/event/822-snow-trail-valberg
 rt-26813-2027-01-02-9k,La Moursoise,Trail court - 9 km,2027-01-02,true,Mours-Saint-Eusèbe,,26,,,9,250,,,,false,trail,false,,,https://www.runtrail.run/event/26813-la-moursoise
 rt-33523-2027-01-03-12k,Detox du Causse,Trail court - 12 km,2027-01-03,true,Sébazac-Concourès,,12,,,12,60,,,,false,trail,false,,,https://www.runtrail.run/event/33523-detox-du-causse
 rt-33523-2027-01-03-18k,Detox du Causse,Trail court - 18 km,2027-01-03,true,Sébazac-Concourès,,12,,,18,150,,,,false,trail,false,,,https://www.runtrail.run/event/33523-detox-du-causse
@@ -287,8 +288,13 @@ rt-115-2027-01-10-33k,Trail Hivernal des Coursières,Trail court - 33 km,2027-01
 rt-715-2027-01-10-13k,Trail des Coteaux Bellevue,LA CAUDAYROUS - 13 km,2027-01-10,true,Saint-Loup-Cammas,,31,,,13,200,,,,false,trail,false,,,https://www.runtrail.run/event/715-trail-des-coteaux-bellevue
 rt-715-2027-01-10-21k,Trail des Coteaux Bellevue,LA TAILLADETTE - 21 km,2027-01-10,true,Saint-Loup-Cammas,,31,,,21,400,,,,false,trail,false,,,https://www.runtrail.run/event/715-trail-des-coteaux-bellevue
 rt-14810-2027-01-10-15k,Trail du Calvaire,Trail court - 15 km,2027-01-10,true,Aramon,,30,,,15,500,,,,false,trail,false,,,https://www.runtrail.run/event/14810-trail-du-calvaire
+rt-38984-2027-01-13-8k,Val Tho Trail Snow,Val Tho Trail - 8 km,2027-01-13,true,Les Belleville,,73,,,8,500,,,,false,trail,false,,,https://www.runtrail.run/event/38984-val-tho-trail-snow
 rt-3930-2027-01-16-15k,La Nuit Blanche du Pilat,Snow Trail - 15 km,2027-01-16,true,Le Bessat,,42,,,15,300,,,,false,trail,true,,,https://www.runtrail.run/event/3930-la-nuit-blanche-du-pilat
 rt-3937-2027-01-16-5k,La Romeufontaine,Nocturne - 5 km,2027-01-16,true,Font-Romeu-Odeillo-Via,,66,,,5,200,,,,false,trail,true,,,https://www.runtrail.run/event/3937-la-romeufontaine
+rt-737-2027-01-16-11k,Les Lumières de la Muzelle,Snow Trail - 11 km,2027-01-16,true,Mont-de-Lans,,38,,,11,160,,,,false,trail,false,,,https://www.runtrail.run/event/737-les-lumieres-de-la-muzelle
+rt-737-2027-01-16-16k,Les Lumières de la Muzelle,Snow Trail - 16 km,2027-01-16,true,Mont-de-Lans,,38,,,16,250,,,,false,trail,false,,,https://www.runtrail.run/event/737-les-lumieres-de-la-muzelle
+rt-737-2027-01-16-21k,Les Lumières de la Muzelle,Snow Trail - 21 km,2027-01-16,true,Mont-de-Lans,,38,,,21,750,,,,false,trail,false,,,https://www.runtrail.run/event/737-les-lumieres-de-la-muzelle
+rt-737-2027-01-16-42k,Les Lumières de la Muzelle,Snow Trail - 42 km,2027-01-16,true,Mont-de-Lans,,38,,,42,1750,,,,false,trail,false,,,https://www.runtrail.run/event/737-les-lumieres-de-la-muzelle
 rt-767-2027-01-16-8k,Serre Chevalier Snow Trail,Trail Nocturne - 8 km,2027-01-16,true,La Salle-les-Alpes,,05,,,8,200,,,,false,trail,true,,,https://www.runtrail.run/event/767-serre-chevalier-snow-trail
 rt-748-2027-01-16-14k,Trail Hivernal,Trail court - 14 km,2027-01-16,true,Saint-Étienne-de-Maurs,,15,,,14,450,,,,false,trail,false,,,https://www.runtrail.run/event/748-trail-hivernal
 rt-748-2027-01-16-28k,Trail Hivernal,Trail court - 28 km,2027-01-16,true,Saint-Étienne-de-Maurs,,15,,,28,1200,,,,false,trail,false,,,https://www.runtrail.run/event/748-trail-hivernal
@@ -305,11 +311,17 @@ rt-27837-2027-01-17-5k,L'Escapade,S - 5 km,2027-01-17,true,Escalquens,,31,,,5,53
 rt-3937-2027-01-17-15k,La Romeufontaine,Authentique - 15 km,2027-01-17,true,Font-Romeu-Odeillo-Via,,66,,,15,500,,,,false,trail,false,,,https://www.runtrail.run/event/3937-la-romeufontaine
 rt-3937-2027-01-17-25k,La Romeufontaine,Passion - 25 km,2027-01-17,true,Font-Romeu-Odeillo-Via,,66,,,25,950,,,,false,trail,false,,,https://www.runtrail.run/event/3937-la-romeufontaine
 rt-3937-2027-01-17-9k,La Romeufontaine,Découverte - 9 km,2027-01-17,true,Font-Romeu-Odeillo-Via,,66,,,9,300,,,,false,trail,false,,,https://www.runtrail.run/event/3937-la-romeufontaine
+rt-14787-2027-01-17,La Saint Lo,Trail court - 0.95 km,2027-01-17,true,Saint-Laurent-d'Agny,,69,,,,,,,,false,trail,false,,,https://www.runtrail.run/event/14787-la-saint-lo
+rt-14787-2027-01-17-10k,La Saint Lo,Trail court - 10 km,2027-01-17,true,Saint-Laurent-d'Agny,,69,,,10,180,,,,false,trail,false,,,https://www.runtrail.run/event/14787-la-saint-lo
+rt-14787-2027-01-17-15k,La Saint Lo,Trail court - 15 km,2027-01-17,true,Saint-Laurent-d'Agny,,69,,,15,350,,,,false,trail,false,,,https://www.runtrail.run/event/14787-la-saint-lo
+rt-14787-2027-01-17-3-5k,La Saint Lo,Trail court - 3.5 km,2027-01-17,true,Saint-Laurent-d'Agny,,69,,,3.5,,,,,false,trail,false,,,https://www.runtrail.run/event/14787-la-saint-lo
 rt-3947-2027-01-17-13k,Ocres et Limons de Mormoiron,Trail en relais - 13 km,2027-01-17,true,Mormoiron,,84,,,13,400,,,,false,trail,false,,,https://www.runtrail.run/event/3947-ocres-et-limons-de-mormoiron
 rt-3947-2027-01-17-24k,Ocres et Limons de Mormoiron,Trail court - 24 km,2027-01-17,true,Mormoiron,,84,,,24,900,,,,false,trail,false,,,https://www.runtrail.run/event/3947-ocres-et-limons-de-mormoiron
 rt-767-2027-01-17-10k,Serre Chevalier Snow Trail,Snow Trail - 10 km,2027-01-17,true,La Salle-les-Alpes,,05,,,10,600,,,,false,trail,false,,,https://www.runtrail.run/event/767-serre-chevalier-snow-trail
 rt-767-2027-01-17-20k,Serre Chevalier Snow Trail,Snow Trail - 20 km,2027-01-17,true,La Salle-les-Alpes,,05,,,20,1000,,,,false,trail,false,,,https://www.runtrail.run/event/767-serre-chevalier-snow-trail
 rt-26718-2027-01-17-15k,Trail Hivernal du Vercors,Snow Trail - 15 km,2027-01-17,true,Autrans-Méaudre en Vercors,,38,,,15,500,,,,false,trail,false,,,https://www.runtrail.run/event/26718-trail-hivernal-du-vercors
+rt-746-2027-01-17-12k,Trail d'Avenas,Trail court - 12 km,2027-01-17,true,Deux-Grosnes,,69,,,12,488,,,,false,trail,false,,,https://www.runtrail.run/event/746-trail-d-avenas
+rt-746-2027-01-17-29k,Trail d'Avenas,Trail court - 29 km,2027-01-17,true,Deux-Grosnes,,69,,,29,1000,,,,false,trail,false,,,https://www.runtrail.run/event/746-trail-d-avenas
 rt-9482-2027-01-17-14k,Trail de la Galette,Trail court - 14 km,2027-01-17,true,Labastide-de-Virac,,07,,,14,300,,,,false,trail,false,,,https://www.runtrail.run/event/9482-trail-de-la-galette
 rt-9482-2027-01-17-24k,Trail de la Galette,Trail de la Galette 24km - 24 km,2027-01-17,true,Labastide-de-Virac,,07,,,24,560,,,,false,trail,false,,,https://www.runtrail.run/event/9482-trail-de-la-galette
 rt-993-2027-01-17-15k,Trail du Coudon,Trail Découverte Solo - 15 km,2027-01-17,true,La Valette-du-Var,,83,,,15,600,,,,false,trail,false,,,https://www.runtrail.run/event/993-trail-du-coudon
@@ -319,9 +331,17 @@ rt-9494-2027-01-17-15k,Trail du Dauphiné,Trail court - 15 km,2027-01-17,true,Be
 rt-9494-2027-01-17-8k,Trail du Dauphiné,Trail court - 8 km,2027-01-17,true,Beauregard-Baret,,26,,,8,210,,,,false,trail,false,,,https://www.runtrail.run/event/9494-trail-du-dauphine
 rt-33822-2027-01-17-17k,Virada de Falicon,Trail court - 17 km,2027-01-17,true,Falicon,,06,,,17,800,,,,false,trail,false,,,https://www.runtrail.run/event/33822-virada-de-falicon
 rt-14797-2027-01-23-8-2k,TBZ Trail de Baziege Survivor,Trail long - 8.2 km,2027-01-23,true,Baziège,,31,,,8.2,120,,,,false,trail,false,,,https://www.runtrail.run/event/14797-tbz-trail-de-baziege-survivor
+rt-39576-2027-01-23-11k,Trail Blanc du Corbier,Trail des Aiguilles - 11 km,2027-01-23,true,Curienne,,73,,,11,450,,,,false,trail,false,,,https://www.runtrail.run/event/39576-trail-blanc-du-corbier
+rt-39576-2027-01-23-5k,Trail Blanc du Corbier,Trail des Etoiles - 5 km,2027-01-23,true,Curienne,,73,,,5,350,,,,false,trail,false,,,https://www.runtrail.run/event/39576-trail-blanc-du-corbier
 rt-26419-2027-01-23-12k,Trail Hivernal du Lévézou,12km - 12 km,2027-01-23,true,Pont-de-Salars,,12,,,12,380,,,,false,trail,false,,,https://www.runtrail.run/event/26419-trail-hivernal-du-levezou
 rt-26419-2027-01-23-24k,Trail Hivernal du Lévézou,24km - 24 km,2027-01-23,true,Pont-de-Salars,,12,,,24,900,,,,false,trail,false,,,https://www.runtrail.run/event/26419-trail-hivernal-du-levezou
 rt-791-2027-01-23-17k,Trail de Bize Minervois,Trail court - 17 km,2027-01-23,true,Bize-Minervois,,11,,,17,700,,,,false,trail,false,,,https://www.runtrail.run/event/791-trail-de-bize-minervois
+rt-771-2027-01-23,Trails Chantelle Sports Nature,Le P'tit Trail de Chantelle - 2.5 km,2027-01-23,true,Chantelle,,03,,,,50,,,,false,trail,false,,,https://www.runtrail.run/event/771-trails-chantelle-sports-nature
+rt-771-2027-01-23-10k,Trails Chantelle Sports Nature,La P'tite Chaume des Buis - 10 km,2027-01-23,true,Chantelle,,03,,,10,95,,,,false,trail,false,,,https://www.runtrail.run/event/771-trails-chantelle-sports-nature
+rt-771-2027-01-23-12k,Trails Chantelle Sports Nature,Trail des Moulins - 12 km,2027-01-23,true,Chantelle,,03,,,12,300,,,,false,trail,false,,,https://www.runtrail.run/event/771-trails-chantelle-sports-nature
+rt-771-2027-01-23-20k,Trails Chantelle Sports Nature,La Grande Chaume des Buis - 20 km,2027-01-23,true,Chantelle,,03,,,20,170,,,,false,trail,false,,,https://www.runtrail.run/event/771-trails-chantelle-sports-nature
+rt-771-2027-01-23-21k,Trails Chantelle Sports Nature,Trail des Gorges de la Bouble - 21 km,2027-01-23,true,Chantelle,,03,,,21,400,,,,false,trail,false,,,https://www.runtrail.run/event/771-trails-chantelle-sports-nature
+rt-771-2027-01-23-27k,Trails Chantelle Sports Nature,Trail des Gorges de la Bouble - 27 km,2027-01-23,true,Chantelle,,03,,,27,600,,,,false,trail,false,,,https://www.runtrail.run/event/771-trails-chantelle-sports-nature
 rt-33907-2027-01-23-5k,Urban Trail de Villeneuve lez Avignon,Trail court - 5 km,2027-01-23,true,Villeneuve-lès-Avignon,,30,,,5,80,,,,false,trail,false,,,https://www.runtrail.run/event/33907-urban-trail-de-villeneuve-lez-avignon
 rt-33907-2027-01-23-9k,Urban Trail de Villeneuve lez Avignon,Trail court - 9 km,2027-01-23,true,Villeneuve-lès-Avignon,,30,,,9,150,,,,false,trail,false,,,https://www.runtrail.run/event/33907-urban-trail-de-villeneuve-lez-avignon
 rt-766-2027-01-24-16k,Cannes Urban Trail,Le Petit Cannois - 16 km,2027-01-24,true,Cannes,,06,,,16,250,,,,false,trail,false,,,https://www.runtrail.run/event/766-cannes-urban-trail
@@ -330,6 +350,9 @@ rt-766-2027-01-24-9k,Cannes Urban Trail,Cannes Découverte Run - 9 km,2027-01-24
 rt-8119-2027-01-24-12-5k,Course du Pays d'Apt,La Foulée Villarsoise - 12.5 km,2027-01-24,true,Villars,,84,,,12.5,,,,,false,trail,false,,,https://www.runtrail.run/event/8119-course-du-pays-d-apt
 rt-8119-2027-01-24-28k,Course du Pays d'Apt,Le Trail Villarsois - 28 km,2027-01-24,true,Villars,,84,,,28,,,,,false,trail,false,,,https://www.runtrail.run/event/8119-course-du-pays-d-apt
 rt-8119-2027-01-24-7k,Course du Pays d'Apt,Trail court - 7 km,2027-01-24,true,Villars,,84,,,7,,,,,false,trail,false,,,https://www.runtrail.run/event/8119-course-du-pays-d-apt
+rt-774-2027-01-24-12k,La Foulée Tricastine,Trail court - 12 km,2027-01-24,true,Saint-Paul-Trois-Châteaux,,26,,,12,390,,,,false,trail,false,,,https://www.runtrail.run/event/774-la-foulee-tricastine
+rt-774-2027-01-24-20k,La Foulée Tricastine,Trail court - 20 km,2027-01-24,true,Saint-Paul-Trois-Châteaux,,26,,,20,580,,,,false,trail,false,,,https://www.runtrail.run/event/774-la-foulee-tricastine
+rt-774-2027-01-24-5k,La Foulée Tricastine,Course populaire - 5 km,2027-01-24,true,Saint-Paul-Trois-Châteaux,,26,,,5,100,,,,false,trail,false,,,https://www.runtrail.run/event/774-la-foulee-tricastine
 rt-31630-2027-01-24-12-5k,La Villarsoise,La Foulée Villarsoise - 12.5 km,2027-01-24,true,Villars,,84,,,12.5,400,,,,false,trail,false,,,https://www.runtrail.run/event/31630-la-villarsoise
 rt-31630-2027-01-24-28k,La Villarsoise,Le Trail Villarsois - 28 km,2027-01-24,true,Villars,,84,,,28,1200,,,,false,trail,false,,,https://www.runtrail.run/event/31630-la-villarsoise
 rt-31630-2027-01-24-7k,La Villarsoise,La Woof de Villars - 7 km,2027-01-24,true,Villars,,84,,,7,180,,,,false,trail,false,,,https://www.runtrail.run/event/31630-la-villarsoise
@@ -337,11 +360,22 @@ rt-39577-2027-01-24-12k,Trail de Pignan,Trail court - 12 km,2027-01-24,true,Pign
 rt-39577-2027-01-24-20k,Trail de Pignan,Trail court - 20 km,2027-01-24,true,Pignan,,34,,,20,600,,,,false,trail,false,,,https://www.runtrail.run/event/39577-trail-de-pignan
 rt-39577-2027-01-24-31k,Trail de Pignan,Trail long - 31 km,2027-01-24,true,Pignan,,34,,,31,1000,,,,false,trail,false,,,https://www.runtrail.run/event/39577-trail-de-pignan
 rt-39577-2027-01-24-5k,Trail de Pignan,Trail court - 5 km,2027-01-24,true,Pignan,,34,,,5,50,,,,false,trail,false,,,https://www.runtrail.run/event/39577-trail-de-pignan
+rt-14817-2027-01-24-11k,Trail des Côteaux du Lyonnais,Trail court - 11 km,2027-01-24,true,Taluyers,,69,,,11,260,,,,false,trail,false,,,https://www.runtrail.run/event/14817-trail-des-coteaux-du-lyonnais
+rt-14817-2027-01-24-21k,Trail des Côteaux du Lyonnais,Trail court - 21 km,2027-01-24,true,Taluyers,,69,,,21,460,,,,false,trail,false,,,https://www.runtrail.run/event/14817-trail-des-coteaux-du-lyonnais
+rt-14817-2027-01-24-30k,Trail des Côteaux du Lyonnais,Trail court - 30 km,2027-01-24,true,Taluyers,,69,,,30,800,,,,false,trail,false,,,https://www.runtrail.run/event/14817-trail-des-coteaux-du-lyonnais
+rt-1160-2027-01-24-14k,Trail des Neiges,Trail court - 14 km,2027-01-24,true,Saint-Régis-du-Coin,,42,,,14,450,,,,false,trail,false,,,https://www.runtrail.run/event/1160-trail-des-neiges
+rt-1160-2027-01-24-8k,Trail des Neiges,Trail court - 8 km,2027-01-24,true,Saint-Régis-du-Coin,,42,,,8,250,,,,false,trail,false,,,https://www.runtrail.run/event/1160-trail-des-neiges
 rt-14843-2027-01-24-10k,Traversée des Pignes,Trail court - 10 km,2027-01-24,true,Pignans,,83,,,10,280,,,,false,trail,false,,,https://www.runtrail.run/event/14843-traversee-des-pignes
 rt-14843-2027-01-24-16k,Traversée des Pignes,Trail court - 16 km,2027-01-24,true,Pignans,,83,,,16,510,,,,false,trail,false,,,https://www.runtrail.run/event/14843-traversee-des-pignes
 rt-14843-2027-01-24-5-5k,Traversée des Pignes,Trail court - 5.5 km,2027-01-24,true,Pignans,,83,,,5.5,145,,,,false,trail,false,,,https://www.runtrail.run/event/14843-traversee-des-pignes
+rt-34017-2027-01-29-10k,Trail Blanc de la Rosière,Snow Trail - 10 km,2027-01-29,true,Montvalezan,,73,,,10,450,,,,false,trail,false,,,https://www.runtrail.run/event/34017-trail-blanc-de-la-rosiere
+rt-34017-2027-01-29-21k,Trail Blanc de la Rosière,Snow Trail - 21 km,2027-01-29,true,Montvalezan,,73,,,21,860,,,,false,trail,false,,,https://www.runtrail.run/event/34017-trail-blanc-de-la-rosiere
+rt-34017-2027-01-29-5k,Trail Blanc de la Rosière,Snow Trail - 5 km,2027-01-29,true,Montvalezan,,73,,,5,240,,,,false,trail,false,,,https://www.runtrail.run/event/34017-trail-blanc-de-la-rosiere
 rt-154-2027-01-30-10k,Chartreuse Winter Trail,Mini Winter Trail - 10 km,2027-01-30,true,Saint-Pierre-de-Chartreuse,,38,,,10,360,,,,false,trail,false,,,https://www.runtrail.run/event/154-chartreuse-winter-trail
 rt-154-2027-01-30-20k,Chartreuse Winter Trail,Solo et Relais Winter Trail - 20 km,2027-01-30,true,Saint-Pierre-de-Chartreuse,,38,,,20,1000,,,,false,trail,false,,,https://www.runtrail.run/event/154-chartreuse-winter-trail
+rt-1577-2027-01-30-13k,La Romagnatoise,La Romagnatorix - 13 km,2027-01-30,true,Romagnat,,63,,,13,400,,,,false,trail,false,,,https://www.runtrail.run/event/1577-la-romagnatoise
+rt-1577-2027-01-30-8k,La Romagnatoise,L’Ultraraccourcix - 8 km,2027-01-30,true,Romagnat,,63,,,8,200,,,,false,trail,false,,,https://www.runtrail.run/event/1577-la-romagnatoise
+rt-39685-2027-01-30-9k,Trail Blanc Haut-Giffre,Course HS non officielle - 9 km,2027-01-30,true,Verchaix,,74,,,9,250,,,,false,trail,false,,,https://www.runtrail.run/event/39685-trail-blanc-haut-giffre
 rt-4050-2027-01-30-11-5k,Trail Blanc du Semnoz,Snow Trail - 11.5 km,2027-01-30,true,Viuz-la-Chiésaz,,74,,,11.5,460,,,,false,trail,false,,,https://www.runtrail.run/event/4050-trail-blanc-du-semnoz
 rt-838-2027-01-30,Trail de Fontaine,1/2 KV - 2.2 km,2027-01-30,true,Fontaine-de-Vaucluse,,84,,,,500,,,,false,trail,false,,,https://www.runtrail.run/event/838-trail-de-fontaine
 rt-39701-2027-01-31-14k,Badens Trail Run,Signal iduna - 14 km,2027-01-31,true,Badens,,11,,,14,180,,,,false,trail,false,,,https://www.runtrail.run/event/39701-badens-trail-run
@@ -362,10 +396,16 @@ rt-14786-2027-01-31-20k,Hivern’Aigoual Trail,Snow Trail - 20 km,2027-01-31,tru
 rt-33961-2027-01-31-14k,L'Hivernal Trail du Crozet,Trail court - 14 km,2027-01-31,true,Le Crozet,,42,,,14,330,,,,false,trail,false,,,https://www.runtrail.run/event/33961-l-hivernal-trail-du-crozet
 rt-33961-2027-01-31-25k,L'Hivernal Trail du Crozet,Trail court - 25 km,2027-01-31,true,Le Crozet,,42,,,25,650,,,,false,trail,false,,,https://www.runtrail.run/event/33961-l-hivernal-trail-du-crozet
 rt-33961-2027-01-31-8k,L'Hivernal Trail du Crozet,Trail court - 8 km,2027-01-31,true,Le Crozet,,42,,,8,150,,,,false,trail,false,,,https://www.runtrail.run/event/33961-l-hivernal-trail-du-crozet
+rt-1577-2027-01-31-27k,La Romagnatoise,A l'assaut de Gergovie - 27 km,2027-01-31,true,Romagnat,,63,,,27,1020,,,,false,trail,false,,,https://www.runtrail.run/event/1577-la-romagnatoise
+rt-1577-2027-01-31-38k,La Romagnatoise,La Ronde des Plateaux - 38 km,2027-01-31,true,Romagnat,,63,,,38,1400,,,,false,trail,false,,,https://www.runtrail.run/event/1577-la-romagnatoise
+rt-1577-2027-01-31-45k,La Romagnatoise,La Conquête de la Gaule - 45 km,2027-01-31,true,Romagnat,,63,,,45,1490,,,,false,trail,false,,,https://www.runtrail.run/event/1577-la-romagnatoise
+rt-1577-2027-01-31-51k,La Romagnatoise,Le Trail du Golloix - 51 km,2027-01-31,true,Romagnat,,63,,,51,1610,,,,false,trail,false,,,https://www.runtrail.run/event/1577-la-romagnatoise
 rt-21500-2027-01-31-12k,Le Trailou,Trail court - 12 km,2027-01-31,true,Saint-Rome-de-Tarn,,12,,,12,460,,,,false,trail,false,,,https://www.runtrail.run/event/21500-le-trailou
 rt-21500-2027-01-31-25k,Le Trailou,Trail court - 25 km,2027-01-31,true,Saint-Rome-de-Tarn,,12,,,25,1000,,,,false,trail,false,,,https://www.runtrail.run/event/21500-le-trailou
 rt-841-2027-01-31-17k,Snow Race de Montgenèvre,Le Tour des Bois - 17 km,2027-01-31,true,Montgenèvre,,05,,,17,650,,,,false,trail,false,,,https://www.runtrail.run/event/841-snow-race-de-montgenevre
 rt-841-2027-01-31-8k,Snow Race de Montgenèvre,Le Rocher Dizeur - 8 km,2027-01-31,true,Montgenèvre,,05,,,8,350,,,,false,trail,false,,,https://www.runtrail.run/event/841-snow-race-de-montgenevre
+rt-21259-2027-01-31-17k,Sur les Traces du GR9,Trail court - 17 km,2027-01-31,true,Nyons,,26,,,17,550,,,,false,trail,false,,,https://www.runtrail.run/event/21259-sur-les-traces-du-gr9
+rt-21259-2027-01-31-25k,Sur les Traces du GR9,Trail court - 25 km,2027-01-31,true,Nyons,,26,,,25,1200,,,,false,trail,false,,,https://www.runtrail.run/event/21259-sur-les-traces-du-gr9
 rt-152-2027-01-31-25k,Trail Givré,Trail Givré - 25 km,2027-01-31,true,Montanay,,69,,,25,500,,,,false,trail,false,,,https://www.runtrail.run/event/152-trail-givre
 rt-152-2027-01-31-9-5k,Trail Givré,Montanoise - 9.5 km,2027-01-31,true,Montanay,,69,,,9.5,140,,,,false,trail,false,,,https://www.runtrail.run/event/152-trail-givre
 rt-794-2027-01-31-12k,Trail de Coutach,La Vallaguière - 12 km,2027-01-31,true,Quissac,,30,,,12,200,,,,false,trail,false,,,https://www.runtrail.run/event/794-trail-de-coutach
@@ -412,6 +452,11 @@ rt-4993-2027-02-07-11k,L'Avezanaise,Trail court - 11 km,2027-02-07,true,Avezan,,
 rt-4993-2027-02-07-21-1k,L'Avezanaise,Trail court - 21.1 km,2027-02-07,true,Avezan,,32,,,21.1,,,,,false,trail,false,,,https://www.runtrail.run/event/4993-l-avezanaise
 rt-34018-2027-02-07-15k,Le Trail du Boeuf de Meze,Trail court - 15 km,2027-02-07,true,Mèze,,34,,,15,200,,,,false,trail,false,,,https://www.runtrail.run/event/34018-le-trail-du-boeuf-de-meze
 rt-34018-2027-02-07-8-5k,Le Trail du Boeuf de Meze,Trail court - 8.5 km,2027-02-07,true,Mèze,,34,,,8.5,150,,,,false,trail,false,,,https://www.runtrail.run/event/34018-le-trail-du-boeuf-de-meze
+rt-20510-2027-02-07-12k,Snow Trail du Queyras,Parcours Sport - 12 km,2027-02-07,true,Ceillac,,05,,,12,500,,,,false,trail,false,,,https://www.runtrail.run/event/20510-snow-trail-du-queyras
+rt-20510-2027-02-07-23k,Snow Trail du Queyras,Parcours Elite - 23 km,2027-02-07,true,Ceillac,,05,,,23,1100,,,,false,trail,false,,,https://www.runtrail.run/event/20510-snow-trail-du-queyras
+rt-9665-2027-02-07-11k,Trail d'Eze,Lou Camin - 11 km,2027-02-07,true,Èze,,06,,,11,600,,,,false,trail,false,,,https://www.runtrail.run/event/9665-trail-d-eze
+rt-9665-2027-02-07-19k,Trail d'Eze,Les 3 Corniches - 19 km,2027-02-07,true,Èze,,06,,,19,1100,,,,false,trail,false,,,https://www.runtrail.run/event/9665-trail-d-eze
+rt-9665-2027-02-07-30k,Trail d'Eze,The Race - 30 km,2027-02-07,true,Èze,,06,,,30,1500,,,,false,trail,false,,,https://www.runtrail.run/event/9665-trail-d-eze
 rt-15378-2027-02-07-16k,Trail de la Forêt Royale,Trail court - 16 km,2027-02-07,true,Belesta,,09,,,16,900,,,,false,trail,false,,,https://www.runtrail.run/event/15378-trail-de-la-foret-royale
 rt-39806-2027-02-07-18k,Trail de la Souque,Trail court - 18 km,2027-02-07,true,Montferrer,,66,,,18,850,,,,false,trail,false,,,https://www.runtrail.run/event/39806-trail-de-la-souque
 rt-68-2027-02-07-12k,Trail des Ruthènes,Trail court - 12 km,2027-02-07,true,Salles-la-Source,,12,,,12,350,,,,false,trail,false,,,https://www.runtrail.run/event/68-trail-des-ruthenes
@@ -422,6 +467,9 @@ rt-4694-2027-02-07-14k,Ultra Trail des Fontaines,Rose Marie Trail - 14 km,2027-0
 rt-4694-2027-02-07-33k,Ultra Trail des Fontaines,Belcours Trail - 33 km,2027-02-07,true,Le Montat,,46,,,33,1000,,,,false,trail,false,,,https://www.runtrail.run/event/4694-ultra-trail-des-fontaines
 rt-4694-2027-02-07-44k,Ultra Trail des Fontaines,Marathon du Malbec - 44 km,2027-02-07,true,Le Montat,,46,,,44,1800,,,,false,trail,false,,,https://www.runtrail.run/event/4694-ultra-trail-des-fontaines
 rt-4694-2027-02-07-7k,Ultra Trail des Fontaines,Trail des combettes - 7 km,2027-02-07,true,Le Montat,,46,,,7,200,,,,false,trail,false,,,https://www.runtrail.run/event/4694-ultra-trail-des-fontaines
+rt-14958-2027-02-07-12k,Urban Trail d'Orange,Trail d'Auguste - 12 km,2027-02-07,true,Orange,,84,,,12,372,,,,false,trail,false,,,https://www.runtrail.run/event/14958-urban-trail-d-orange
+rt-14958-2027-02-07-3-6k,Urban Trail d'Orange,Trail de Daudet - 3.6 km,2027-02-07,true,Orange,,84,,,3.6,,,,,false,trail,false,,,https://www.runtrail.run/event/14958-urban-trail-d-orange
+rt-14958-2027-02-07-5-8k,Urban Trail d'Orange,Trail Eutrope - 5.8 km,2027-02-07,true,Orange,,84,,,5.8,,,,,false,trail,false,,,https://www.runtrail.run/event/14958-urban-trail-d-orange
 rt-926-2027-02-13-12k,Foulées Nocturnes en Montagne Noire,Sentiers du Pioch - 12 km,2027-02-13,true,Labruguière,,81,,,12,450,,,,false,trail,true,,,https://www.runtrail.run/event/926-foulees-nocturnes-en-montagne-noire
 rt-926-2027-02-13-20k,Foulées Nocturnes en Montagne Noire,Trail de l'Oustalou - 20 km,2027-02-13,true,Labruguière,,81,,,20,900,,,,false,trail,true,,,https://www.runtrail.run/event/926-foulees-nocturnes-en-montagne-noire
 rt-926-2027-02-13-4-2k,Foulées Nocturnes en Montagne Noire,La Saint-Hilaire - 4.2 km,2027-02-13,true,Labruguière,,81,,,4.2,80,,,,false,trail,true,,,https://www.runtrail.run/event/926-foulees-nocturnes-en-montagne-noire
@@ -443,6 +491,11 @@ rt-930-2027-02-14-8k,Rochebaron Trail,La Ronde des Etangs - 8 km,2027-02-14,true
 rt-964-2027-02-14-16k,Trail de Lavault Sainte Anne & Gorges du Cher,LA GRIMPETTE DE LA BUSE - 16 km,2027-02-14,true,Lavault-Sainte-Anne,,03,,,16,600,,,,false,trail,false,,,https://www.runtrail.run/event/964-trail-de-lavault-sainte-anne-gorges-du-cher
 rt-964-2027-02-14-24k,Trail de Lavault Sainte Anne & Gorges du Cher,LA BALADE À PAULO - 24 km,2027-02-14,true,Lavault-Sainte-Anne,,03,,,24,800,,,,false,trail,false,,,https://www.runtrail.run/event/964-trail-de-lavault-sainte-anne-gorges-du-cher
 rt-964-2027-02-14-32k,Trail de Lavault Sainte Anne & Gorges du Cher,LE RAID DES GORGES DU CHER - 32 km,2027-02-14,true,Lavault-Sainte-Anne,,03,,,32,1000,,,,false,trail,false,,,https://www.runtrail.run/event/964-trail-de-lavault-sainte-anne-gorges-du-cher
+rt-1140-2027-02-14-10k,Trail de la Tour du Faucon,Trail court - 10 km,2027-02-14,true,Puget-ville,,83,,,10,370,,,,false,trail,false,,,https://www.runtrail.run/event/1140-trail-de-la-tour-du-faucon
+rt-1140-2027-02-14-15k,Trail de la Tour du Faucon,Trail court - 15 km,2027-02-14,true,Puget-ville,,83,,,15,500,,,,false,trail,false,,,https://www.runtrail.run/event/1140-trail-de-la-tour-du-faucon
+rt-1140-2027-02-14-25k,Trail de la Tour du Faucon,Trail court - 25 km,2027-02-14,true,Puget-ville,,83,,,25,1170,,,,false,trail,false,,,https://www.runtrail.run/event/1140-trail-de-la-tour-du-faucon
+rt-14962-2027-02-14-15k,Trail des Fous Romains,Petit Fou Romain - 15 km,2027-02-14,true,Vaison-la-Romaine,,84,,,15,550,,,,false,trail,false,,,https://www.runtrail.run/event/14962-trail-des-fous-romains
+rt-14962-2027-02-14-25k,Trail des Fous Romains,Grand Fou Romain - 25 km,2027-02-14,true,Vaison-la-Romaine,,84,,,25,1100,,,,false,trail,false,,,https://www.runtrail.run/event/14962-trail-des-fous-romains
 rt-34067-2027-02-14-10-5k,Trail et Marche du Maquis,Petit Maquis - 10.5 km,2027-02-14,true,Dun,,09,,,10.5,550,,,,false,trail,false,,,https://www.runtrail.run/event/34067-trail-et-marche-du-maquis
 rt-34067-2027-02-14-30k,Trail et Marche du Maquis,Grand Maquis - 30 km,2027-02-14,true,Dun,,09,,,30,1400,,,,false,trail,false,,,https://www.runtrail.run/event/34067-trail-et-marche-du-maquis
 rt-989-2027-02-20-14-5k,AlbaTrail,L’Alba Trailhou - 14.5 km,2027-02-20,true,Alban,,81,,,14.5,440,,,,false,trail,false,,,https://www.runtrail.run/event/989-albatrail
@@ -456,6 +509,9 @@ rt-810-2027-02-20-10k,Trail Hivernal du Haut Cantal,La Condataise - 10 km,2027-0
 rt-810-2027-02-20-25k,Trail Hivernal du Haut Cantal,La Rhuée Blanche - 25 km,2027-02-20,true,Condat,,15,,,25,800,,,,false,trail,false,,,https://www.runtrail.run/event/810-trail-hivernal-du-haut-cantal
 rt-810-2027-02-20-40k,Trail Hivernal du Haut Cantal,Le Trail Hivernal - 40 km,2027-02-20,true,Condat,,15,,,40,1500,,,,false,trail,false,,,https://www.runtrail.run/event/810-trail-hivernal-du-haut-cantal
 rt-4687-2027-02-21-12k,12 Bornes de Gorbio,Course Nature - 12 km,2027-02-21,true,Gorbio,,06,,,12,280,,,,false,trail,false,,,https://www.runtrail.run/event/4687-12-bornes-de-gorbio
+rt-34150-2027-02-21-3k,Bédoin City Run,Urban Trail - 3 km,2027-02-21,true,Bédoin,,84,,,3,,,,,false,trail,false,,,https://www.runtrail.run/event/34150-bedoin-city-run
+rt-34150-2027-02-21-6k,Bédoin City Run,Urban Trail - 6 km,2027-02-21,true,Bédoin,,84,,,6,,,,,false,trail,false,,,https://www.runtrail.run/event/34150-bedoin-city-run
+rt-34150-2027-02-21-9k,Bédoin City Run,Urban Trail - 9 km,2027-02-21,true,Bédoin,,84,,,9,,,,,false,trail,false,,,https://www.runtrail.run/event/34150-bedoin-city-run
 rt-950-2027-02-21-12k,Les Collines du Diable,Trail court - 12 km,2027-02-21,true,Cahors,,46,,,12,540,,,,false,trail,false,,,https://www.runtrail.run/event/950-les-collines-du-diable
 rt-950-2027-02-21-25k,Les Collines du Diable,Trail court - 25 km,2027-02-21,true,Cahors,,46,,,25,1040,,,,false,trail,false,,,https://www.runtrail.run/event/950-les-collines-du-diable
 rt-1305-2027-02-21-10k,Les Coteaux de Cébazat,Trail court - 10 km,2027-02-21,true,Cébazat,,63,,,10,320,,,,false,trail,false,,,https://www.runtrail.run/event/1305-les-coteaux-de-cebazat
@@ -465,14 +521,23 @@ rt-88-2027-02-21-10k,Nîmes Urban Trail,10 KM - 10 km,2027-02-21,true,Nîmes,,30
 rt-88-2027-02-21-16k,Nîmes Urban Trail,16 KM - 16 km,2027-02-21,true,Nîmes,,30,,,16,500,,,,false,trail,false,,,https://www.runtrail.run/event/88-nimes-urban-trail
 rt-88-2027-02-21-24k,Nîmes Urban Trail,24 KM - 24 km,2027-02-21,true,Nîmes,,30,,,24,650,,,,false,trail,false,,,https://www.runtrail.run/event/88-nimes-urban-trail
 rt-88-2027-02-21-42k,Nîmes Urban Trail,42 KM - 42 km,2027-02-21,true,Nîmes,,30,,,42,1150,,,,false,trail,false,,,https://www.runtrail.run/event/88-nimes-urban-trail
+rt-994-2027-02-21-10k,Trail Alpilles Glanum,Alpillette - 10 km,2027-02-21,true,Saint-Rémy-de-Provence,,13,,,10,300,,,,false,trail,false,,,https://www.runtrail.run/event/994-trail-alpilles-glanum
+rt-994-2027-02-21-16k,Trail Alpilles Glanum,Trail du Lac - 16 km,2027-02-21,true,Saint-Rémy-de-Provence,,13,,,16,600,,,,false,trail,false,,,https://www.runtrail.run/event/994-trail-alpilles-glanum
+rt-994-2027-02-21-35k,Trail Alpilles Glanum,Trail de Glanum - 35 km,2027-02-21,true,Saint-Rémy-de-Provence,,13,,,35,1300,,,,false,trail,false,,,https://www.runtrail.run/event/994-trail-alpilles-glanum
 rt-35312-2027-02-21,Trail In Simorre,La Pitchoun - 0.5 km,2027-02-21,true,Simorre,,32,,,,,,,,false,trail,false,,,https://www.runtrail.run/event/35312-trail-in-simorre
 rt-35312-2027-02-21-13k,Trail In Simorre,Canaillo Bestia ! - 13 km,2027-02-21,true,Simorre,,32,,,13,260,,,,false,trail,false,,,https://www.runtrail.run/event/35312-trail-in-simorre
 rt-35312-2027-02-21-21k,Trail In Simorre,AH hil Dé Hil !!! - 21 km,2027-02-21,true,Simorre,,32,,,21,650,,,,false,trail,false,,,https://www.runtrail.run/event/35312-trail-in-simorre
+rt-38-2027-02-21-11k,Trail de l'Escalo,Trail court - 11 km,2027-02-21,true,L'Escale,,04,,,11,650,,,,false,trail,false,,,https://www.runtrail.run/event/38-trail-de-l-escalo
+rt-38-2027-02-21-30k,Trail de l'Escalo,Trail court - 30 km,2027-02-21,true,L'Escale,,04,,,30,1450,,,,false,trail,false,,,https://www.runtrail.run/event/38-trail-de-l-escalo
 rt-40045-2027-02-21-23k,Trail des Cartables,Trail court - 23 km,2027-02-21,true,Bully,,42,,,23,900,,,,false,trail,false,,,https://www.runtrail.run/event/40045-trail-des-cartables
 rt-40045-2027-02-21-9k,Trail des Cartables,Trail court - 9 km,2027-02-21,true,Bully,,42,,,9,340,,,,false,trail,false,,,https://www.runtrail.run/event/40045-trail-des-cartables
 rt-34151-2027-02-21-11k,Trail des Côteaux de Pamiers,Pitchoun - 11 km,2027-02-21,true,Pamiers,,09,,,11,260,,,,false,trail,false,,,https://www.runtrail.run/event/34151-trail-des-coteaux-de-pamiers
 rt-34151-2027-02-21-22k,Trail des Côteaux de Pamiers,Grandas - 22 km,2027-02-21,true,Pamiers,,09,,,22,900,,,,false,trail,false,,,https://www.runtrail.run/event/34151-trail-des-coteaux-de-pamiers
 rt-34151-2027-02-21-5k,Trail des Côteaux de Pamiers,5km - 5 km,2027-02-21,true,Pamiers,,09,,,5,,,,,false,trail,false,,,https://www.runtrail.run/event/34151-trail-des-coteaux-de-pamiers
+rt-34152-2027-02-21-14k,Trail des Falaises,Les Falaises - 14 km,2027-02-21,true,Joucas,,84,,,14,450,,,,false,trail,false,,,https://www.runtrail.run/event/34152-trail-des-falaises
+rt-34152-2027-02-21-19k,Trail des Falaises,Course Nature - 19 km,2027-02-21,true,Joucas,,84,,,19,200,,,,false,trail,false,,,https://www.runtrail.run/event/34152-trail-des-falaises
+rt-34152-2027-02-21-5k,Trail des Falaises,5 km,2027-02-21,true,Joucas,,84,,,5,,,,,false,trail,false,,,https://www.runtrail.run/event/34152-trail-des-falaises
+rt-34152-2027-02-21-7-5k,Trail des Falaises,Course sur route - 7.5 km,2027-02-21,true,Joucas,,84,,,7.5,200,,,,false,trail,false,,,https://www.runtrail.run/event/34152-trail-des-falaises
 rt-14965-2027-02-21-30k,Trail du Grésivaudan,Trail long - 30 km,2027-02-21,true,Grenoble,,38,,,30,1600,,,,false,trail,false,,,https://www.runtrail.run/event/14965-trail-du-gresivaudan
 rt-14965-2027-02-21-5-4k,Trail du Grésivaudan,Trail court - 5.4 km,2027-02-21,true,Grenoble,,38,,,5.4,270,,,,false,trail,false,,,https://www.runtrail.run/event/14965-trail-du-gresivaudan
 rt-14896-2027-02-21-18k,Winter Trail Alix,Trail court - 18 km,2027-02-21,true,Alix,,69,,,18,350,,,,false,trail,false,,,https://www.runtrail.run/event/14896-winter-trail-alix
@@ -483,6 +548,7 @@ rt-33536-2027-02-26-8k,Lautrec Trail Nocturne,Trail des genêts - 8 km,2027-02-2
 rt-21749-2027-02-26-11k,Trail Blanc d'Agy,Trail Nocturne - 11 km,2027-02-26,true,Saint-Sigismond,,74,,,11,320,,,,false,trail,true,,,https://www.runtrail.run/event/21749-trail-blanc-d-agy
 rt-210-2027-02-27-10-4k,Trail de l'Aigle Blanc de Manigod,Snow Trail - 10.4 km,2027-02-27,true,Manigod,,74,,,10.4,,,,,false,trail,false,,,https://www.runtrail.run/event/210-trail-de-l-aigle-blanc-de-manigod
 rt-4866-2027-02-27-10k,Trail de la Fée Blanche,Trail Nocturne - 10 km,2027-02-27,true,Aillon-le-Jeune,,73,,,10,250,,,,false,trail,true,,,https://www.runtrail.run/event/4866-trail-de-la-fee-blanche
+rt-169-2027-02-27-5k,Trail des Merveilles,Trail des Lumignouns - 5 km,2027-02-27,true,Breil-sur-Roya,,06,,,5,,,,,false,trail,false,,,https://www.runtrail.run/event/169-trail-des-merveilles
 rt-1071-2027-02-27-15k,Trail des Neiges du Champsaur,Trail Nocturne - 15 km,2027-02-27,true,Saint-Léger-les-Mélèzes,,05,,,15,660,,,,false,trail,true,,,https://www.runtrail.run/event/1071-trail-des-neiges-du-champsaur
 rt-1071-2027-02-27-6k,Trail des Neiges du Champsaur,Trail Nocturne - 6 km,2027-02-27,true,Saint-Léger-les-Mélèzes,,05,,,6,180,,,,false,trail,true,,,https://www.runtrail.run/event/1071-trail-des-neiges-du-champsaur
 rt-1071-2027-02-27-9k,Trail des Neiges du Champsaur,Trail Nocturne - 9 km,2027-02-27,true,Saint-Léger-les-Mélèzes,,05,,,9,290,,,,false,trail,true,,,https://www.runtrail.run/event/1071-trail-des-neiges-du-champsaur
@@ -498,6 +564,9 @@ rt-1137-2027-02-28-10k,La Foulée Flayoscaise,10 km,2027-02-28,true,Flayosc,,83,
 rt-1137-2027-02-28-25k,La Foulée Flayoscaise,Trail court - 25 km,2027-02-28,true,Flayosc,,83,,,25,1300,,,,false,trail,false,,,https://www.runtrail.run/event/1137-la-foulee-flayoscaise
 rt-1137-2027-02-28-5k,La Foulée Flayoscaise,5 km,2027-02-28,true,Flayosc,,83,,,5,,,,,false,trail,false,,,https://www.runtrail.run/event/1137-la-foulee-flayoscaise
 rt-1137-2027-02-28-9k,La Foulée Flayoscaise,Urban Trail - 9 km,2027-02-28,true,Flayosc,,83,,,9,,,,,false,trail,false,,,https://www.runtrail.run/event/1137-la-foulee-flayoscaise
+rt-15632-2027-02-28-11k,Les Chemins de Sainte Rosalie,Premium - 11 km,2027-02-28,true,La Fare-les-Oliviers,,13,,,11,300,,,,false,trail,false,,,https://www.runtrail.run/event/15632-les-chemins-de-sainte-rosalie
+rt-15632-2027-02-28-17k,Les Chemins de Sainte Rosalie,Elite - 17 km,2027-02-28,true,La Fare-les-Oliviers,,13,,,17,530,,,,false,trail,false,,,https://www.runtrail.run/event/15632-les-chemins-de-sainte-rosalie
+rt-15632-2027-02-28-7k,Les Chemins de Sainte Rosalie,Découverte - 7 km,2027-02-28,true,La Fare-les-Oliviers,,13,,,7,200,,,,false,trail,false,,,https://www.runtrail.run/event/15632-les-chemins-de-sainte-rosalie
 rt-34237-2027-02-28,"Marseille-Aix, le trail métropolitain",Le Petit Métropolitain - 1.5 km,2027-02-28,true,Marseille,,13,,,,,,,,false,trail,false,,,https://www.runtrail.run/event/34237-marseille-aix-le-trail-metropolitain
 rt-34237-2027-02-28-12k,"Marseille-Aix, le trail métropolitain",Gardanne - Aix - 12 km,2027-02-28,true,Marseille,,13,,,12,240,,,,false,trail,false,,,https://www.runtrail.run/event/34237-marseille-aix-le-trail-metropolitain
 rt-34237-2027-02-28-42k,"Marseille-Aix, le trail métropolitain",Marseille - Aix - 42 km,2027-02-28,true,Marseille,,13,,,42,1020,,,,false,trail,false,,,https://www.runtrail.run/event/34237-marseille-aix-le-trail-metropolitain
@@ -521,6 +590,8 @@ rt-1010-2027-02-28-20-5k,Trail de la Pierre Sanglante,Trail court - 20.5 km,2027
 rt-5653-2027-02-28-11k,Trail des Mange Lamberts,Le Rataillon - 11 km,2027-02-28,true,Puget-sur-Argens,,83,,,11,400,,,,false,trail,false,,,https://www.runtrail.run/event/5653-trail-des-mange-lamberts
 rt-5653-2027-02-28-12k,Trail des Mange Lamberts,Randonnée - 12 km,2027-02-28,true,Puget-sur-Argens,,83,,,12,85,,,,false,trail,false,,,https://www.runtrail.run/event/5653-trail-des-mange-lamberts
 rt-5653-2027-02-28-21k,Trail des Mange Lamberts,Le TML - 21 km,2027-02-28,true,Puget-sur-Argens,,83,,,21,1000,,,,false,trail,false,,,https://www.runtrail.run/event/5653-trail-des-mange-lamberts
+rt-169-2027-02-28-18k,Trail des Merveilles,Les Balcons de la Roya - 18 km,2027-02-28,true,Breil-sur-Roya,,06,,,18,1100,,,,false,trail,false,,,https://www.runtrail.run/event/169-trail-des-merveilles
+rt-169-2027-02-28-28k,Trail des Merveilles,Le Trail des Merveilles - 28 km,2027-02-28,true,Breil-sur-Roya,,06,,,28,1960,,,,false,trail,false,,,https://www.runtrail.run/event/169-trail-des-merveilles
 rt-14867-2027-02-28-10k,Trail des Roses,Trail des Hameaux - 10 km,2027-02-28,true,Moras,,38,,,10,250,,,,false,trail,false,,,https://www.runtrail.run/event/14867-trail-des-roses
 rt-14867-2027-02-28-21k,Trail des Roses,Trail des Légendes - 21 km,2027-02-28,true,Moras,,38,,,21,560,,,,false,trail,false,,,https://www.runtrail.run/event/14867-trail-des-roses
 rt-9504-2027-02-28-14k,Trail du Pic du Pal,Trail court - 14 km,2027-02-28,true,Sévérac-d'Aveyron,,12,,,14,530,,,,false,trail,false,,,https://www.runtrail.run/event/9504-trail-du-pic-du-pal
@@ -964,6 +1035,8 @@ rt-40099-2027-04-17-21k,La Bambée Bauzilloise,21KM by Padel ST Bô Family - 21 
 rt-40099-2027-04-17-8-5k,La Bambée Bauzilloise,"8,5KM by Moment Drinks - 8.5 km",2027-04-17,true,Saint-Bauzille-de-Montmel,,34,,,8.5,270,,,,false,trail,false,,,https://www.runtrail.run/event/40099-la-bambee-bauzilloise
 rt-1482-2027-04-17-14k,Trail Nocturne des Lucioles,Trail Nocturne - 14 km,2027-04-17,true,Roquebrune-sur-Argens,,83,,,14,400,,,,false,trail,true,,,https://www.runtrail.run/event/1482-trail-nocturne-des-lucioles
 rt-1482-2027-04-17-7k,Trail Nocturne des Lucioles,Trail Nocturne - 7 km,2027-04-17,true,Roquebrune-sur-Argens,,83,,,7,,,,,false,trail,true,,,https://www.runtrail.run/event/1482-trail-nocturne-des-lucioles
+rt-41100-2027-04-17-10k,Trail du Veydrac,Trail court - 10 km,2027-04-17,true,Villeveyrac,,34,,,10,211,,,,false,trail,false,,,https://www.runtrail.run/event/41100-trail-du-veydrac
+rt-41100-2027-04-17-21k,Trail du Veydrac,Trail court - 21 km,2027-04-17,true,Villeveyrac,,34,,,21,417,,,,false,trail,false,,,https://www.runtrail.run/event/41100-trail-du-veydrac
 rt-1567-2027-04-17-15k,Trail du lac de Paladru,Semi-nocturne + 15 km - 32 km,2027-04-17,true,Paladru,,38,,,15,1070,,,,false,trail,true,,,https://www.runtrail.run/event/1567-trail-du-lac-de-paladru
 rt-1567-2027-04-17-17k,Trail du lac de Paladru,Semi-nocturne - 17 km,2027-04-17,true,Paladru,,38,,,17,740,,,,false,trail,true,,,https://www.runtrail.run/event/1567-trail-du-lac-de-paladru
 rt-1567-2027-04-17-31k,Trail du lac de Paladru,Semi-nocturne + 31 km - 48 km,2027-04-17,true,Paladru,,38,,,31,1610,,,,false,trail,true,,,https://www.runtrail.run/event/1567-trail-du-lac-de-paladru
@@ -972,6 +1045,9 @@ rt-166-2027-04-17-105k,Trans Aubrac,Relais par 4 - 105 km,2027-04-17,true,Bertho
 rt-166-2027-04-17-13k,Trans Aubrac,Trail d'Olt et d'Aubrac - 13 km,2027-04-17,true,Bertholène,,12,,,13,525,,,,false,trail,false,,,https://www.runtrail.run/event/166-trans-aubrac
 rt-166-2027-04-17-50k,Trans Aubrac,Trail du Capuchadou - 50 km,2027-04-17,true,Bertholène,,12,,,50,1350,,,,false,trail,false,,,https://www.runtrail.run/event/166-trans-aubrac
 rt-166-2027-04-17-75k,Trans Aubrac,Trail du Mazuc - 75 km,2027-04-17,true,Bertholène,,12,,,75,2500,,,,false,trail,false,,,https://www.runtrail.run/event/166-trans-aubrac
+rt-40003-2027-04-18-10k,Festi'Trail,LA X - 10 km,2027-04-18,true,Cannes-et-Clairan,,30,,,10,300,,,,false,trail,false,,,https://www.runtrail.run/event/40003-festi-trail
+rt-40003-2027-04-18-12k,Festi'Trail,Randonnée - 12 km,2027-04-18,true,Cannes-et-Clairan,,30,,,12,300,,,,false,trail,false,,,https://www.runtrail.run/event/40003-festi-trail
+rt-40003-2027-04-18-25k,Festi'Trail,LA XXV - 25 km,2027-04-18,true,Cannes-et-Clairan,,30,,,25,1000,,,,false,trail,false,,,https://www.runtrail.run/event/40003-festi-trail
 rt-5801-2027-04-18-10k,Goat Trail,Trail court - 10 km,2027-04-18,true,La Chapelle-Villars,,42,,,10,300,,,,false,trail,false,,,https://www.runtrail.run/event/5801-goat-trail
 rt-5801-2027-04-18-15k,Goat Trail,Randonnée - 15 km,2027-04-18,true,La Chapelle-Villars,,42,,,15,500,,,,false,trail,false,,,https://www.runtrail.run/event/5801-goat-trail
 rt-5801-2027-04-18-20k,Goat Trail,Trail court - 20 km,2027-04-18,true,La Chapelle-Villars,,42,,,20,800,,,,false,trail,false,,,https://www.runtrail.run/event/5801-goat-trail
@@ -986,6 +1062,8 @@ rt-22496-2027-04-18-38k,La Saint Ju'Trail,Trail long - 38 km,2027-04-18,true,Sai
 rt-22496-2027-04-18-68k,La Saint Ju'Trail,Trail long - 68 km,2027-04-18,true,Saint-Julien,,69,,,68,3300,,,,false,trail,false,,,https://www.runtrail.run/event/22496-la-saint-ju-trail
 rt-1489-2027-04-18-11k,La Vauxoise,Trail court - 11 km,2027-04-18,true,Vaux-en-Bugey,,01,,,11,403,,,,false,trail,false,,,https://www.runtrail.run/event/1489-la-vauxoise
 rt-1489-2027-04-18-21k,La Vauxoise,Trail court - 21 km,2027-04-18,true,Vaux-en-Bugey,,01,,,21,800,,,,false,trail,false,,,https://www.runtrail.run/event/1489-la-vauxoise
+rt-40456-2027-04-18-13k,La foulée de la Négrette,Trail de 13 km - 13 km,2027-04-18,true,Fronton,,31,,,13,150,,,,false,trail,false,,,https://www.runtrail.run/event/40456-la-foulee-de-la-negrette
+rt-40456-2027-04-18-6-5k,La foulée de la Négrette,Course Nature - 6.5 km,2027-04-18,true,Fronton,,31,,,6.5,80,,,,false,trail,false,,,https://www.runtrail.run/event/40456-la-foulee-de-la-negrette
 rt-1427-2027-04-18-10k,Les Foulées Arpajonnaises,Randonnée - 10 km,2027-04-18,true,Arpajon-sur-Cère,,15,,,10,300,,,,false,trail,false,,,https://www.runtrail.run/event/1427-les-foulees-arpajonnaises
 rt-1427-2027-04-18-15k,Les Foulées Arpajonnaises,Randonnée - 15 km,2027-04-18,true,Arpajon-sur-Cère,,15,,,15,450,,,,false,trail,false,,,https://www.runtrail.run/event/1427-les-foulees-arpajonnaises
 rt-1427-2027-04-18-16k,Les Foulées Arpajonnaises,Course nature - 16 km,2027-04-18,true,Arpajon-sur-Cère,,15,,,16,380,,,,false,trail,false,,,https://www.runtrail.run/event/1427-les-foulees-arpajonnaises
@@ -997,6 +1075,11 @@ rt-41125-2027-04-18-16k,Les Sentiers du Renard,Trail court - 16 km,2027-04-18,tr
 rt-41125-2027-04-18-8-5k,Les Sentiers du Renard,Course sur route - 8.5 km,2027-04-18,true,Châteaurenard,,13,,,8.5,190,,,,false,trail,false,,,https://www.runtrail.run/event/41125-les-sentiers-du-renard
 rt-34266-2027-04-18-18k,Raye Saint Vincinoise,Trail court - 18 km,2027-04-18,true,Saint-Vincent-la-Commanderie,,26,,,18,1100,,,,false,trail,false,,,https://www.runtrail.run/event/34266-raye-saint-vincinoise
 rt-34266-2027-04-18-8k,Raye Saint Vincinoise,Trail court - 8 km,2027-04-18,true,Saint-Vincent-la-Commanderie,,26,,,8,350,,,,false,trail,false,,,https://www.runtrail.run/event/34266-raye-saint-vincinoise
+rt-34358-2027-04-18-14k,Toulouse Urban Trail,Urban Trail - 14 km,2027-04-18,true,Toulouse,,31,,,14,,,,,false,trail,false,,,https://www.runtrail.run/event/34358-toulouse-urban-trail
+rt-34358-2027-04-18-24k,Toulouse Urban Trail,Urban Trail - 24 km,2027-04-18,true,Toulouse,,31,,,24,,,,,false,trail,false,,,https://www.runtrail.run/event/34358-toulouse-urban-trail
+rt-34358-2027-04-18-9k,Toulouse Urban Trail,Urban Trail - 9 km,2027-04-18,true,Toulouse,,31,,,9,,,,,false,trail,false,,,https://www.runtrail.run/event/34358-toulouse-urban-trail
+rt-34320-2027-04-18-15k,Trail Saint Roch,Trail court - 15 km,2027-04-18,true,Montolieu,,11,,,15,450,,,,false,trail,false,,,https://www.runtrail.run/event/34320-trail-saint-roch
+rt-34320-2027-04-18-31k,Trail Saint Roch,Trail saint Roch - 31 km,2027-04-18,true,Montolieu,,11,,,31,900,,,,false,trail,false,,,https://www.runtrail.run/event/34320-trail-saint-roch
 rt-7269-2027-04-18-14k,Trail de Gaudissart,Trail court - 14 km,2027-04-18,true,Lantosque,,06,,,14,850,,,,false,trail,false,,,https://www.runtrail.run/event/7269-trail-de-gaudissart
 rt-15712-2027-04-18-11k,Trail de Juliau,Randonnée du Petit Juliau - 11 km,2027-04-18,true,Saint-Jean-le-Centenier,,07,,,11,430,,,,false,trail,false,,,https://www.runtrail.run/event/15712-trail-de-juliau
 rt-15712-2027-04-18-21k,Trail de Juliau,Grand Juliau - 21 km,2027-04-18,true,Saint-Jean-le-Centenier,,07,,,21,900,,,,false,trail,false,,,https://www.runtrail.run/event/15712-trail-de-juliau
@@ -1005,6 +1088,8 @@ rt-21596-2027-04-18-10k,Trail de Reyv',Petit Reyv' - 10 km,2027-04-18,true,Reyvr
 rt-21596-2027-04-18-23k,Trail de Reyv',Grand Reyv' - 23 km,2027-04-18,true,Reyvroz,,74,,,23,1500,,,,false,trail,false,,,https://www.runtrail.run/event/21596-trail-de-reyv
 rt-1579-2027-04-18-12k,Trail de l'Abbaye,Trail court - 12 km,2027-04-18,true,Savigny,,69,,,12,340,,,,false,trail,false,,,https://www.runtrail.run/event/1579-trail-de-l-abbaye
 rt-1579-2027-04-18-25k,Trail de l'Abbaye,Trail court - 25 km,2027-04-18,true,Savigny,,69,,,25,1135,,,,false,trail,false,,,https://www.runtrail.run/event/1579-trail-de-l-abbaye
+rt-29311-2027-04-18-11k,Trail de l'Hers,Trail'quillou - 11 km,2027-04-18,true,La Bastide-sur-l'Hers,,09,,,11,350,,,,false,trail,false,,,https://www.runtrail.run/event/29311-trail-de-l-hers
+rt-29311-2027-04-18-25k,Trail de l'Hers,Trail de L'hers - 25 km,2027-04-18,true,La Bastide-sur-l'Hers,,09,,,25,985,,,,false,trail,false,,,https://www.runtrail.run/event/29311-trail-de-l-hers
 rt-29176-2027-04-18-15k,Trail des 2 Pics,Trail court - 15 km,2027-04-18,true,Margerie-Chantagret,,42,,,15,520,,,,false,trail,false,,,https://www.runtrail.run/event/29176-trail-des-2-pics
 rt-29176-2027-04-18-22k,Trail des 2 Pics,Trail court - 22 km,2027-04-18,true,Margerie-Chantagret,,42,,,22,820,,,,false,trail,false,,,https://www.runtrail.run/event/29176-trail-des-2-pics
 rt-29176-2027-04-18-7k,Trail des 2 Pics,Trail court - 7 km,2027-04-18,true,Margerie-Chantagret,,42,,,7,300,,,,false,trail,false,,,https://www.runtrail.run/event/29176-trail-des-2-pics
@@ -1013,9 +1098,12 @@ rt-41124-2027-04-18-20k,Trail des Chabanals,Trail court - 20 km,2027-04-18,true,
 rt-41124-2027-04-18-8k,Trail des Chabanals,Randonnée - 8 km,2027-04-18,true,Castellet-lès-Sausses,,04,,,8,500,,,,false,trail,false,,,https://www.runtrail.run/event/41124-trail-des-chabanals
 rt-41126-2027-04-18-14k,Trail des Débutantes,Trail court - 14 km,2027-04-18,true,Laffrey,,38,,,14,360,,,,false,trail,false,,,https://www.runtrail.run/event/41126-trail-des-debutantes
 rt-41126-2027-04-18-7k,Trail des Débutantes,Trail court - 7 km,2027-04-18,true,Laffrey,,38,,,7,180,,,,false,trail,false,,,https://www.runtrail.run/event/41126-trail-des-debutantes
+rt-41107-2027-04-18-30k,Trail des Gypaêtes,Trail des gypaetes - 30 km,2027-04-18,true,Lourdes,,65,,,30,2100,,,,false,trail,false,,,https://www.runtrail.run/event/41107-trail-des-gypaetes
 rt-1567-2027-04-18-15-6k,Trail du lac de Paladru,La découverte - 15.6 km,2027-04-18,true,Paladru,,38,,,15.6,370,,,,false,trail,false,,,https://www.runtrail.run/event/1567-trail-du-lac-de-paladru
 rt-1567-2027-04-18-31k,Trail du lac de Paladru,Les hauts du lac - 31 km,2027-04-18,true,Paladru,,38,,,31,900,,,,false,trail,false,,,https://www.runtrail.run/event/1567-trail-du-lac-de-paladru
 rt-1567-2027-04-18-55k,Trail du lac de Paladru,Grand tour du lac - 55 km,2027-04-18,true,Paladru,,38,,,55,2000,,,,false,trail,false,,,https://www.runtrail.run/event/1567-trail-du-lac-de-paladru
+rt-41132-2027-04-18-15k,Xtrail Commingeois,Trail court - 15 km,2027-04-18,true,Saint-Bertrand-de-Comminges,,31,,,15,580,,,,false,trail,false,,,https://www.runtrail.run/event/41132-xtrail-commingeois
+rt-41132-2027-04-18-25k,Xtrail Commingeois,Trail court - 25 km,2027-04-18,true,Saint-Bertrand-de-Comminges,,31,,,25,1280,,,,false,trail,false,,,https://www.runtrail.run/event/41132-xtrail-commingeois
 rt-5796-2027-04-23-125k,Grand Raid Ventoux by UTMB®,Ultra Géant de Provence - UGP - 125 km,2027-04-23,true,Malaucène,,84,,,125,6500,,,,true,ultra,false,,,https://www.runtrail.run/event/5796-grand-raid-ventoux-by-utmb-r
 rt-5800-2027-04-24-7k,Argelès Nature Trail,La Saint Laurent - 7 km,2027-04-24,true,Argelès-sur-Mer,,66,,,7,300,,,,false,trail,false,,,https://www.runtrail.run/event/5800-argeles-nature-trail
 rt-1571-2027-04-24-16k,Bellimontrail,Le Facteur - 16 km,2027-04-24,true,Bellevue-la-Montagne,,43,,,16,650,,,,false,trail,false,,,https://www.runtrail.run/event/1571-bellimontrail
@@ -1032,6 +1120,13 @@ rt-5796-2027-04-24-87k,Grand Raid Ventoux by UTMB®,Grande Epopée Ventoux - GEV
 rt-1610-2027-04-24-10k,La Chatvoyarde,Trail court - 10 km,2027-04-24,true,Saint-Jean-de-Chevelu,,73,,,10,390,,,,false,trail,false,,,https://www.runtrail.run/event/1610-la-chatvoyarde
 rt-1610-2027-04-24-21k,La Chatvoyarde,Trail court - 21 km,2027-04-24,true,Saint-Jean-de-Chevelu,,73,,,21,950,,,,false,trail,false,,,https://www.runtrail.run/event/1610-la-chatvoyarde
 rt-1610-2027-04-24-35k,La Chatvoyarde,Trail long - 35 km,2027-04-24,true,Saint-Jean-de-Chevelu,,73,,,35,1500,,,,false,trail,false,,,https://www.runtrail.run/event/1610-la-chatvoyarde
+rt-25805-2027-04-24-17k,Le Trail du Trévezel,VERTICALE DU REGARD - 17 km,2027-04-24,true,Trèves,,30,,,17,740,,,,false,trail,false,,,https://www.runtrail.run/event/25805-le-trail-du-trevezel
+rt-25805-2027-04-24-25k,Le Trail du Trévezel,ROCHE ET VERTIGES - 25 km,2027-04-24,true,Trèves,,30,,,25,1000,,,,false,trail,false,,,https://www.runtrail.run/event/25805-le-trail-du-trevezel
+rt-25805-2027-04-24-7k,Le Trail du Trévezel,ECHELLES DE SAINT FIRMIN - 7 km,2027-04-24,true,Trèves,,30,,,7,400,,,,false,trail,false,,,https://www.runtrail.run/event/25805-le-trail-du-trevezel
+rt-22495-2027-04-24-10k,Marathon Côte Indigo,10KM - 10 km,2027-04-24,true,Fleury,,11,,,10,40,,,,false,trail,false,,,https://www.runtrail.run/event/22495-marathon-cote-indigo
+rt-22495-2027-04-24-5k,Marathon Côte Indigo,5KM - 5 km,2027-04-24,true,Fleury,,11,,,5,20,,,,false,trail,false,,,https://www.runtrail.run/event/22495-marathon-cote-indigo
+rt-5693-2027-04-24-11k,Trail Quillan,carachnight - 11 km,2027-04-24,true,Quillan,,11,,,11,350,,,,false,trail,true,,,https://www.runtrail.run/event/5693-trail-quillan
+rt-5693-2027-04-24-41k,Trail Quillan,LE DEFI - 41 km,2027-04-24,true,Quillan,,11,,,41,2100,,,,false,trail,false,,,https://www.runtrail.run/event/5693-trail-quillan
 rt-33621-2027-04-24-13k,Trail St Roch de Caveirac,Duo nocturne de CAVEIRAC - 13 km,2027-04-24,true,Caveirac,,30,,,13,290,,,,false,trail,true,,,https://www.runtrail.run/event/33621-trail-st-roch-de-caveirac
 rt-33621-2027-04-24-24k,Trail St Roch de Caveirac,Trail du chêne blanc - 24 km,2027-04-24,true,Caveirac,,30,,,24,490,,,,false,trail,false,,,https://www.runtrail.run/event/33621-trail-st-roch-de-caveirac
 rt-33621-2027-04-24-44k,Trail St Roch de Caveirac,Le grand huit - 44 km,2027-04-24,true,Caveirac,,30,,,44,1000,,,,false,trail,false,,,https://www.runtrail.run/event/33621-trail-st-roch-de-caveirac
@@ -1041,6 +1136,7 @@ rt-34433-2027-04-24,Trail des Dahus Sallanchards,L'Ultime Dahu Sallanchard - 24 
 rt-34433-2027-04-24-15k,Trail des Dahus Sallanchards,Les Dahus Affolés - 15 km,2027-04-24,true,Sallanches,,74,,,15,900,,,,false,trail,false,,,https://www.runtrail.run/event/34433-trail-des-dahus-sallanchards
 rt-34433-2027-04-24-26k,Trail des Dahus Sallanchards,Les Dahus Courtisants - 26 km,2027-04-24,true,Sallanches,,74,,,26,1500,,,,false,trail,false,,,https://www.runtrail.run/event/34433-trail-des-dahus-sallanchards
 rt-34433-2027-04-24-7k,Trail des Dahus Sallanchards,Les Dahus Egarés - 7 km,2027-04-24,true,Sallanches,,74,,,7,200,,,,false,trail,false,,,https://www.runtrail.run/event/34433-trail-des-dahus-sallanchards
+rt-22533-2027-04-24-4k,Trail du Facteur,Trail du facteur La tournée des Lucioles - 4 km,2027-04-24,true,Maxou,,46,,,4,400,,,,false,trail,false,,,https://www.runtrail.run/event/22533-trail-du-facteur
 rt-5800-2027-04-25-10k,Argelès Nature Trail,La Ronde de Valmy - 10 km,2027-04-25,true,Argelès-sur-Mer,,66,,,10,250,,,,false,trail,false,,,https://www.runtrail.run/event/5800-argeles-nature-trail
 rt-5800-2027-04-25-15k,Argelès Nature Trail,Fount Andreu - 15 km,2027-04-25,true,Argelès-sur-Mer,,66,,,15,800,,,,false,trail,false,,,https://www.runtrail.run/event/5800-argeles-nature-trail
 rt-5800-2027-04-25-24k,Argelès Nature Trail,Trail de La Massane - 24 km,2027-04-25,true,Argelès-sur-Mer,,66,,,24,1300,,,,false,trail,false,,,https://www.runtrail.run/event/5800-argeles-nature-trail
@@ -1057,6 +1153,9 @@ rt-5796-2027-04-25-26k,Grand Raid Ventoux by UTMB®,Trail des Coteaux - TDC - 26
 rt-23668-2027-04-25-16k,La Pistole Volante,La Pistole - 16 km,2027-04-25,true,Saint-Jean-de-Védas,,34,,,16,235,,,,false,trail,false,,,https://www.runtrail.run/event/23668-la-pistole-volante
 rt-23668-2027-04-25-32k,La Pistole Volante,Ultra Pistole - 32 km,2027-04-25,true,Saint-Jean-de-Védas,,34,,,32,1050,,,,false,trail,false,,,https://www.runtrail.run/event/23668-la-pistole-volante
 rt-23668-2027-04-25-8k,La Pistole Volante,La Pistolette - 8 km,2027-04-25,true,Saint-Jean-de-Védas,,34,,,8,120,,,,false,trail,false,,,https://www.runtrail.run/event/23668-la-pistole-volante
+rt-22495-2027-04-25-12-5k,Marathon Côte Indigo,TRAIL NATURE - 12.5 km,2027-04-25,true,Fleury,,11,,,12.5,60,,,,false,trail,false,,,https://www.runtrail.run/event/22495-marathon-cote-indigo
+rt-22495-2027-04-25-21-1k,Marathon Côte Indigo,SEMI-MARATHON - 21.1 km,2027-04-25,true,Fleury,,11,,,21.1,30,,,,false,trail,false,,,https://www.runtrail.run/event/22495-marathon-cote-indigo
+rt-22495-2027-04-25-42-2k,Marathon Côte Indigo,MARATHON RELAIS - 42.2 km,2027-04-25,true,Fleury,,11,,,42.2,150,,,,false,trail,false,,,https://www.runtrail.run/event/22495-marathon-cote-indigo
 rt-5854-2027-04-25-15k,Roq'4 Trail,Trail court - 15 km,2027-04-25,true,Roquefort-les-Pins,,06,,,15,350,,,,false,trail,false,,,https://www.runtrail.run/event/5854-roq-4-trail
 rt-5854-2027-04-25-8k,Roq'4 Trail,Trail court - 8 km,2027-04-25,true,Roquefort-les-Pins,,06,,,8,,,,,false,trail,false,,,https://www.runtrail.run/event/5854-roq-4-trail
 rt-5859-2027-04-25-11k,Tra'Zille,11 - 11 km,2027-04-25,true,Azille,,11,,,11,200,,,,false,trail,false,,,https://www.runtrail.run/event/5859-tra-zille
@@ -1066,6 +1165,9 @@ rt-12483-2027-04-25-11k,Trail Natura Sioule,Les Côteaux de Ste Foy - 11 km,2027
 rt-12483-2027-04-25-22k,Trail Natura Sioule,Les landes de Péraclos - 22 km,2027-04-25,true,Ébreuil,,03,,,22,600,,,,false,trail,false,,,https://www.runtrail.run/event/12483-trail-natura-sioule
 rt-12483-2027-04-25-32k,Trail Natura Sioule,Les Murailles de Chouvigny - 32 km,2027-04-25,true,Ébreuil,,03,,,32,1160,,,,false,trail,false,,,https://www.runtrail.run/event/12483-trail-natura-sioule
 rt-12483-2027-04-25-53k,Trail Natura Sioule,Les trois têtes - 53 km,2027-04-25,true,Ébreuil,,03,,,53,2050,,,,false,trail,false,,,https://www.runtrail.run/event/12483-trail-natura-sioule
+rt-5693-2027-04-25-18k,Trail Quillan,le capio - 18 km,2027-04-25,true,Quillan,,11,,,18,700,,,,false,trail,false,,,https://www.runtrail.run/event/5693-trail-quillan
+rt-5693-2027-04-25-30k,Trail Quillan,le tignous - 30 km,2027-04-25,true,Quillan,,11,,,30,1750,,,,false,trail,false,,,https://www.runtrail.run/event/5693-trail-quillan
+rt-5693-2027-04-25-45k,Trail Quillan,le tremplin - 45 km,2027-04-25,true,Quillan,,11,,,45,3050,,,,false,trail,false,,,https://www.runtrail.run/event/5693-trail-quillan
 rt-36936-2027-04-25-15k,Trail Thizy-les-Bourgs,Le Haut des Crêtes - 15 km,2027-04-25,true,Thizy-les-Bourgs,,69,,,15,600,,,,false,trail,false,,,https://www.runtrail.run/event/36936-trail-thizy-les-bourgs
 rt-36936-2027-04-25-22k,Trail Thizy-les-Bourgs,Trail court - 22 km,2027-04-25,true,Thizy-les-Bourgs,,69,,,22,600,,,,false,trail,false,,,https://www.runtrail.run/event/36936-trail-thizy-les-bourgs
 rt-36936-2027-04-25-8k,Trail Thizy-les-Bourgs,La Bost Run - 8 km,2027-04-25,true,Thizy-les-Bourgs,,69,,,8,215,,,,false,trail,false,,,https://www.runtrail.run/event/36936-trail-thizy-les-bourgs
@@ -1096,6 +1198,9 @@ rt-1162-2027-04-25-19k,Trail des Salamandres,Trail court - 19 km,2027-04-25,true
 rt-1162-2027-04-25-27k,Trail des Salamandres,Trail court - 27 km,2027-04-25,true,Sorbiers,,42,,,27,1000,,,,false,trail,false,,,https://www.runtrail.run/event/1162-trail-des-salamandres
 rt-27899-2027-04-25-12k,Trail des Trois Ruisseaux,Le Gazel - 12 km,2027-04-25,true,Montrabé,,31,,,12,200,,,,false,trail,false,,,https://www.runtrail.run/event/27899-trail-des-trois-ruisseaux
 rt-27899-2027-04-25-22k,Trail des Trois Ruisseaux,La Sausse - 22 km,2027-04-25,true,Montrabé,,31,,,22,350,,,,false,trail,false,,,https://www.runtrail.run/event/27899-trail-des-trois-ruisseaux
+rt-22533-2027-04-25-14k,Trail du Facteur,Le Recommandé - 14 km,2027-04-25,true,Maxou,,46,,,14,450,,,,false,trail,false,,,https://www.runtrail.run/event/22533-trail-du-facteur
+rt-22533-2027-04-25-23k,Trail du Facteur,Le Timbré - 23 km,2027-04-25,true,Maxou,,46,,,23,1200,,,,false,trail,false,,,https://www.runtrail.run/event/22533-trail-du-facteur
+rt-22533-2027-04-25-9k,Trail du Facteur,Le Colissimo - 9 km,2027-04-25,true,Maxou,,46,,,9,250,,,,false,trail,false,,,https://www.runtrail.run/event/22533-trail-du-facteur
 rt-34881-2027-04-25-12k,Vet'O Trail,Trail court - 12 km,2027-04-25,true,Marcy-l'Étoile,,69,,,12,200,,,,false,trail,false,,,https://www.runtrail.run/event/34881-vet-o-trail
 rt-34881-2027-04-25-20k,Vet'O Trail,Trail court - 20 km,2027-04-25,true,Marcy-l'Étoile,,69,,,20,650,,,,false,trail,false,,,https://www.runtrail.run/event/34881-vet-o-trail
 rt-34881-2027-04-25-6k,Vet'O Trail,Trail court - 6 km,2027-04-25,true,Marcy-l'Étoile,,69,,,6,100,,,,false,trail,false,,,https://www.runtrail.run/event/34881-vet-o-trail
@@ -1655,6 +1760,7 @@ rt-12707-2027-06-07-16k,Trails des Millefonts,P'tit trail - 16 km,2027-06-07,tru
 rt-12707-2027-06-07-25k,Trails des Millefonts,Trail des lacs - 25 km,2027-06-07,true,Valdeblore,,06,,,25,1880,,,,false,trail,false,,,https://www.runtrail.run/event/12707-trails-des-millefonts
 rt-12707-2027-06-07-42k,Trails des Millefonts,Marathon des Millefonts - 42 km,2027-06-07,true,Valdeblore,,06,,,42,3050,,,,false,trail,false,,,https://www.runtrail.run/event/12707-trails-des-millefonts
 rt-12707-2027-06-07-9k,Trails des Millefonts,Cair'Xpress - 9 km,2027-06-07,true,Valdeblore,,06,,,9,560,,,,false,trail,false,,,https://www.runtrail.run/event/12707-trails-des-millefonts
+rt-6292-2027-06-11-3-5k,La Verticale de Rochefort,Kilomètre Vertical - 3.5 km,2027-06-11,true,Beaujeu,,69,,,3.5,560,,,,false,trail,false,,,https://www.runtrail.run/event/6292-la-verticale-de-rochefort
 rt-30081-2027-06-11-14k,Les 5 Serres,Trail Nocturne - 14 km,2027-06-11,true,Saint-Génies-de-Malgoirès,,30,,,14,400,,,,false,trail,true,,,https://www.runtrail.run/event/30081-les-5-serres
 rt-2017-2027-06-11-139k,Trail du Saint Jacques by UTMB®,Ultra Saint Jacques - 139 km,2027-06-11,true,Le Puy-en-Velay,,43,,,139,6050,,,,true,ultra,false,,,https://www.runtrail.run/event/2017-trail-du-saint-jacques-by-utmb-r
 rt-290-2027-06-11-114k,Ultra Trail du Puy Mary Aurillac - UTPMA,UTPMA - 114 km,2027-06-11,true,Aurillac,,15,,,114,5000,,,,false,ultra,false,,,https://www.runtrail.run/event/290-ultra-trail-du-puy-mary-aurillac-utpma
@@ -1667,6 +1773,7 @@ rt-6350-2027-06-12-6-3k,Défi des 3 Villards en Oisans,Bourg d’Oisans / Villar
 rt-6323-2027-06-12-10k,Esclapa L'Oeil Trail,Trail court - 10 km,2027-06-12,true,Cipières,,06,,,10,500,,,,false,trail,false,,,https://www.runtrail.run/event/6323-esclapa-l-oeil-trail
 rt-6323-2027-06-12-21k,Esclapa L'Oeil Trail,Trail court - 21 km,2027-06-12,true,Cipières,,06,,,21,900,,,,false,trail,false,,,https://www.runtrail.run/event/6323-esclapa-l-oeil-trail
 rt-6323-2027-06-12-31k,Esclapa L'Oeil Trail,La Grande Coursasse - 31 km,2027-06-12,true,Cipières,,06,,,31,1300,,,,false,trail,false,,,https://www.runtrail.run/event/6323-esclapa-l-oeil-trail
+rt-1641-2027-06-12-7k,La Comblorane,La S - 7 km,2027-06-12,true,Combloux,,74,,,7,250,,,,false,trail,false,,,https://www.runtrail.run/event/1641-la-comblorane
 rt-35391-2027-06-12-17k,La Ronde des Chats,Trail court - 17 km,2027-06-12,true,La Romieu,,32,,,17,,,,,false,trail,false,,,https://www.runtrail.run/event/35391-la-ronde-des-chats
 rt-35391-2027-06-12-8k,La Ronde des Chats,Trail court - 8 km,2027-06-12,true,La Romieu,,32,,,8,,,,,false,trail,false,,,https://www.runtrail.run/event/35391-la-ronde-des-chats
 rt-12730-2027-06-12-115k,Les Trails de la Factrice,Ultra Trail - 115 km,2027-06-12,true,Roquebrun,,34,,,115,6300,,,,false,ultra,false,,,https://www.runtrail.run/event/12730-les-trails-de-la-factrice
@@ -1674,6 +1781,9 @@ rt-12730-2027-06-12-68k,Les Trails de la Factrice,Trail long - 68 km,2027-06-12,
 rt-30286-2027-06-12-10k,Trail de Montgailhard,Trail court - 10 km,2027-06-12,true,Montgailhard,,09,,,10,450,,,,false,trail,false,,,https://www.runtrail.run/event/30286-trail-de-montgailhard
 rt-30286-2027-06-12-17k,Trail de Montgailhard,Trail court - 17 km,2027-06-12,true,Montgailhard,,09,,,17,800,,,,false,trail,false,,,https://www.runtrail.run/event/30286-trail-de-montgailhard
 rt-30286-2027-06-12-30k,Trail de Montgailhard,Trail long - 30 km,2027-06-12,true,Montgailhard,,09,,,30,1700,,,,false,trail,false,,,https://www.runtrail.run/event/30286-trail-de-montgailhard
+rt-2838-2027-06-12-11k,Trail des Meuh du Lyonnais,La Meuh-minette - 11 km,2027-06-12,true,Saint-Laurent-de-Chamousset,,69,,,11,400,,,,false,trail,false,,,https://www.runtrail.run/event/2838-trail-des-meuh-du-lyonnais
+rt-2838-2027-06-12-21k,Trail des Meuh du Lyonnais,La Meuh-tivée - 21 km,2027-06-12,true,Saint-Laurent-de-Chamousset,,69,,,21,900,,,,false,trail,false,,,https://www.runtrail.run/event/2838-trail-des-meuh-du-lyonnais
+rt-2838-2027-06-12-5k,Trail des Meuh du Lyonnais,La Mini-meuh - 5 km,2027-06-12,true,Saint-Laurent-de-Chamousset,,69,,,5,,,,,false,trail,false,,,https://www.runtrail.run/event/2838-trail-des-meuh-du-lyonnais
 rt-2017-2027-06-12-28k,Trail du Saint Jacques by UTMB®,Les Chibottes - 28 km,2027-06-12,true,Le Puy-en-Velay,,43,,,28,750,,,,true,trail,false,,,https://www.runtrail.run/event/2017-trail-du-saint-jacques-by-utmb-r
 rt-2017-2027-06-12-86k,Trail du Saint Jacques by UTMB®,Grand Trail du Saint Jacques - 86 km,2027-06-12,true,Le Puy-en-Velay,,43,,,86,3500,,,,true,ultra,false,,,https://www.runtrail.run/event/2017-trail-du-saint-jacques-by-utmb-r
 rt-16738-2027-06-12-12k,Trail du Vignoble Gaillacois,La Mauzac - 12 km,2027-06-12,true,Gaillac,,81,,,12,320,,,,false,trail,false,,,https://www.runtrail.run/event/16738-trail-du-vignoble-gaillacois
@@ -1691,8 +1801,21 @@ rt-2024-2027-06-13-33k,Desperado Trail,Trail long - 33 km,2027-06-13,true,Durfor
 rt-2024-2027-06-13-9k,Desperado Trail,Trail court - 9 km,2027-06-13,true,Durfort,,81,,,9,480,,,,false,trail,false,,,https://www.runtrail.run/event/2024-desperado-trail
 rt-6350-2027-06-13-24k,Défi des 3 Villards en Oisans,La Tournée des 3 Villards - 24 km,2027-06-13,true,Le Bourg-d'Oisans,,38,,,24,2000,,,,false,trail,false,,,https://www.runtrail.run/event/6350-defi-des-3-villards-en-oisans
 rt-6350-2027-06-13-5-5k,Défi des 3 Villards en Oisans,Bourg d’Oisans / Villard Reculas - 5.5 km,2027-06-13,true,Le Bourg-d'Oisans,,38,,,5.5,1000,,,,false,trail,false,,,https://www.runtrail.run/event/6350-defi-des-3-villards-en-oisans
+rt-43142-2027-06-13-10k,Foulée des Crêtes,Trail court - 10 km,2027-06-13,true,Alboussière,,07,,,10,200,,,,false,trail,false,,,https://www.runtrail.run/event/43142-foulee-des-cretes
+rt-43142-2027-06-13-20k,Foulée des Crêtes,Trail court - 20 km,2027-06-13,true,Alboussière,,07,,,20,530,,,,false,trail,false,,,https://www.runtrail.run/event/43142-foulee-des-cretes
+rt-1641-2027-06-13-15k,La Comblorane,La M - 15 km,2027-06-13,true,Combloux,,74,,,15,840,,,,false,trail,false,,,https://www.runtrail.run/event/1641-la-comblorane
+rt-1641-2027-06-13-25k,La Comblorane,La L - 25 km,2027-06-13,true,Combloux,,74,,,25,1590,,,,false,trail,false,,,https://www.runtrail.run/event/1641-la-comblorane
+rt-1641-2027-06-13-42k,La Comblorane,La XL - 42 km,2027-06-13,true,Combloux,,74,,,42,2910,,,,false,trail,false,,,https://www.runtrail.run/event/1641-la-comblorane
 rt-30188-2027-06-13-12k,Lapeyro'Trail,Trail court - 12 km,2027-06-13,true,Lacrouzette,,81,,,12,420,,,,false,trail,false,,,https://www.runtrail.run/event/30188-lapeyro-trail
 rt-30188-2027-06-13-18k,Lapeyro'Trail,Trail court - 18 km,2027-06-13,true,Lacrouzette,,81,,,18,660,,,,false,trail,false,,,https://www.runtrail.run/event/30188-lapeyro-trail
+rt-268-2027-06-13-14k,Les Balcons de la Drôme,Trail court - 14 km,2027-06-13,true,Piégros-la-Clastre,,26,,,14,530,,,,false,trail,false,,,https://www.runtrail.run/event/268-les-balcons-de-la-drome
+rt-268-2027-06-13-27k,Les Balcons de la Drôme,Trail long - 27 km,2027-06-13,true,Piégros-la-Clastre,,26,,,27,1350,,,,false,trail,false,,,https://www.runtrail.run/event/268-les-balcons-de-la-drome
+rt-268-2027-06-13-6-8k,Les Balcons de la Drôme,Trail découverte - 6.8 km,2027-06-13,true,Piégros-la-Clastre,,26,,,6.8,250,,,,false,trail,false,,,https://www.runtrail.run/event/268-les-balcons-de-la-drome
+rt-6377-2027-06-13-10k,Les Foulées de Voreppe,La Dix - 10 km,2027-06-13,true,Voreppe,,38,,,10,65,,,,false,trail,false,,,https://www.runtrail.run/event/6377-les-foulees-de-voreppe
+rt-6377-2027-06-13-15k,Les Foulées de Voreppe,La Source - 15 km,2027-06-13,true,Voreppe,,38,,,15,700,,,,false,trail,false,,,https://www.runtrail.run/event/6377-les-foulees-de-voreppe
+rt-6377-2027-06-13-23k,Les Foulées de Voreppe,La Chalaisienne - 23 km,2027-06-13,true,Voreppe,,38,,,23,1300,,,,false,trail,false,,,https://www.runtrail.run/event/6377-les-foulees-de-voreppe
+rt-6377-2027-06-13-5k,Les Foulées de Voreppe,5 km,2027-06-13,true,Voreppe,,38,,,5,,,,,false,trail,false,,,https://www.runtrail.run/event/6377-les-foulees-de-voreppe
+rt-6377-2027-06-13-7-5k,Les Foulées de Voreppe,La Pimousse - 7.5 km,2027-06-13,true,Voreppe,,38,,,7.5,300,,,,false,trail,false,,,https://www.runtrail.run/event/6377-les-foulees-de-voreppe
 rt-12730-2027-06-13-16k,Les Trails de la Factrice,Roquebrune - 16 km,2027-06-13,true,Roquebrun,,34,,,16,750,,,,false,trail,false,,,https://www.runtrail.run/event/12730-les-trails-de-la-factrice
 rt-12730-2027-06-13-33k,Les Trails de la Factrice,Trail court - 33 km,2027-06-13,true,Roquebrun,,34,,,33,1500,,,,false,trail,false,,,https://www.runtrail.run/event/12730-les-trails-de-la-factrice
 rt-43138-2027-06-13-10k,Marco Trail,Marco trail 1ere édition - 10 km,2027-06-13,true,Marcorignan,,11,,,10,200,,,,false,trail,false,,,https://www.runtrail.run/event/43138-marco-trail
@@ -1725,6 +1848,12 @@ rt-43135-2027-06-13-14k,Trail de Velleron Piégros,Trail court - 14 km,2027-06-1
 rt-43135-2027-06-13-8k,Trail de Velleron Piégros,Course Nature - 8 km,2027-06-13,true,Velleron,,84,,,8,170,,,,false,trail,false,,,https://www.runtrail.run/event/43135-trail-de-velleron-piegros
 rt-10791-2027-06-13-13k,Trail de l'Espoir,Trail court - 13 km,2027-06-13,true,Monieux,,84,,,13,490,,,,false,trail,false,,,https://www.runtrail.run/event/10791-trail-de-l-espoir
 rt-10791-2027-06-13-19k,Trail de l'Espoir,Trail court - 19 km,2027-06-13,true,Monieux,,84,,,19,1320,,,,false,trail,false,,,https://www.runtrail.run/event/10791-trail-de-l-espoir
+rt-28985-2027-06-13-15k,Trail des Contreforts,Trail court - 15 km,2027-06-13,true,Rochefort-Samson,,26,,,15,700,,,,false,trail,false,,,https://www.runtrail.run/event/28985-trail-des-contreforts
+rt-28985-2027-06-13-26k,Trail des Contreforts,Trail court - 26 km,2027-06-13,true,Rochefort-Samson,,26,,,26,1400,,,,false,trail,false,,,https://www.runtrail.run/event/28985-trail-des-contreforts
+rt-28985-2027-06-13-8k,Trail des Contreforts,Trail court - 8 km,2027-06-13,true,Rochefort-Samson,,26,,,8,170,,,,false,trail,false,,,https://www.runtrail.run/event/28985-trail-des-contreforts
+rt-6373-2027-06-13-14k,Trail des Tortues Joggeuses,Trail XXS - 14 km,2027-06-13,true,Apprieu,,38,,,14,450,,,,false,trail,false,,,https://www.runtrail.run/event/6373-trail-des-tortues-joggeuses
+rt-6373-2027-06-13-20k,Trail des Tortues Joggeuses,Trail XS La Manu - 20 km,2027-06-13,true,Apprieu,,38,,,20,670,,,,false,trail,false,,,https://www.runtrail.run/event/6373-trail-des-tortues-joggeuses
+rt-6373-2027-06-13-8k,Trail des Tortues Joggeuses,Course - 8 km,2027-06-13,true,Apprieu,,38,,,8,100,,,,false,trail,false,,,https://www.runtrail.run/event/6373-trail-des-tortues-joggeuses
 rt-6375-2027-06-13-12k,Trail du Gerbier à Prélenfrey,Epreuve annulée 12 km - 12 km,2027-06-13,true,Le Gua,,38,,,12,500,,,,false,trail,false,,,https://www.runtrail.run/event/6375-trail-du-gerbier-a-prelenfrey
 rt-6375-2027-06-13-18k,Trail du Gerbier à Prélenfrey,18 km - 18 km,2027-06-13,true,Le Gua,,38,,,18,700,,,,false,trail,false,,,https://www.runtrail.run/event/6375-trail-du-gerbier-a-prelenfrey
 rt-6375-2027-06-13-42k,Trail du Gerbier à Prélenfrey,maratrail 42 km - 42 km,2027-06-13,true,Le Gua,,38,,,42,2000,,,,false,trail,false,,,https://www.runtrail.run/event/6375-trail-du-gerbier-a-prelenfrey
@@ -1732,6 +1861,12 @@ rt-2017-2027-06-13-12k,Trail du Saint Jacques by UTMB®,Le 12 du Dolaizon - 12 k
 rt-2017-2027-06-13-55k,Trail du Saint Jacques by UTMB®,Monistrail - 55 km,2027-06-13,true,Le Puy-en-Velay,,43,,,55,2100,,,,true,trail,false,,,https://www.runtrail.run/event/2017-trail-du-saint-jacques-by-utmb-r
 rt-43144-2027-06-13-11k,Trail du lac de l'Arrêt Darre,Trail court - 11 km,2027-06-13,true,Lansac,,65,,,11,170,,,,false,trail,false,,,https://www.runtrail.run/event/43144-trail-du-lac-de-l-arret-darre
 rt-43144-2027-06-13-18k,Trail du lac de l'Arrêt Darre,Trail court - 18 km,2027-06-13,true,Lansac,,65,,,18,350,,,,false,trail,false,,,https://www.runtrail.run/event/43144-trail-du-lac-de-l-arret-darre
+rt-10808-2027-06-13-23k,Trails de Bozel Mont-Jovet,Trail Bozelain - 23 km,2027-06-13,true,Bozel,,73,,,23,1400,,,,false,trail,false,,,https://www.runtrail.run/event/10808-trails-de-bozel-mont-jovet
+rt-10808-2027-06-13-31k,Trails de Bozel Mont-Jovet,Trail des crêtes du Mont-Jovet - 31 km,2027-06-13,true,Bozel,,73,,,31,2150,,,,false,trail,false,,,https://www.runtrail.run/event/10808-trails-de-bozel-mont-jovet
+rt-10808-2027-06-13-9k,Trails de Bozel Mont-Jovet,Trail des Hameaux de Bozel - 9 km,2027-06-13,true,Bozel,,73,,,9,500,,,,false,trail,false,,,https://www.runtrail.run/event/10808-trails-de-bozel-mont-jovet
+rt-16794-2027-06-13-10-5k,Urban Trail Andrézieux-Bouthéon,Urban Trail - 10.5 km,2027-06-13,true,Andrézieux-Bouthéon,,42,,,10.5,300,,,,false,trail,false,,,https://www.runtrail.run/event/16794-urban-trail-andrezieux-boutheon
+rt-16794-2027-06-13-17-5k,Urban Trail Andrézieux-Bouthéon,Urban Trail - 17.5 km,2027-06-13,true,Andrézieux-Bouthéon,,42,,,17.5,,,,,false,trail,false,,,https://www.runtrail.run/event/16794-urban-trail-andrezieux-boutheon
+rt-16794-2027-06-13-5k,Urban Trail Andrézieux-Bouthéon,Urban Trail - 5 km,2027-06-13,true,Andrézieux-Bouthéon,,42,,,5,,,,,false,trail,false,,,https://www.runtrail.run/event/16794-urban-trail-andrezieux-boutheon
 rt-253-2027-06-18-300k,Chartreuse Terminorum,Ultra Trail - 300 km,2027-06-18,true,Saint-Laurent-du-Pont,,38,,,300,25000,,,,false,ultra,false,,,https://www.runtrail.run/event/253-chartreuse-terminorum
 rt-275-2027-06-18-118k,Ultra-Trail du Haut-Giffre,Aux Sources du Trail (SDT) - 118 km,2027-06-18,true,Samoëns,,74,,,118,7850,,,,false,ultra,false,,,https://www.runtrail.run/event/275-ultra-trail-du-haut-giffre
 rt-1838-2027-06-19-4-5k,2KV de Rimplas,KV - 4.5 km,2027-06-19,true,Rimplas,,06,,,4.5,1000,,,,false,trail,false,,,https://www.runtrail.run/event/1838-2kv-de-rimplas
@@ -1740,6 +1875,7 @@ rt-2172-2027-06-19-10k,Asics Aravistrail,Croué - 10 km,2027-06-19,true,Thônes,
 rt-2172-2027-06-19-20k,Asics Aravistrail,Deûfe - 20 km,2027-06-19,true,Thônes,,74,,,20,1100,,,,false,trail,false,,,https://www.runtrail.run/event/2172-asics-aravistrail
 rt-2172-2027-06-19-35k,Asics Aravistrail,L’Aravi'Cîmes - 35 km,2027-06-19,true,Thônes,,74,,,35,3000,,,,false,trail,false,,,https://www.runtrail.run/event/2172-asics-aravistrail
 rt-2172-2027-06-19-52k,Asics Aravistrail,Volontera - 52 km,2027-06-19,true,Thônes,,74,,,52,3300,,,,false,trail,false,,,https://www.runtrail.run/event/2172-asics-aravistrail
+rt-24713-2027-06-19-8k,Bernex Trail Challenge,Trail de la Station - 8 km,2027-06-19,true,Bernex,,74,,,8,350,,,,false,trail,false,,,https://www.runtrail.run/event/24713-bernex-trail-challenge
 rt-35389-2027-06-19-13k,Cap Nore,Trail'Nore - 13 km,2027-06-19,true,Pradelles-Cabardès,,11,,,13,500,,,,false,trail,false,,,https://www.runtrail.run/event/35389-cap-nore
 rt-35389-2027-06-19-24k,Cap Nore,Trail'Nore - 24 km,2027-06-19,true,Pradelles-Cabardès,,11,,,24,900,,,,false,trail,false,,,https://www.runtrail.run/event/35389-cap-nore
 rt-35389-2027-06-19-30k,Cap Nore,Déval'Nore - 30 km,2027-06-19,true,Pradelles-Cabardès,,11,,,30,250,,,,false,trail,false,,,https://www.runtrail.run/event/35389-cap-nore
@@ -1784,6 +1920,11 @@ rt-12018-2027-06-19-9k,Trail du Col du Noyer,La Bouclette - 9 km,2027-06-19,true
 rt-275-2027-06-19-33k,Ultra-Trail du Haut-Giffre,Tour de Bostan (TDB) - 33 km,2027-06-19,true,Samoëns,,74,,,33,2100,,,,false,trail,false,,,https://www.runtrail.run/event/275-ultra-trail-du-haut-giffre
 rt-275-2027-06-19-51k,Ultra-Trail du Haut-Giffre,Tour des Frahans (TDF) - 51 km,2027-06-19,true,Samoëns,,74,,,51,3700,,,,false,trail,false,,,https://www.runtrail.run/event/275-ultra-trail-du-haut-giffre
 rt-275-2027-06-19-92k,Ultra-Trail du Haut-Giffre,Ultra Tour du Haut Giffre (UTHG) - 92 km,2027-06-19,true,Samoëns,,74,,,92,6400,,,,false,ultra,false,,,https://www.runtrail.run/event/275-ultra-trail-du-haut-giffre
+rt-2216-2027-06-20-15k,Arly Cimes Trail,Trail Solo - 15 km,2027-06-20,true,Crest-Voland,,73,,,15,660,,,,false,trail,false,,,https://www.runtrail.run/event/2216-arly-cimes-trail
+rt-2216-2027-06-20-16k,Arly Cimes Trail,Arly Cimes Trail - 16 km,2027-06-20,true,Crest-Voland,,73,,,16,1600,,,,false,trail,false,,,https://www.runtrail.run/event/2216-arly-cimes-trail
+rt-24713-2027-06-20-21k,Bernex Trail Challenge,Semi de la dent d'Oche - 21 km,2027-06-20,true,Bernex,,74,,,21,1400,,,,false,trail,false,,,https://www.runtrail.run/event/24713-bernex-trail-challenge
+rt-24713-2027-06-20-33k,Bernex Trail Challenge,Trail des Mémises au lac de Case - 33 km,2027-06-20,true,Bernex,,74,,,33,2400,,,,false,trail,false,,,https://www.runtrail.run/event/24713-bernex-trail-challenge
+rt-24713-2027-06-20-62k,Bernex Trail Challenge,La Balade Chablaisienne - 62 km,2027-06-20,true,Bernex,,74,,,62,4200,,,,false,trail,false,,,https://www.runtrail.run/event/24713-bernex-trail-challenge
 rt-2023-2027-06-20-11k,BisCoteaux Trail,BisCoteaux Trail Intermédiaire - 11 km,2027-06-20,true,Vigoulet-Auzil,,31,,,11,370,,,,false,trail,false,,,https://www.runtrail.run/event/2023-biscoteaux-trail
 rt-2023-2027-06-20-24k,BisCoteaux Trail,Grand BisCoteaux Trail - 24 km,2027-06-20,true,Vigoulet-Auzil,,31,,,24,765,,,,false,trail,false,,,https://www.runtrail.run/event/2023-biscoteaux-trail
 rt-2023-2027-06-20-5k,BisCoteaux Trail,Petit BisCoteaux Trail - 5 km,2027-06-20,true,Vigoulet-Auzil,,31,,,5,100,,,,false,trail,false,,,https://www.runtrail.run/event/2023-biscoteaux-trail
