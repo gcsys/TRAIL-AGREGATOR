@@ -77,7 +77,28 @@ def slug(s):
     return re.sub(r"[^a-z0-9]+", "-", s).strip("-")
 
 
+CACHE = __import__("pathlib").Path(__file__).resolve().parents[2] / "data" / "sources" / "datatourisme_cache.csv"
+
+
 def fetch():
+    """Rows à jour ; en cas d'échec réseau, dernière version connue (cache)."""
+    rows = _fetch()
+    fields = list(rows[0].keys()) if rows else []
+    if rows:
+        with CACHE.open("w", encoding="utf-8", newline="") as f:
+            w = csv.DictWriter(f, fieldnames=fields)
+            w.writeheader()
+            w.writerows(rows)
+        return rows
+    if CACHE.exists():
+        today = date.today().isoformat()
+        with CACHE.open(encoding="utf-8") as f:
+            rows = [r for r in csv.DictReader(f) if r["date"] >= today]
+        print(f"  DATAtourisme : cache utilisé ({len(rows)} courses)", file=sys.stderr)
+    return rows
+
+
+def _fetch():
     try:
         meta = json.loads(_get(DATASET_API, timeout=60))
         url = next(r["url"] for r in meta["resources"] if r["title"] == RESOURCE_TITLE)

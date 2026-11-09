@@ -31,6 +31,7 @@ jobs:
           git config user.name "trail-bot"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add site/data/races.json data/geocode_cache.json
+          git add data/sources/datatourisme_cache.csv 2>/dev/null || true
           if git diff --cached --quiet; then
             echo "Aucun changement"
           else
