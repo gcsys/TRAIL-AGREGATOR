@@ -1,37 +1,146 @@
-/* Trail Agrégateur : carte + sélection de zones + tableau filtrable. */
+/* Agregatrail : recherche, carte, zones, fiches par course, favoris. */
 (async function () {
   const $ = (s) => document.querySelector(s);
+  const $$ = (s, el = document) => [...el.querySelectorAll(s)];
+  const desk = window.matchMedia("(min-width: 1024px)");
+  const phone = window.matchMedia("(max-width: 700px)");
+
   const state = {
-    base: [], // courses telles que publiées dans data/races.json
-    races: [], // courses affichées (corrections personnelles appliquées)
+    base: [], // courses (formats) telles que publiées dans data/races.json
+    races: [], // formats affichés (corrections personnelles appliquées)
     byId: new Map(),
-    absent: [], // favoris introuvables dans la base actuelle (instantanés)
+    absent: [],
+    eventsAll: new Map(), // clé d'événement -> tous ses formats
     view: null, // null | { kind: "list", id } | { kind: "shared", data, resolved }
     selDeps: new Set(),
     selRegs: new Set(),
     shapes: [], // GeoJSON Feature<Polygon> dessinés
+    bbox: null, // [ouest, sud, est, nord] « zone affichée »
+    radius: null, // { lat, lon, km, label }
+    months: new Set(),
+    profils: new Set(),
     sort: { k: "date", dir: 1 },
     clickLayer: "departements",
+    mode: "cards",
+  };
+  const store = {
+    get(k, d) { try { const v = localStorage.getItem(k); return v == null ? d : v; } catch (e) { return d; } },
+    set(k, v) { try { localStorage.setItem(k, v); } catch (e) { /* stockage indisponible */ } },
   };
 
+  // ---------- Outils ----------
+  const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+  const safeUrl = (u) => (/^https?:\/\//i.test(u || "") ? u : null);
+  const norm = (s) => String(s || "").normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase().replace(/[^a-z0-9]+/g, " ").trim();
+  const toDate = (d) => new Date((d.length === 7 ? d + "-01" : d) + "T00:00");
+  const dateStart = (d) => (d.length === 7 ? d + "-01" : d);
+  const dateEnd = (d) => (d.length === 7 ? d + "-31" : d);
+  const iso = (d) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+  const fmtNum = (v) => (v == null ? "—" : Number(v).toLocaleString("fr-FR"));
+  const cap = (s) => s.charAt(0).toUpperCase() + s.slice(1);
+  const plural = (n, w, ws) => `${n.toLocaleString("fr-FR")} ${n > 1 ? ws || w + "s" : w}`;
+  const icon = (id, cls = "") => `<svg class="${cls}" aria-hidden="true"><use href="#i-${id}"/></svg>`;
+  const fmtDate = (r) => {
+    if (!r.date) return "Date inconnue";
+    if (r.date.length === 7) return cap(toDate(r.date).toLocaleDateString("fr-FR", { month: "long", year: "numeric" })) + " (à préciser)";
+    return toDate(r.date).toLocaleDateString("fr-FR", { weekday: "short", day: "numeric", month: "short", year: "numeric" });
+  };
+  const haversine = (lat1, lon1, lat2, lon2) => {
+    const R = 6371, rad = Math.PI / 180;
+    const a = Math.sin(((lat2 - lat1) * rad) / 2) ** 2 + Math.cos(lat1 * rad) * Math.cos(lat2 * rad) * Math.sin(((lon2 - lon1) * rad) / 2) ** 2;
+    return 2 * R * Math.asin(Math.sqrt(a));
+  };
+  const fmtKm = (v) => (v < 10 ? v.toLocaleString("fr-FR", { maximumFractionDigits: 1 }) : Math.round(v).toLocaleString("fr-FR"));
+
   // ---------- Carte ----------
-  const map = L.map("map", { zoomSnap: 0.5, preferCanvas: true }).setView([46.6, 2.4], 5.5);
-  L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
-    maxZoom: 18,
-    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
-  }).addTo(map);
+  const map = L.map("map", { zoomSnap: 0.5, preferCanvas: true, zoomControl: true }).setView([46.6, 2.4], 5.5);
+  const bases = {
+    plan: L.tileLayer("https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png", {
+      maxZoom: 19, subdomains: "abcd",
+      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://carto.com/attributions">CARTO</a>',
+    }),
+    relief: L.tileLayer("https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png", {
+      maxZoom: 17,
+      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>, SRTM · <a href="https://opentopomap.org">OpenTopoMap</a> (CC-BY-SA)',
+    }),
+    sat: L.tileLayer("https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}", {
+      maxZoom: 18, attribution: "Imagerie &copy; Esri, Maxar, Earthstar Geographics",
+    }),
+  };
+  let baseName = bases[store.get("ta.base")] ? store.get("ta.base") : "plan";
+  bases[baseName].addTo(map);
+  const syncBaseMenu = () => $$("#basemap-menu [data-base]").forEach((b) => b.setAttribute("aria-checked", b.dataset.base === baseName));
+  syncBaseMenu();
+  $("#basemap").addEventListener("click", (e) => {
+    e.stopPropagation();
+    $("#basemap-menu").hidden = !$("#basemap-menu").hidden;
+  });
+  $("#basemap-menu").addEventListener("click", (e) => {
+    const b = e.target.closest("[data-base]");
+    if (!b) return;
+    map.removeLayer(bases[baseName]);
+    baseName = b.dataset.base;
+    bases[baseName].addTo(map).bringToBack();
+    store.set("ta.base", baseName);
+    syncBaseMenu();
+    $("#basemap-menu").hidden = true;
+  });
+  document.addEventListener("click", (e) => !e.target.closest(".map-side") && ($("#basemap-menu").hidden = true));
 
-  const baseStyle = { color: "#2f7d4f", weight: 1, fillOpacity: 0.04 };
-  const selStyle = { color: "#e07a1f", weight: 2, fillOpacity: 0.25, fillColor: "#e07a1f" };
+  // Les déplacements faits par le site ne doivent pas proposer « Rechercher dans cette zone ».
+  // Carte masquée (mobile en mode liste) : le cadrage est rejoué quand elle s'affiche.
+  let progMove = 0;
+  let pendingMove = null;
+  const mapVisible = () => map.getContainer().offsetWidth > 0;
+  const moveMap = (fn) => {
+    if (!mapVisible()) {
+      pendingMove = fn;
+      return;
+    }
+    progMove++;
+    fn();
+    setTimeout(() => (progMove = Math.max(0, progMove - 1)), 700);
+  };
+  const flushMove = () => {
+    map.invalidateSize();
+    if (pendingMove && mapVisible()) {
+      const fn = pendingMove;
+      pendingMove = null;
+      moveMap(fn);
+    }
+  };
 
-  const [depsGeo, regsGeo, data] = await Promise.all([
-    fetch("geo/departements.geojson").then((r) => r.json()),
-    fetch("geo/regions.geojson").then((r) => r.json()),
-    fetch("data/races.json").then((r) => r.json()),
-  ]);
+  const css = getComputedStyle(document.documentElement);
+  const selColor = "#f2612c";
+  const baseStyle = { color: "#2f6b4f", weight: 0.8, opacity: 0.55, fillOpacity: 0.02, fillColor: "#2f6b4f" };
+  const selStyle = { color: selColor, weight: 2, opacity: 1, fillOpacity: 0.16, fillColor: selColor };
+  const distVar = (km) => (km == null ? "--d1" : km < 20 ? "--d1" : km < 42 ? "--d2" : km < 80 ? "--d3" : "--d4");
+  const distColor = (km) => css.getPropertyValue(distVar(km)).trim();
+
+  // Chargement
+  let depsGeo, regsGeo, data;
+  try {
+    [depsGeo, regsGeo, data] = await Promise.all([
+      fetch("geo/departements.geojson").then((r) => r.json()),
+      fetch("geo/regions.geojson").then((r) => r.json()),
+      fetch("data/races.json").then((r) => r.json()),
+    ]);
+  } catch (e) {
+    $("#cards").innerHTML = "";
+    $("#empty").hidden = false;
+    $("#empty-title").textContent = "Impossible de charger les courses";
+    $("#empty-sub").textContent = "Vérifiez votre connexion puis rechargez la page.";
+    $("#empty-reset").hidden = true;
+    return;
+  }
+
+  const depName = new Map(depsGeo.features.map((f) => [f.properties.code, f.properties.nom]));
+  const regName = new Map(regsGeo.features.map((f) => [f.properties.code, f.properties.nom]));
+
+  // ---------- Données ----------
   state.base = data.races;
   const baseById = new Map(state.base.map((r) => [r.id, r]));
-  // (Re)calcule les courses affichées à partir de la base + corrections locales.
+  const evKey = (r) => `${norm(r.nom)}|${norm(r.ville)}|${(r.date || "").slice(0, 7)}`;
   function rebuild() {
     state.absent = Favoris.reconcile(baseById, state.base);
     const ed = Favoris.edits();
@@ -39,43 +148,73 @@
     state.byId = new Map(state.races.map((r) => [r.id, r]));
     state.absent = state.absent.map((r) => Favoris.apply(r, ed[r.id]));
     state.absent.forEach((r) => state.byId.set(r.id, r));
+    state.eventsAll = new Map();
+    state.races.forEach((r) => {
+      const k = evKey(r);
+      if (!state.eventsAll.has(k)) state.eventsAll.set(k, []);
+      state.eventsAll.get(k).push(r);
+    });
   }
   rebuild();
-  $("#meta").textContent = `${data.count.toLocaleString("fr-FR")} courses · màj ${new Date(data.generated_at).toLocaleDateString("fr-FR")}`;
 
-  function adminLayer(geo, set) {
+  // Communes connues (pour « autour de… ») : tirées des courses elles-mêmes.
+  const towns = (() => {
+    const m = new Map();
+    state.base.forEach((r) => {
+      if (r.lat == null || !r.ville) return;
+      const k = norm(r.ville) + "|" + (r.departement_code || "");
+      const t = m.get(k) || { name: r.ville, dep: r.departement_code, lat: 0, lon: 0, n: 0, key: norm(r.ville) };
+      t.lat += r.lat;
+      t.lon += r.lon;
+      t.n++;
+      m.set(k, t);
+    });
+    return [...m.values()].map((t) => ({ ...t, lat: t.lat / t.n, lon: t.lon / t.n }));
+  })();
+
+  const updated = new Date(data.generated_at).toLocaleDateString("fr-FR", { day: "numeric", month: "long", year: "numeric" });
+  $("#meta").innerHTML = `<b>${state.eventsAll.size.toLocaleString("fr-FR")}</b> courses et <b>${state.base.length.toLocaleString("fr-FR")}</b> formats partout en France. Mis à jour le ${updated}.`;
+  $("#foot-meta").textContent = `Données mises à jour le ${updated}`;
+
+  // ---------- Contours administratifs ----------
+  let drawing = false;
+  function adminLayer(geo, set, name) {
     return L.geoJSON(geo, {
       style: (f) => (set.has(f.properties.code) ? selStyle : baseStyle),
       onEachFeature: (f, layer) => {
-        layer.bindTooltip(`${f.properties.nom} (${f.properties.code})`, { sticky: true });
+        if (!L.Browser.mobile) layer.bindTooltip(`${f.properties.nom} (${f.properties.code})`, { sticky: true, className: "admin-tip" });
         layer.on("click", () => {
-          if (drawing) return;
+          if (drawing || state.clickLayer !== name) return;
           const c = f.properties.code;
           set.has(c) ? set.delete(c) : set.add(c);
           layer.setStyle(set.has(c) ? selStyle : baseStyle);
+          clearBbox();
           refresh();
         });
       },
     });
   }
   const layers = {
-    departements: adminLayer(depsGeo, state.selDeps),
-    regions: adminLayer(regsGeo, state.selRegs),
+    departements: adminLayer(depsGeo, state.selDeps, "departements"),
+    regions: adminLayer(regsGeo, state.selRegs, "regions"),
   };
-  layers.departements.addTo(map);
+  const restyleAdmin = () => {
+    layers.departements.eachLayer((l) => l.setStyle(state.selDeps.has(l.feature.properties.code) ? selStyle : baseStyle));
+    layers.regions.eachLayer((l) => l.setStyle(state.selRegs.has(l.feature.properties.code) ? selStyle : baseStyle));
+  };
+  function setClickLayer(name) {
+    state.clickLayer = name;
+    $$("[data-layer]").forEach((x) => x.classList.toggle("active", x.dataset.layer === name));
+    const shown = name === "regions" ? "regions" : "departements";
+    Object.entries(layers).forEach(([k, l]) => (k === shown ? map.hasLayer(l) || l.addTo(map) : map.removeLayer(l)));
+    layers[shown].bringToBack();
+  }
+  $$("[data-layer]").forEach((b) => b.addEventListener("click", () => setClickLayer(b.dataset.layer)));
+  // Sur téléphone, un toucher sur la carte ne sélectionne rien par défaut (on passe par « Zone »).
+  setClickLayer(desk.matches ? "departements" : "none");
 
-  document.querySelectorAll("[data-layer]").forEach((b) =>
-    b.addEventListener("click", () => {
-      document.querySelectorAll("[data-layer]").forEach((x) => x.classList.toggle("active", x === b));
-      Object.values(layers).forEach((l) => map.removeLayer(l));
-      state.clickLayer = b.dataset.layer;
-      if (layers[b.dataset.layer]) layers[b.dataset.layer].addTo(map).bringToBack();
-    })
-  );
-
-  // ---------- Dessin ----------
+  // ---------- Zones dessinées ----------
   const drawn = new L.FeatureGroup().addTo(map);
-  let drawing = false;
   function addShape(feature, layer) {
     state.shapes.push(feature);
     layer.setStyle && layer.setStyle(selStyle);
@@ -85,45 +224,27 @@
       state.shapes = state.shapes.filter((s) => s !== feature);
       refresh();
     });
-    layer.bindTooltip("Cliquer pour supprimer ce périmètre");
+    if (!L.Browser.mobile) layer.bindTooltip("Cliquer pour supprimer ce périmètre");
     drawn.addLayer(layer);
+    clearBbox();
     refresh();
   }
-
   map.on(L.Draw.Event.CREATED, (e) => {
     drawing = false;
-    let feature;
-    if (e.layerType === "circle") {
-      const c = e.layer.getLatLng();
-      feature = turf.circle([c.lng, c.lat], e.layer.getRadius() / 1000, { steps: 64, units: "kilometers" });
-    } else {
-      feature = e.layer.toGeoJSON();
-    }
-    addShape(feature, e.layer);
+    addShape(e.layer.toGeoJSON(), e.layer);
   });
   map.on(L.Draw.Event.DRAWSTOP, () => {
     document.body.classList.remove("drawing-active");
-    document.querySelectorAll(".seg .drawing").forEach((b) => b.classList.remove("drawing"));
+    $$(".seg .drawing").forEach((b) => b.classList.remove("drawing"));
     setTimeout(() => (drawing = false), 50);
   });
-
-  // Géolocalisation
-  $("#locate").addEventListener("click", () => {
-    if (!navigator.geolocation) return;
-    navigator.geolocation.getCurrentPosition(
-      (p) => map.setView([p.coords.latitude, p.coords.longitude], 9),
-      () => alert("Position indisponible."),
-      { timeout: 8000 }
-    );
-  });
-
   const drawers = {
     "#draw-poly": () => new L.Draw.Polygon(map, { shapeOptions: selStyle, allowIntersection: false }),
     "#draw-rect": () => new L.Draw.Rectangle(map, { shapeOptions: selStyle }),
-    "#draw-circle": () => new L.Draw.Circle(map, { shapeOptions: selStyle }),
   };
   Object.entries(drawers).forEach(([sel, make]) =>
     $(sel).addEventListener("click", () => {
+      cancelModes();
       drawing = true;
       $(sel).classList.add("drawing");
       document.body.classList.add("drawing-active");
@@ -131,22 +252,23 @@
     })
   );
 
-  // Main levée : maintenir le bouton et tracer
-  $("#draw-free").addEventListener("click", () => {
+  // Main levée (souris ou doigt)
+  let freehandCancel = null;
+  function startFreehand() {
+    cancelModes();
     drawing = true;
     document.body.classList.add("freehand-active");
     map.dragging.disable();
+    showHint("Entourez la zone d'un seul trait", "Annuler", () => freehandCancel && freehandCancel());
     let pts = [];
     let line = null;
     const container = map.getContainer();
-    const toLatLng = (ev) => {
-      const t = ev.touches ? ev.touches[0] : ev;
-      return map.mouseEventToLatLng(t);
-    };
+    const toLatLng = (ev) => map.mouseEventToLatLng(ev.touches ? ev.touches[0] : ev);
     const down = (ev) => {
+      if (ev.target.closest(".leaflet-control, .draw-hint")) return;
       ev.preventDefault();
       pts = [toLatLng(ev)];
-      line = L.polyline(pts, selStyle).addTo(map);
+      line = L.polyline(pts, { ...selStyle, weight: 3 }).addTo(map);
       container.addEventListener("mousemove", move);
       container.addEventListener("touchmove", move, { passive: false });
     };
@@ -155,7 +277,7 @@
       pts.push(toLatLng(ev));
       line.setLatLngs(pts);
     };
-    const up = () => {
+    const stop = () => {
       container.removeEventListener("mousedown", down);
       container.removeEventListener("touchstart", down);
       container.removeEventListener("mousemove", move);
@@ -165,63 +287,288 @@
       map.dragging.enable();
       document.body.classList.remove("freehand-active");
       if (line) map.removeLayer(line);
+      hideHint();
+      freehandCancel = null;
       setTimeout(() => (drawing = false), 50);
+    };
+    const up = () => {
+      if (!line) return;
+      stop();
       if (pts.length < 3) return;
       const ring = pts.map((p) => [p.lng, p.lat]);
       ring.push(ring[0]);
-      let feature = turf.simplify(turf.polygon([ring]), { tolerance: 0.005, highQuality: false });
-      const layer = L.geoJSON(feature, { style: selStyle }).getLayers()[0];
-      addShape(feature, layer);
+      const feature = turf.simplify(turf.polygon([ring]), { tolerance: 0.005, highQuality: false });
+      addShape(feature, L.geoJSON(feature, { style: selStyle }).getLayers()[0]);
+      toast("Zone ajoutée");
     };
+    freehandCancel = stop;
     container.addEventListener("mousedown", down);
     container.addEventListener("touchstart", down, { passive: false });
     window.addEventListener("mouseup", up);
     window.addEventListener("touchend", up);
-  });
+  }
+  $("#draw-free").addEventListener("click", startFreehand);
 
-  $("#clear-sel").addEventListener("click", () => {
+  // ---------- Rayon autour d'un point ----------
+  const pinIcon = L.divIcon({ className: "radius-center-pin", html: "<div></div>", iconSize: [22, 22], iconAnchor: [11, 11] });
+  let radiusCircle = null, radiusPin = null;
+  const radiusKm = () => Number($("#radius").value) || 30;
+  function drawRadius() {
+    const r = state.radius;
+    if (!r) {
+      radiusCircle && map.removeLayer(radiusCircle);
+      radiusPin && map.removeLayer(radiusPin);
+      radiusCircle = radiusPin = null;
+      return;
+    }
+    const ll = [r.lat, r.lon];
+    if (!radiusCircle) {
+      radiusCircle = L.circle(ll, { radius: r.km * 1000, color: selColor, weight: 2, fillColor: selColor, fillOpacity: 0.08, dashArray: "6 6", interactive: false }).addTo(map);
+      radiusPin = L.marker(ll, { icon: pinIcon, draggable: true, keyboard: false, title: "Glissez pour déplacer le centre" }).addTo(map);
+      radiusPin.on("drag", (e) => radiusCircle.setLatLng(e.latlng));
+      radiusPin.on("dragend", (e) => {
+        const p = e.target.getLatLng();
+        setRadius({ lat: p.lat, lon: p.lng, label: "point choisi" }, { fit: false });
+      });
+    } else {
+      radiusCircle.setLatLng(ll).setRadius(r.km * 1000);
+      radiusPin.setLatLng(ll);
+    }
+  }
+  function setRadius(center, { fit = true, km } = {}) {
+    if (km != null) syncRadiusInputs(km);
+    state.radius = center ? { lat: center.lat, lon: center.lon, label: center.label || state.radius?.label || "point choisi", km: radiusKm() } : null;
+    if (center) clearBbox();
+    drawRadius();
+    if (center && fit) moveMap(() => map.fitBounds(radiusCircle.getBounds(), { padding: [30, 30] }));
+    $("#radius-center").innerHTML = state.radius ? `Centre : <b>${esc(state.radius.label)}</b>` : "Aucun point choisi.";
+    refresh();
+  }
+  function syncRadiusInputs(km) {
+    ["#radius", "#radius-map"].forEach((s) => ($(s).value = km));
+    ["#radius-out", "#radius-map-out"].forEach((s) => ($(s).textContent = `${km} km`));
+    $$(".radius-presets [data-r]").forEach((b) => b.classList.toggle("active", Number(b.dataset.r) === Number(km)));
+  }
+  let radiusTimer;
+  ["#radius", "#radius-map"].forEach((s) =>
+    $(s).addEventListener("input", (e) => {
+      syncRadiusInputs(e.target.value);
+      if (!state.radius) return;
+      state.radius.km = radiusKm();
+      drawRadius();
+      clearTimeout(radiusTimer);
+      radiusTimer = setTimeout(refresh, 120);
+    })
+  );
+  $$(".radius-presets [data-r]").forEach((b) =>
+    b.addEventListener("click", () => {
+      syncRadiusInputs(b.dataset.r);
+      if (state.radius) setRadius(state.radius);
+    })
+  );
+  syncRadiusInputs(30);
+
+  function locateMe() {
+    if (!navigator.geolocation) return toast("Géolocalisation indisponible sur cet appareil.");
+    toast("Recherche de votre position…");
+    navigator.geolocation.getCurrentPosition(
+      (p) => {
+        setRadius({ lat: p.coords.latitude, lon: p.coords.longitude, label: "ma position" });
+        toast(`Courses à moins de ${radiusKm()} km de vous`);
+      },
+      () => toast("Position indisponible. Autorisez la localisation ou cherchez une ville."),
+      { timeout: 10000, maximumAge: 300000 }
+    );
+  }
+  $("#locate").addEventListener("click", locateMe);
+
+  // Choisir le centre en touchant la carte
+  function startRadiusPick() {
+    cancelModes();
+    drawing = true;
+    document.body.classList.add("radius-pick");
+    map.removeLayer(cluster);
+    showHint("Touchez la carte pour placer le centre", "Annuler", stopRadiusPick);
+    map.once("click", onPick);
+  }
+  function onPick(e) {
+    stopRadiusPick();
+    setRadius({ lat: e.latlng.lat, lon: e.latlng.lng, label: "point choisi" });
+  }
+  function stopRadiusPick() {
+    map.off("click", onPick);
+    document.body.classList.remove("radius-pick");
+    map.addLayer(cluster);
+    hideHint();
+    setTimeout(() => (drawing = false), 50);
+  }
+  $("#draw-radius").addEventListener("click", startRadiusPick);
+
+  // ---------- « Rechercher dans cette zone » ----------
+  let bboxLayer = null;
+  function clearBbox() {
+    state.bbox = null;
+    bboxLayer && map.removeLayer(bboxLayer);
+    bboxLayer = null;
+  }
+  function useVisibleArea() {
+    const b = map.getBounds();
+    clearZone({ silent: true });
+    state.bbox = [b.getWest(), b.getSouth(), b.getEast(), b.getNorth()];
+    bboxLayer = L.rectangle(b.pad(-0.01), { color: selColor, weight: 2, dashArray: "6 6", fill: false, interactive: false }).addTo(map);
+    $("#search-here").hidden = true;
+    refresh();
+  }
+  $("#search-here").addEventListener("click", useVisibleArea);
+  const offerSearchHere = () => {
+    if (progMove || state.view || drawing || map.getZoom() < 7) return;
+    $("#search-here").hidden = false;
+  };
+  map.on("dragend", offerSearchHere);
+  map.on("zoomend", offerSearchHere);
+
+  function clearZone({ silent } = {}) {
     state.selDeps.clear();
     state.selRegs.clear();
     state.shapes = [];
     drawn.clearLayers();
-    Object.values(layers).forEach((l) => l.setStyle(baseStyle));
-    refresh();
-  });
+    clearBbox();
+    state.radius = null;
+    drawRadius();
+    $("#radius-center").textContent = "Aucun point choisi.";
+    restyleAdmin();
+    if (!silent) refresh();
+  }
+  $("#clear-sel").addEventListener("click", () => clearZone());
+  $("#zp-clear").addEventListener("click", () => clearZone());
 
-  // ---------- Marqueurs ----------
-  const markers = L.layerGroup().addTo(map);
-  const markerById = new Map();
-  const css = getComputedStyle(document.documentElement);
-  const distColor = (km) => {
-    const v = km == null ? 0 : km;
-    return css.getPropertyValue(v < 20 ? "--d1" : v < 42 ? "--d2" : v < 80 ? "--d3" : "--d4").trim();
-  };
-  const distVar = (km) => (km == null ? "--d1" : km < 20 ? "--d1" : km < 42 ? "--d2" : km < 80 ? "--d3" : "--d4");
+  // ---------- Bulle d'aide sur la carte (modes de sélection) ----------
+  let hintAction = null;
+  function showHint(text, btn, action) {
+    $("#draw-hint-txt").textContent = text;
+    $("#draw-done").textContent = btn;
+    hintAction = action;
+    $("#draw-hint").hidden = false;
+  }
+  function hideHint() {
+    $("#draw-hint").hidden = true;
+    hintAction = null;
+  }
+  $("#draw-done").addEventListener("click", () => (hintAction ? hintAction() : hideHint()));
+  function cancelModes() {
+    if (freehandCancel) freehandCancel();
+    if (document.body.classList.contains("radius-pick")) stopRadiusPick();
+    if (document.body.classList.contains("tap-mode")) endTapMode();
+  }
+  // Mode « toucher les départements » (mobile)
+  function startTapMode() {
+    cancelModes();
+    document.body.classList.add("tap-mode");
+    map.removeLayer(cluster); // les points ne doivent pas intercepter les touchers
+    setClickLayer("departements");
+    showHint("Touchez les départements à inclure", "Terminé", endTapMode);
+  }
+  function endTapMode() {
+    document.body.classList.remove("tap-mode");
+    map.addLayer(cluster);
+    if (!desk.matches) setClickLayer("none");
+    hideHint();
+  }
+
+  // ---------- Marqueurs (un par course, regroupés) ----------
+  const cluster = L.markerClusterGroup({
+    chunkedLoading: true,
+    showCoverageOnHover: false,
+    spiderfyOnMaxZoom: true,
+    disableClusteringAtZoom: 11,
+    maxClusterRadius: (z) => (z < 7 ? 56 : 42),
+    iconCreateFunction: (c) => {
+      const n = c.getChildCount();
+      const size = n < 10 ? 34 : n < 100 ? 40 : 48;
+      return L.divIcon({ html: `<div>${n}</div>`, className: `cluster ${n < 10 ? "c-sm" : n < 100 ? "c-md" : "c-lg"}`, iconSize: [size, size] });
+    },
+  }).addTo(map);
+  const markerByKey = new Map();
+  const markerStyle = (ev, hl) => ({ radius: hl ? 10 : 7, color: "#fff", weight: hl ? 3 : 2, fillColor: distColor(ev.maxKm), fillOpacity: 1 });
 
   // ---------- Filtres ----------
   const num = (id) => {
     const v = $(id).value;
     return v === "" ? null : Number(v);
   };
-  const filterIds = ["#f-q", "#f-from", "#f-to", "#f-km-min", "#f-km-max", "#f-d-min", "#f-d-max", "#f-ke-min", "#f-ke-max", "#f-utmb", "#f-ws", "#f-itra", "#f-type", "#f-night", "#f-dplus"];
+  const filterIds = ["#f-from", "#f-to", "#f-km-min", "#f-km-max", "#f-d-min", "#f-d-max", "#f-ke-min", "#f-ke-max", "#f-utmb", "#f-ws", "#f-itra", "#f-type", "#f-night", "#f-dplus", "#f-confirmed", "#f-site"];
+  filterIds.forEach((id) => $(id).addEventListener("input", () => refresh()));
   let qTimer;
-  filterIds.forEach((id) =>
-    $(id).addEventListener("input", () => {
-      if (id === "#f-q") {
-        clearTimeout(qTimer);
-        qTimer = setTimeout(refresh, 150);
-      } else refresh();
+  $("#f-q").addEventListener("input", () => {
+    $("#q-clear").hidden = !$("#f-q").value;
+    clearTimeout(qTimer);
+    qTimer = setTimeout(refresh, 160);
+  });
+  $("#q-clear").addEventListener("click", () => {
+    $("#f-q").value = "";
+    $("#q-clear").hidden = true;
+    closeSuggest($("#suggest"));
+    refresh();
+    $("#f-q").focus();
+  });
+  const isOn = (id) => ($(id).type === "checkbox" ? $(id).checked : $(id).value !== "");
+  const clearInput = (id) => ($(id).type === "checkbox" ? ($(id).checked = false) : ($(id).value = ""));
+  function resetFilters() {
+    filterIds.forEach(clearInput);
+    state.months.clear();
+    state.profils.clear();
+    refresh();
+  }
+  $("#reset-filters").addEventListener("click", resetFilters);
+  $("#empty-reset").addEventListener("click", () => {
+    $("#f-q").value = "";
+    $("#q-clear").hidden = true;
+    clearZone({ silent: true });
+    resetFilters();
+  });
+
+  // Mois (12 prochains mois)
+  (() => {
+    const now = new Date();
+    const out = [];
+    for (let i = 0; i < 12; i++) {
+      const d = new Date(now.getFullYear(), now.getMonth() + i, 1);
+      const v = iso(d).slice(0, 7);
+      out.push(`<button type="button" data-month="${v}">${d.toLocaleDateString("fr-FR", { month: "short" }).replace(".", "")}<small>${d.getFullYear()}</small></button>`);
+    }
+    $("#months").innerHTML = out.join("");
+  })();
+  $("#months").addEventListener("click", (e) => {
+    const b = e.target.closest("[data-month]");
+    if (!b) return;
+    const m = b.dataset.month;
+    state.months.has(m) ? state.months.delete(m) : state.months.add(m);
+    refresh();
+  });
+  $$("[data-prof]").forEach((b) =>
+    b.addEventListener("click", () => {
+      const p = b.dataset.prof;
+      state.profils.has(p) ? state.profils.delete(p) : state.profils.add(p);
+      refresh();
     })
   );
-  const resetFilters = () => {
-    filterIds.forEach((id) => ($(id).type === "checkbox" ? ($(id).checked = false) : ($(id).value = "")));
-    refresh();
-  };
-  $("#reset-filters").addEventListener("click", resetFilters);
 
   // Puces rapides : elles écrivent dans les champs du panneau (source unique de vérité).
-  const iso = (d) => d.toISOString().slice(0, 10);
-  document.querySelectorAll(".chip").forEach((c) =>
+  const weekend = () => {
+    const now = new Date();
+    const d = now.getDay(); // 0 = dimanche
+    const sat = new Date(now);
+    sat.setDate(now.getDate() + (d === 0 ? -1 : 6 - d));
+    const sun = new Date(sat);
+    sun.setDate(sat.getDate() + 1);
+    return [iso(d === 0 || d === 6 ? now : sat), iso(sun)];
+  };
+  const whenRange = (w) => {
+    if (w === "we") return weekend();
+    const now = new Date();
+    return [iso(now), iso(new Date(now.getTime() + w * 864e5))];
+  };
+  $$(".chip").forEach((c) =>
     c.addEventListener("click", () => {
       const on = c.classList.contains("active");
       if (c.dataset.km) {
@@ -229,11 +576,14 @@
         $("#f-km-min").value = on ? "" : a === "0" ? "" : a;
         $("#f-km-max").value = on ? "" : b || "";
       } else if (c.dataset.when) {
-        const now = new Date();
-        $("#f-from").value = on ? "" : iso(now);
-        $("#f-to").value = on ? "" : iso(new Date(now.getTime() + c.dataset.when * 864e5));
+        const [f, t] = whenRange(c.dataset.when);
+        $("#f-from").value = on ? "" : f;
+        $("#f-to").value = on ? "" : t;
+        state.months.clear();
       } else if (c.dataset.type) {
         $("#f-type").value = on ? "" : c.dataset.type;
+      } else if (c.dataset.profil) {
+        on ? state.profils.delete(c.dataset.profil) : state.profils.add(c.dataset.profil);
       } else if ("night" in c.dataset) {
         $("#f-night").checked = !on;
       }
@@ -242,62 +592,69 @@
   );
   function syncChips() {
     const kmMin = $("#f-km-min").value, kmMax = $("#f-km-max").value;
-    document.querySelectorAll(".chip").forEach((c) => {
+    $$(".chip").forEach((c) => {
       let on = false;
       if (c.dataset.km) {
         const [a, b] = c.dataset.km.split("-");
         on = kmMin === (a === "0" ? "" : a) && kmMax === (b || "") && (kmMin || kmMax) !== "";
       } else if (c.dataset.when) {
-        const now = new Date();
-        on = $("#f-from").value === iso(now) && $("#f-to").value === iso(new Date(now.getTime() + c.dataset.when * 864e5));
+        const [f, t] = whenRange(c.dataset.when);
+        on = $("#f-from").value === f && $("#f-to").value === t;
       } else if (c.dataset.type) on = $("#f-type").value === c.dataset.type;
+      else if (c.dataset.profil) on = state.profils.has(c.dataset.profil);
       else if ("night" in c.dataset) on = $("#f-night").checked;
       c.classList.toggle("active", on);
     });
-    const n = filterIds.filter((id) => id !== "#f-q" && ($(id).type === "checkbox" ? $(id).checked : $(id).value !== "")).length;
+    $$("#months [data-month]").forEach((b) => b.classList.toggle("active", state.months.has(b.dataset.month)));
+    $$("[data-prof]").forEach((b) => b.classList.toggle("active", state.profils.has(b.dataset.prof)));
+    const n = filterCount();
     $("#filter-badge").textContent = n;
     $("#filter-badge").hidden = !n;
+    $("#toggle-more").classList.toggle("on", n > 0);
+  }
+  function filterCount() {
+    let n = 0;
+    if (isOn("#f-from") || isOn("#f-to") || state.months.size) n++;
+    if (isOn("#f-km-min") || isOn("#f-km-max")) n++;
+    if (isOn("#f-d-min") || isOn("#f-d-max") || state.profils.size) n++;
+    if (isOn("#f-ke-min") || isOn("#f-ke-max")) n++;
+    ["#f-utmb", "#f-ws", "#f-itra", "#f-type", "#f-night", "#f-dplus", "#f-confirmed", "#f-site"].forEach((id) => isOn(id) && n++);
+    return n;
   }
 
-  // Panneau « Filtres » (feuille en bas d'écran sur mobile)
-  const mobile = window.matchMedia("(max-width: 700px)");
-  const setMore = (open) => {
-    $("#more-filters").hidden = !open;
-    $("#toggle-more").setAttribute("aria-expanded", open);
-    document.body.classList.toggle("sheet-open", open && mobile.matches);
-  };
-  $("#toggle-more").addEventListener("click", () => setMore($("#more-filters").hidden));
-  $("#close-more").addEventListener("click", () => {
-    setMore(false);
-    $(".results").scrollIntoView({ behavior: "smooth" });
-  });
-  document.addEventListener("click", (e) => {
-    if (document.body.classList.contains("sheet-open") && e.target === document.body) setMore(false);
-  });
-  document.addEventListener("keydown", (e) => e.key === "Escape" && setMore(false));
-  mobile.addEventListener("change", () => setMore(false));
-
+  const zoneActive = () => state.selDeps.size || state.selRegs.size || state.shapes.length || state.bbox || state.radius;
   function inZone(r) {
-    const any = state.selDeps.size || state.selRegs.size || state.shapes.length;
-    if (!any) return true;
+    if (!zoneActive()) return true;
     if (r.departement_code && state.selDeps.has(r.departement_code)) return true;
     if (r.region_code && state.selRegs.has(r.region_code)) return true;
     if (r.lat == null) return false;
+    if (state.radius && haversine(state.radius.lat, state.radius.lon, r.lat, r.lon) <= state.radius.km) return true;
+    if (state.bbox) {
+      const [w, s, e, n] = state.bbox;
+      if (r.lon >= w && r.lon <= e && r.lat >= s && r.lat <= n) return true;
+    }
+    if (!state.shapes.length) return false;
     const pt = turf.point([r.lon, r.lat]);
     return state.shapes.some((s) => turf.booleanPointInPolygon(pt, s));
   }
 
   const between = (v, min, max) => (min == null || (v != null && v >= min)) && (max == null || (v != null && v <= max));
+  const profilOf = (r) => {
+    if (r.denivele_pos_m == null || !r.distance_km) return null;
+    const ratio = r.denivele_pos_m / r.distance_km;
+    return ratio < 25 ? "roulant" : ratio <= 50 ? "vallonne" : "montagne";
+  };
 
-  function passes(r) {
-    const q = $("#f-q").value.trim().toLowerCase();
-    if (q && ![r.nom, r.course, r.ville, r.organisateur, r.departement].join(" ").toLowerCase().includes(q)) return false;
+  function passes(r, q) {
+    if (q && !r._hay.includes(q)) return false;
     const from = $("#f-from").value, to = $("#f-to").value;
     if (from && (!r.date || dateEnd(r.date) < from)) return false;
     if (to && (!r.date || dateStart(r.date) > to)) return false;
+    if (state.months.size && (!r.date || !state.months.has(r.date.slice(0, 7)))) return false;
     if (!between(r.distance_km, num("#f-km-min"), num("#f-km-max"))) return false;
     if (!between(r.denivele_pos_m, num("#f-d-min"), num("#f-d-max"))) return false;
     if (!between(r.km_effort, num("#f-ke-min"), num("#f-ke-max"))) return false;
+    if (state.profils.size && !state.profils.has(profilOf(r))) return false;
     const u = $("#f-utmb").value;
     if (u === "any" && !r.utmb_index) return false;
     if (u === "none" && r.utmb_index) return false;
@@ -310,22 +667,282 @@
     if ($("#f-type").value && r.type !== $("#f-type").value) return false;
     if ($("#f-night").checked && !r.nocturne) return false;
     if ($("#f-dplus").checked && r.denivele_pos_m == null) return false;
+    if ($("#f-confirmed").checked && !(r.date && r.date.length === 10 && r.date_confirmee)) return false;
+    if ($("#f-site").checked && !(safeUrl(r.site_web) || safeUrl(r.lien_inscription))) return false;
     return true;
   }
+  const hay = (r) => (r._hay ??= " " + norm([r.nom, r.course, r.ville, r.organisateur, r.departement, r.departement_code, r.region].join(" ")));
+
+  // ---------- Panneaux (filtres, zone) ----------
+  let openPanelEl = null;
+  function openPanel(sel) {
+    closePanel();
+    openPanelEl = $(sel);
+    openPanelEl.hidden = false;
+    $("#scrim").hidden = false;
+    document.body.classList.add("panel-open");
+    $("#toggle-more").setAttribute("aria-expanded", sel === "#more-filters");
+  }
+  function closePanel() {
+    if (!openPanelEl) return;
+    openPanelEl.hidden = true;
+    openPanelEl = null;
+    $("#scrim").hidden = true;
+    document.body.classList.remove("panel-open");
+    $("#toggle-more").setAttribute("aria-expanded", false);
+  }
+  $("#toggle-more").addEventListener("click", () => openPanel("#more-filters"));
+  $("#open-zone").addEventListener("click", () => openPanel("#zone-panel"));
+  $("#map-zone-btn").addEventListener("click", () => openPanel("#zone-panel"));
+  $("#scrim").addEventListener("click", closePanel);
+  $$(".panel [data-close]").forEach((b) =>
+    b.addEventListener("click", () => {
+      closePanel();
+      if (b.classList.contains("primary") && !document.body.classList.contains("map-mode")) scrollToResults();
+    })
+  );
+  document.addEventListener("keydown", (e) => {
+    if (e.key !== "Escape") return;
+    if ($("dialog[open]")) return;
+    closePanel();
+    cancelModes();
+  });
+  const scrollToResults = () => {
+    const y = $("#results").getBoundingClientRect().top + window.scrollY - stickH() - 8;
+    if (window.scrollY > y || !desk.matches) window.scrollTo({ top: Math.max(0, y), behavior: "smooth" });
+  };
+
+  // Panneau zone : actions
+  $("#zp-me").addEventListener("click", () => {
+    closePanel();
+    if (!desk.matches) setMapMode(true);
+    locateMe();
+  });
+  $("#zp-pick").addEventListener("click", () => {
+    closePanel();
+    if (!desk.matches) setMapMode(true);
+    startRadiusPick();
+  });
+  $("#zp-tap-dep").addEventListener("click", () => {
+    closePanel();
+    if (!desk.matches) setMapMode(true);
+    startTapMode();
+  });
+  $("#zp-free").addEventListener("click", () => {
+    closePanel();
+    if (!desk.matches) setMapMode(true);
+    startFreehand();
+  });
+  $("#zp-view").addEventListener("click", () => {
+    closePanel();
+    if (!desk.matches && !document.body.classList.contains("map-mode")) {
+      setMapMode(true);
+      toast("Cadrez la carte puis touchez « Rechercher dans cette zone »");
+      $("#search-here").hidden = false;
+      return;
+    }
+    useVisibleArea();
+  });
+  const fillSelect = (sel, entries) =>
+    ($(sel).innerHTML += entries.map(([c, n]) => `<option value="${esc(c)}">${esc(n)} (${esc(c)})</option>`).join(""));
+  fillSelect("#zp-dep", [...depName].sort((a, b) => a[0].localeCompare(b[0], "fr", { numeric: true })));
+  fillSelect("#zp-reg", [...regName].sort((a, b) => a[1].localeCompare(b[1], "fr")));
+  $("#zp-dep").addEventListener("change", (e) => {
+    if (!e.target.value) return;
+    state.selDeps.add(e.target.value);
+    e.target.value = "";
+    clearBbox();
+    restyleAdmin();
+    refresh();
+  });
+  $("#zp-reg").addEventListener("change", (e) => {
+    if (!e.target.value) return;
+    state.selRegs.add(e.target.value);
+    e.target.value = "";
+    clearBbox();
+    restyleAdmin();
+    refresh();
+  });
+
+  // ---------- Suggestions (recherche principale et « autour de ») ----------
+  const towns_search = (q, n) => {
+    const k = norm(q);
+    if (k.length < 2) return [];
+    const starts = [], has = [];
+    towns.forEach((t) => (t.key.startsWith(k) ? starts : t.key.includes(k) ? has : null)?.push(t));
+    const sortT = (a, b) => b.n - a.n;
+    return starts.sort(sortT).concat(has.sort(sortT)).slice(0, n);
+  };
+  // Communes absentes de la base : Géoplateforme (IGN), puis ancienne API Adresse.
+  async function remoteTowns(q) {
+    const urls = [
+      `https://data.geopf.fr/geocodage/search?q=${encodeURIComponent(q)}&type=municipality&limit=5`,
+      `https://api-adresse.data.gouv.fr/search/?q=${encodeURIComponent(q)}&type=municipality&limit=5`,
+    ];
+    for (const u of urls) {
+      try {
+        const r = await fetch(u);
+        if (!r.ok) continue;
+        const j = await r.json();
+        return (j.features || []).map((f) => ({
+          name: f.properties.city || f.properties.name,
+          dep: (f.properties.context || "").split(",")[0].trim(),
+          lat: f.geometry.coordinates[1],
+          lon: f.geometry.coordinates[0],
+          remote: true,
+        }));
+      } catch (e) {
+        /* essai suivant */
+      }
+    }
+    return [];
+  }
+
+  function closeSuggest(ul) {
+    ul.hidden = true;
+    ul.innerHTML = "";
+    ul.previousElementSibling?.setAttribute?.("aria-expanded", "false");
+    ul._items = [];
+    ul._sel = -1;
+  }
+  function renderSuggest(ul, input, groups) {
+    const items = [];
+    const html = groups
+      .filter((g) => g.items.length)
+      .map(
+        (g) =>
+          `<li class="sg-head" role="presentation">${esc(g.title)}</li>` +
+          g.items
+            .map((it) => {
+              items.push(it);
+              return `<li role="option" id="${ul.id}-${items.length - 1}" data-i="${items.length - 1}" aria-selected="false"><span class="sg-ic">${icon(it.icon)}</span><span class="sg-txt"><b>${esc(it.label)}</b>${it.sub ? `<small>${esc(it.sub)}</small>` : ""}</span></li>`;
+            })
+            .join("")
+      )
+      .join("");
+    ul._items = items;
+    ul._sel = -1;
+    ul.innerHTML = html;
+    ul.hidden = !items.length;
+    input.setAttribute("aria-expanded", String(!!items.length));
+  }
+  function wireSuggest(input, ul, build) {
+    let seq = 0;
+    const update = async () => {
+      const my = ++seq;
+      const groups = await build(input.value.trim(), (late) => my === seq && renderSuggest(ul, input, late));
+      if (my === seq) renderSuggest(ul, input, groups);
+    };
+    let t;
+    input.addEventListener("input", () => {
+      clearTimeout(t);
+      t = setTimeout(update, 120);
+    });
+    input.addEventListener("focus", () => input.value.trim().length >= 2 && update());
+    input.addEventListener("keydown", (e) => {
+      const items = ul._items || [];
+      if (e.key === "ArrowDown" || e.key === "ArrowUp") {
+        if (!items.length) return;
+        e.preventDefault();
+        ul._sel = (ul._sel + (e.key === "ArrowDown" ? 1 : -1) + items.length) % items.length;
+        $$("[role=option]", ul).forEach((li) => li.setAttribute("aria-selected", li.dataset.i == ul._sel));
+        input.setAttribute("aria-activedescendant", `${ul.id}-${ul._sel}`);
+        ul.querySelector(`[data-i="${ul._sel}"]`)?.scrollIntoView({ block: "nearest" });
+      } else if (e.key === "Enter") {
+        if (ul._sel >= 0 && items[ul._sel]) {
+          e.preventDefault();
+          items[ul._sel].run();
+        } else {
+          closeSuggest(ul);
+          input.blur();
+          if (input.id === "f-q") scrollToResults();
+        }
+        closeSuggest(ul);
+      } else if (e.key === "Escape") closeSuggest(ul);
+    });
+    ul.addEventListener("mousedown", (e) => e.preventDefault());
+    ul.addEventListener("click", (e) => {
+      const li = e.target.closest("[data-i]");
+      if (!li) return;
+      ul._items[li.dataset.i].run();
+      closeSuggest(ul);
+    });
+    input.addEventListener("blur", () => setTimeout(() => closeSuggest(ul), 150));
+  }
+
+  const townItem = (t, after) => ({
+    icon: "pin",
+    label: `Autour de ${t.name}`,
+    sub: `${t.dep ? (depName.get(t.dep) || t.dep) + " · " : ""}rayon ${radiusKm()} km`,
+    run: () => {
+      setRadius({ lat: t.lat, lon: t.lon, label: t.name });
+      after && after();
+    },
+  });
+  const qDone = () => {
+    $("#f-q").value = "";
+    $("#q-clear").hidden = true;
+    $("#f-q").blur();
+    refresh();
+    scrollToResults();
+  };
+  wireSuggest($("#f-q"), $("#suggest"), async (q, late) => {
+    const k = norm(q);
+    if (k.length < 2) return [];
+    const places = towns_search(q, 3).map((t) => townItem(t, qDone));
+    const deps = [...depName]
+      .filter(([c, n]) => norm(n).includes(k) || c.toLowerCase() === k)
+      .slice(0, 3)
+      .map(([c, n]) => ({
+        icon: "map", label: n, sub: `Département (${c})`,
+        run: () => { state.selDeps.add(c); clearBbox(); restyleAdmin(); qDone(); },
+      }));
+    const regs = [...regName]
+      .filter(([, n]) => norm(n).includes(k))
+      .slice(0, 2)
+      .map(([c, n]) => ({
+        icon: "map", label: n, sub: "Région",
+        run: () => { state.selRegs.add(c); clearBbox(); restyleAdmin(); qDone(); },
+      }));
+    const seen = new Set();
+    const races = [];
+    for (const [key, rows] of state.eventsAll) {
+      if (races.length >= 5) break;
+      const r = rows[0];
+      if (!norm(r.nom).includes(k) || seen.has(norm(r.nom))) continue;
+      seen.add(norm(r.nom));
+      races.push({
+        icon: "mountain", label: r.nom, sub: `${r.ville} · ${fmtDate(r)}`,
+        run: () => {
+          $("#f-q").value = r.nom;
+          $("#q-clear").hidden = false;
+          refresh();
+          scrollToResults();
+        },
+      });
+    }
+    return [
+      { title: "Lieux", items: [...places, ...deps, ...regs] },
+      { title: "Courses", items: races },
+    ];
+  });
+  wireSuggest($("#place-q"), $("#place-suggest"), async (q, late) => {
+    if (norm(q).length < 2) return [];
+    const done = () => ($("#place-q").value = "");
+    const local = towns_search(q, 6).map((t) => townItem(t, done));
+    if (local.length < 3) {
+      remoteTowns(q).then((rs) => {
+        const extra = rs.filter((t) => !local.some((l) => l.label === `Autour de ${t.name}`)).map((t) => townItem(t, done));
+        late([{ title: "Communes", items: [...local, ...extra] }]);
+      });
+    }
+    return [{ title: "Communes", items: local }];
+  });
 
   // ---------- Formatage ----------
-  const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
-  const safeUrl = (u) => (/^https?:\/\//i.test(u || "") ? u : null);
-  const toDate = (d) => new Date((d.length === 7 ? d + "-01" : d) + "T00:00");
-  const fmtDate = (r) => {
-    if (!r.date) return "—";
-    if (r.date.length === 7) return toDate(r.date).toLocaleDateString("fr-FR", { month: "long", year: "numeric" }) + " ~";
-    return (r.date_confirmee ? "" : "~") + toDate(r.date).toLocaleDateString("fr-FR");
-  };
-  const dateStart = (d) => (d.length === 7 ? d + "-01" : d);
-  const dateEnd = (d) => (d.length === 7 ? d + "-31" : d);
-  const fmtNum = (v) => (v == null ? "—" : Number(v).toLocaleString("fr-FR"));
-  const cap = (s) => s.charAt(0).toUpperCase() + s.slice(1);
+  const courseLabel = (r) => (/^\s*[\d.,]+\s*km\s*$/i.test(r.course || "") ? "" : r.course || "");
+  const place = (r) => [r.ville, r.departement_code && `(${r.departement_code})`].filter(Boolean).join(" ");
+  const placeLong = (r) => [r.ville, r.departement && `${r.departement}${r.departement_code ? ` (${r.departement_code})` : ""}`].filter(Boolean).join(" · ");
 
   function dateCell(r) {
     if (!r.date) return `<span class="dim">Date inconnue</span>`;
@@ -334,101 +951,162 @@
       return `<span class="d-day">${cap(d.toLocaleDateString("fr-FR", { month: "short" }))} ${d.getFullYear()}</span><span class="d-sub">date à préciser</span>`;
     return `<span class="d-day">${d.toLocaleDateString("fr-FR", { weekday: "short", day: "numeric", month: "short" })}</span><span class="d-sub">${d.getFullYear()}${r.date_confirmee ? "" : " · à confirmer"}</span>`;
   }
-  function calBox(r) {
-    if (!r.date) return `<div class="cal approx"><span class="m">?</span><span class="d">—</span><span class="y">&nbsp;</span></div>`;
+  function dateBox(ev) {
+    const r = ev.first;
+    if (!r.date) return `<div class="ev-date approx"><span class="wd">date</span><span class="d">?</span><span class="m">&nbsp;</span></div>`;
     const d = toDate(r.date);
     const m = d.toLocaleDateString("fr-FR", { month: "short" }).replace(".", "");
-    if (r.date.length === 7) return `<div class="cal approx" title="Date à préciser"><span class="m">${m}</span><span class="d">~</span><span class="y">${d.getFullYear()}</span></div>`;
-    return `<div class="cal"><span class="m">${m}</span><span class="d">${d.getDate()}${r.date_confirmee ? "" : "<small>~</small>"}</span><span class="y">${d.getFullYear()}</span></div>`;
+    if (r.date.length === 7) return `<div class="ev-date approx" title="Jour à préciser"><span class="wd">${d.getFullYear()}</span><span class="d">${m}</span></div>`;
+    return `<div class="ev-date"><span class="wd">${d.toLocaleDateString("fr-FR", { weekday: "short" }).replace(".", "")}</span><span class="d">${d.getDate()}</span><span class="m">${m}</span></div>`;
   }
   const linksHtml = (r) =>
     [
-      safeUrl(r.site_web) && `<a href="${esc(r.site_web)}" target="_blank" rel="noopener">Site</a>`,
-      safeUrl(r.lien_inscription) && `<a href="${esc(r.lien_inscription)}" target="_blank" rel="noopener">S'inscrire</a>`,
-      safeUrl(r.source_url) && `<a href="${esc(r.source_url)}" target="_blank" rel="noopener">Source</a>`,
+      safeUrl(r.lien_inscription) && `<a href="${esc(r.lien_inscription)}" target="_blank" rel="noopener">S'inscrire${icon("ext")}</a>`,
+      safeUrl(r.site_web) && `<a href="${esc(r.site_web)}" target="_blank" rel="noopener">Site officiel${icon("ext")}</a>`,
+      safeUrl(r.source_url) && `<a href="${esc(r.source_url)}" target="_blank" rel="noopener">Source${icon("ext")}</a>`,
     ].filter(Boolean).join("");
   const labelsHtml = (r) =>
     [
-      r.utmb_index && `<span class="tag" title="Catégorie UTMB Index estimée">${esc(r.utmb_index)}</span>`,
+      r.utmb_index && `<span class="tag" title="Catégorie UTMB Index estimée">UTMB ${esc(r.utmb_index)}</span>`,
       r.utmb_world_series && `<span class="tag ws">World Series</span>`,
-      r.itra_points_estimes != null && `<span class="tag muted" title="Points ITRA estimés">ITRA ${r.itra_points_estimes}</span>`,
+      r.itra_points_estimes > 0 && `<span class="tag muted" title="Points ITRA estimés">ITRA ${r.itra_points_estimes}</span>`,
       r.type === "ultra" && `<span class="tag">Ultra</span>`,
       r.type === "kv" && `<span class="tag">KV</span>`,
-      r.nocturne && `<span class="tag night">🌙 Nocturne</span>`,
-    ].filter(Boolean).join(" ");
-  // « 28 km » n'apporte rien à côté de la pastille distance : on ne garde que les intitulés parlants.
-  const courseLabel = (r) => (/^\s*[\d.,]+\s*km\s*$/i.test(r.course || "") ? "" : r.course || "");
-  const place = (r) => [r.ville, r.departement_code && `(${r.departement_code})`].filter(Boolean).join(" ");
+      r.nocturne && `<span class="tag night">${icon("moon")}Nocturne</span>`,
+    ].filter(Boolean).join("");
+  const editedTag = (r) =>
+    (r._edited ? `<span class="tag mine" title="Données corrigées par vous">modifié</span>` : "") +
+    (r._shared ? `<span class="tag mine" title="Corrigé par l'auteur de la liste">corrigé</span>` : "") +
+    (r._absent ? `<span class="tag muted" title="Cette course n'est plus dans la base : affichage de la dernière version connue">hors base</span>` : "");
+  const notesHtml = (r) => (r.notes_perso ? `<div class="r-notes">${esc(r.notes_perso)}</div>` : "");
 
-  // ---------- Favoris : boutons ----------
   const favBtn = (r) => {
     const on = Favoris.isFav(r.id);
-    return `<button type="button" class="fav-btn${on ? " on" : ""}" data-act="fav" data-rid="${esc(r.id)}" aria-pressed="${on}" title="${on ? "Dans mes listes" : "Ajouter à mes listes"}" aria-label="${on ? "Dans mes listes" : "Ajouter à mes listes"}">${on ? "★" : "☆"}</button>`;
+    const t = on ? "Dans mes listes" : "Ajouter à mes listes";
+    return `<button type="button" class="icon-btn fav-btn${on ? " on" : ""}" data-act="fav" data-rid="${esc(r.id)}" aria-pressed="${on}" title="${t}" aria-label="${t}">${icon("star")}</button>`;
   };
-  const editBtn = (r) => `<button type="button" class="edit-btn" data-act="edit" data-rid="${esc(r.id)}" title="Compléter : D+, date, km, inscription">✎ Compléter</button>`;
-  const editedTag = (r) =>
-    (r._edited ? ` <span class="tag mine" title="Données corrigées par vous">✎ modifié</span>` : "") +
-    (r._shared ? ` <span class="tag mine" title="Corrigé par l'auteur de la liste">✎ corrigé</span>` : "") +
-    (r._absent ? ` <span class="tag muted" title="Cette course n'est plus dans la base : affichage de la dernière version connue">hors base</span>` : "");
-  const notesHtml = (r) => (r.notes_perso ? `<div class="r-notes">📝 ${esc(r.notes_perso)}</div>` : "");
+  const editBtn = (r) => `<button type="button" class="icon-btn" data-act="edit" data-rid="${esc(r.id)}" title="Compléter : D+, date, km, inscription" aria-label="Compléter les informations">${icon("edit")}</button>`;
 
-  const rowHtml = (r) => `<tr data-id="${esc(r.id)}"${r._absent ? ' class="absent"' : ""}>
+  const fmtRow = (r) => `<li class="fmt" data-rid="${esc(r.id)}">
+      <span class="f-km"><i class="dot" style="--dc:var(${distVar(r.distance_km)})"></i>${r.distance_km == null ? '<span class="dim">? km</span>' : `${fmtNum(r.distance_km)}<small>km</small>`}</span>
+      ${r.denivele_pos_m == null ? '<span class="f-dp unknown">D+ ?</span>' : `<span class="f-dp">${fmtNum(r.denivele_pos_m)}<small> m D+</small></span>`}
+      <span class="f-info">${courseLabel(r) ? `<span class="f-label">${esc(courseLabel(r))}</span>` : ""}${labelsHtml(r)}${editedTag(r)}</span>
+      <span class="f-acts">${editBtn(r)}${favBtn(r)}</span>
+    </li>`;
+
+  function evMeta(ev) {
+    const r = ev.first;
+    const bits = [`<span>${icon("pin")}${esc(placeLong(r))}</span>`];
+    if (r.date && r.date.length === 10) {
+      const days = new Set(ev.rows.map((x) => x.date)).size;
+      bits.push(`<span class="when">${icon("calendar")}${esc(cap(toDate(r.date).toLocaleDateString("fr-FR", { weekday: "long", day: "numeric", month: "long", year: "numeric" })))}${days > 1 ? ` · sur ${days} jours` : ""}</span>`);
+      if (!ev.rows.every((x) => x.date_confirmee)) bits.push(`<span class="warn">Date à confirmer</span>`);
+    } else if (r.date) bits.push(`<span class="warn">${icon("calendar")}Jour à préciser</span>`);
+    return bits.join("");
+  }
+  const cardHtml = (ev) => {
+    const links = linksHtml(ev.links);
+    const also = ev.others.length ? `Aussi : ${ev.others.map((r) => (r.distance_km == null ? "?" : fmtNum(r.distance_km)) + " km").join(", ")}` : "";
+    return `<li class="ev${ev.rows.every((r) => r._absent) ? " absent" : ""}" data-key="${esc(ev.key)}">
+      ${dateBox(ev)}
+      <div class="ev-main">
+        <div class="ev-head"><h3 class="ev-name">${esc(ev.first.nom)}</h3>${ev.near != null ? `<span class="ev-near">à ${fmtKm(ev.near)} km</span>` : ""}</div>
+        <p class="ev-meta">${evMeta(ev)}</p>
+        <ul class="fmts">${ev.rows.map(fmtRow).join("")}</ul>
+        ${ev.rows.map(notesHtml).join("")}
+        ${links || also ? `<div class="ev-foot"><span class="ev-also">${esc(also)}</span><span class="ev-links">${links}</span></div>` : ""}
+      </div>
+    </li>`;
+  };
+  const popupHtml = (ev) => `<div class="pop">
+      <div class="pop-date">${esc(fmtDate(ev.first))}</div>
+      <div class="pop-title">${esc(ev.first.nom)}</div>
+      <div class="pop-sub">${esc(placeLong(ev.first))}${ev.near != null ? ` · à ${fmtKm(ev.near)} km` : ""}</div>
+      <ul class="fmts">${ev.rows.map(fmtRow).join("")}</ul>
+      <div class="ev-links">${linksHtml(ev.links)}</div>
+    </div>`;
+
+  const rowHtml = (r) => `<tr data-key="${esc(evKey(r))}"${r._absent ? ' class="absent"' : ""}>
       <td class="date">${dateCell(r)}</td>
-      <td><div class="r-name-row">${favBtn(r)}<div><div class="r-name">${esc(r.nom)}${editedTag(r)}</div><div class="r-sub">${[courseLabel(r), r.organisateur].filter(Boolean).map(esc).join(" · ")}</div>${notesHtml(r)}</div></div></td>
+      <td><div class="r-name-row">${favBtn(r)}<div><div class="r-name">${esc(r.nom)} ${editedTag(r)}</div><div class="r-sub">${[courseLabel(r), r.organisateur].filter(Boolean).map(esc).join(" · ")}</div>${notesHtml(r)}</div></div></td>
       <td class="place">${esc(place(r))}<div class="r-sub">${esc(r.region || "")}</div></td>
       <td class="num"><span class="dist" style="--dc:var(${distVar(r.distance_km)})">${fmtNum(r.distance_km)}</span></td>
       <td class="num">${r.denivele_pos_m == null ? '<span class="dim">?</span>' : fmtNum(r.denivele_pos_m) + " m"}</td>
       <td class="num">${r.km_effort == null ? '<span class="dim">—</span>' : fmtNum(r.km_effort)}</td>
       <td>${labelsHtml(r) || '<span class="dim">—</span>'}</td>
-      <td class="links">${linksHtml(r)}${editBtn(r)}</td>
+      <td class="links">${[safeUrl(r.site_web) && `<a href="${esc(r.site_web)}" target="_blank" rel="noopener">Site</a>`, safeUrl(r.source_url) && `<a href="${esc(r.source_url)}" target="_blank" rel="noopener">Source</a>`].filter(Boolean).join("")}${editBtn(r)}</td>
     </tr>`;
 
-  const popupHtml = (r) => {
-    const links = linksHtml(r);
-    return `<div class="pop-title">${favBtn(r)}<span>${esc(r.nom)}${editedTag(r)}</span></div>
-      <div class="pop-sub">${[courseLabel(r), fmtDate(r)].filter(Boolean).map(esc).join(" · ")}<br>${esc(place(r))}</div>
-      <div class="pop-stats"><span class="stat">${fmtNum(r.distance_km)}<small>km</small></span><span class="stat${r.denivele_pos_m == null ? " unknown" : ""}">${r.denivele_pos_m == null ? "D+ ?" : fmtNum(r.denivele_pos_m) + "<small>m D+</small>"}</span>${labelsHtml(r)}</div>
-      <div class="pop-links">${links}${editBtn(r)}</div>`;
+  // ---------- Regroupement par course ----------
+  function groupEvents(rows) {
+    const m = new Map();
+    rows.forEach((r) => {
+      const k = evKey(r);
+      if (!m.has(k)) m.set(k, []);
+      m.get(k).push(r);
+    });
+    const c = state.radius;
+    return [...m].map(([key, rs]) => {
+      rs.sort((a, b) => (a.distance_km ?? 1e9) - (b.distance_km ?? 1e9));
+      const first = [...rs].sort((a, b) => (a.date || "9").localeCompare(b.date || "9"))[0];
+      const ids = new Set(rs.map((r) => r.id));
+      const kms = rs.map((r) => r.distance_km).filter((v) => v != null);
+      const dps = rs.map((r) => r.denivele_pos_m).filter((v) => v != null);
+      const kes = rs.map((r) => r.km_effort).filter((v) => v != null);
+      const pos = rs.find((r) => r.lat != null);
+      return {
+        key, rows: rs, first,
+        others: state.view ? [] : (state.eventsAll.get(key) || []).filter((r) => !ids.has(r.id)),
+        links: { site_web: rs.map((r) => r.site_web).find(safeUrl), lien_inscription: rs.map((r) => r.lien_inscription).find(safeUrl), source_url: rs.map((r) => r.source_url).find(safeUrl) },
+        lat: pos?.lat, lon: pos?.lon,
+        minKm: kms.length ? Math.min(...kms) : null, maxKm: kms.length ? Math.max(...kms) : null,
+        maxD: dps.length ? Math.max(...dps) : null, maxKe: kes.length ? Math.max(...kes) : null,
+        near: c && pos ? haversine(c.lat, c.lon, pos.lat, pos.lon) : null,
+      };
+    });
+  }
+  const cmp = (x, y, dir) => {
+    if (x == null && y == null) return 0;
+    if (x == null) return 1;
+    if (y == null) return -1;
+    return (typeof x === "string" ? x.localeCompare(y, "fr") : x - y) * dir;
   };
-
-  const cardHtml = (r) => {
-    const links = linksHtml(r);
-    const labels = labelsHtml(r);
-    return `<li class="card${r._absent ? " absent" : ""}" data-id="${esc(r.id)}">
-      ${calBox(r)}
-      <div class="card-body">
-        <div class="card-top"><div class="r-name">${esc(r.nom)}${editedTag(r)}</div>${favBtn(r)}</div>
-        <div class="where">${[courseLabel(r), place(r)].filter(Boolean).map(esc).join(" · ")}</div>
-        <div class="stats">
-          <span class="stat"><span class="dist" style="--dc:var(${distVar(r.distance_km)})">${fmtNum(r.distance_km)}</span><small>km</small></span>
-          ${r.denivele_pos_m == null ? '<span class="stat unknown">D+ ?</span>' : `<span class="stat">${fmtNum(r.denivele_pos_m)}<small>m D+</small></span>`}
-          ${r.km_effort == null ? "" : `<span class="stat">${fmtNum(r.km_effort)}<small>km-e</small></span>`}
-          ${labels}
-        </div>
-        ${notesHtml(r)}
-        <div class="links">${links}${editBtn(r)}</div>
-      </div>
-    </li>`;
-  };
+  function sortEvents(evs) {
+    const { k, dir } = state.sort;
+    const val = {
+      date: (e) => (e.first.date ? dateStart(e.first.date) : null),
+      near: (e) => e.near,
+      distance_km: (e) => (dir === 1 ? e.minKm : e.maxKm),
+      denivele_pos_m: (e) => e.maxD,
+      km_effort: (e) => e.maxKe,
+      nom: (e) => e.first.nom,
+      ville: (e) => e.first.ville,
+      utmb_index: (e) => e.first.utmb_index,
+    }[k] || ((e) => e.first[k]);
+    const d = (e) => (e.first.date ? dateStart(e.first.date) : null);
+    const byDate = (a, b) => cmp(d(a), d(b), 1);
+    return evs.sort((a, b) => cmp(val(a), val(b), dir) || byDate(a, b));
+  }
 
   // ---------- Tri ----------
   const syncSortUi = () => {
     const { k, dir } = state.sort;
-    document.querySelectorAll("th[data-k]").forEach((th) => {
+    $$("th[data-k]").forEach((th) => {
       th.classList.toggle("sorted-asc", th.dataset.k === k && dir === 1);
       th.classList.toggle("sorted-desc", th.dataset.k === k && dir === -1);
     });
-    const v = `${k}:${dir}`;
     const sel = $("#sort-select");
+    sel.querySelector("[data-near]").hidden = !state.radius;
+    const v = `${k}:${dir}`;
     if (![...sel.options].some((o) => o.value === v)) {
-      const o = new Option(`${document.querySelector(`th[data-k="${k}"]`)?.textContent || k} ${dir === 1 ? "↑" : "↓"}`, v);
-      o.dataset.extra = "1";
       sel.querySelectorAll("[data-extra]").forEach((x) => x.remove());
+      const o = new Option(`${$(`th[data-k="${k}"]`)?.textContent || k} ${dir === 1 ? "↑" : "↓"}`, v);
+      o.dataset.extra = "1";
       sel.add(o);
     }
     sel.value = v;
   };
-  document.querySelectorAll("th[data-k]").forEach((th) =>
+  $$("th[data-k]").forEach((th) =>
     th.addEventListener("click", () => {
       const k = th.dataset.k;
       state.sort = { k, dir: state.sort.k === k ? -state.sort.dir : 1 };
@@ -441,21 +1119,48 @@
     refresh();
   });
 
+  // Fiches / tableau
+  function setMode(m) {
+    state.mode = m === "table" ? "table" : "cards";
+    store.set("ta.mode", state.mode);
+    $$(".view-seg [data-mode]").forEach((b) => b.classList.toggle("active", b.dataset.mode === state.mode));
+    document.body.classList.toggle("table-mode", state.mode === "table");
+    $(".table-wrap").hidden = state.mode !== "table" || !desk.matches;
+    setTimeout(() => map.invalidateSize(), 50);
+  }
+  $$(".view-seg [data-mode]").forEach((b) =>
+    b.addEventListener("click", () => {
+      setMode(b.dataset.mode);
+      refresh({ keep: true });
+    })
+  );
+
   // ---------- Rendu ----------
-  const PAGE = 60;
-  let current = [];
+  const PAGE = 30;
+  let curEvents = [];
+  let curRows = [];
   let shown = 0;
+  const tableOn = () => state.mode === "table" && desk.matches;
 
   function renderMore(n = PAGE) {
-    const slice = current.slice(shown, shown + n);
-    $("#races tbody").insertAdjacentHTML("beforeend", slice.map(rowHtml).join(""));
-    $("#cards").insertAdjacentHTML("beforeend", slice.map(cardHtml).join(""));
-    shown += slice.length;
-    const left = current.length - shown;
-    $("#more").hidden = left <= 0;
-    $("#more").textContent = `Afficher plus (${left.toLocaleString("fr-FR")} restantes)`;
+    if (tableOn()) {
+      const slice = curRows.slice(shown, shown + n * 2);
+      $("#races tbody").insertAdjacentHTML("beforeend", slice.map(rowHtml).join(""));
+      shown += slice.length;
+      $("#more").hidden = shown >= curRows.length;
+      $("#more").textContent = `Afficher plus (${plural(curRows.length - shown, "format")} restants)`;
+    } else {
+      const slice = curEvents.slice(shown, shown + n);
+      $("#cards").insertAdjacentHTML("beforeend", slice.map(cardHtml).join(""));
+      shown += slice.length;
+      $("#more").hidden = shown >= curEvents.length;
+      $("#more").textContent = `Afficher plus (${plural(curEvents.length - shown, "course")} restantes)`;
+    }
   }
   $("#more").addEventListener("click", () => renderMore());
+  if ("IntersectionObserver" in window) {
+    new IntersectionObserver(([e]) => e.isIntersecting && !$("#more").hidden && renderMore(), { rootMargin: "600px" }).observe($("#sentinel"));
+  }
 
   // Courses de la liste affichée (liste perso ou liste partagée), filtres et zone ignorés.
   function viewRows() {
@@ -470,85 +1175,277 @@
       .map(({ from, to }) => {
         const r = state.byId.get(to);
         const se = v.data.edits[from];
-        // Les corrections de l'auteur de la liste s'affichent si vous n'avez pas les vôtres.
         if (ed[to] || !se || !Object.keys(se).length) return r;
         return { ...Favoris.apply(r, se), _edited: false, _shared: true };
-      });
+      })
+      .filter(Boolean);
   }
 
   function refresh(opts = {}) {
     const keep = opts.keep ? Math.max(shown, PAGE) : PAGE;
-    const rows = state.view ? viewRows() : state.races.filter((r) => inZone(r) && passes(r));
+    const q = norm($("#f-q").value);
+    const rows = state.view ? viewRows() : state.races.filter((r) => inZone(r) && passes(hay(r) && r, q));
+    if (state.sort.k === "near" && !state.radius) state.sort = { k: "date", dir: 1 };
+    curEvents = sortEvents(groupEvents(rows));
     const { k, dir } = state.sort;
-    rows.sort((a, b) => {
-      const x = a[k], y = b[k];
-      if (x == null && y == null) return 0;
-      if (x == null) return 1;
-      if (y == null) return -1;
-      return (typeof x === "string" ? x.localeCompare(y, "fr") : x - y) * dir;
-    });
-    current = rows;
+    const rowVal = (r) => (k === "near" ? (state.radius && r.lat != null ? haversine(state.radius.lat, state.radius.lon, r.lat, r.lon) : null) : r[k]);
+    curRows = rows.slice().sort((a, b) => cmp(rowVal(a), rowVal(b), dir));
+
     syncSortUi();
     syncChips();
-    $("#count").textContent = rows.length.toLocaleString("fr-FR");
-    $("#count-label").textContent = rows.length > 1 ? "courses" : "course";
-    $(".count-inline").textContent = rows.length.toLocaleString("fr-FR");
-    $("#empty").hidden = rows.length > 0;
-    $("#empty").textContent = state.view
-      ? "Cette liste est vide. Touchez l'étoile ☆ d'une course pour l'y ajouter."
-      : "Aucune course ne correspond. Essayez d'élargir la zone ou les filtres.";
+    const nEv = curEvents.length;
+    $("#count").textContent = nEv.toLocaleString("fr-FR");
+    $("#count-label").textContent = nEv > 1 ? "courses" : "course";
+    $("#count-sub").textContent = `${plural(rows.length, "format")}${zoneActive() && !state.view ? ` · ${zoneLabel()}` : ""}`;
+    $$(".count-inline").forEach((el) => (el.textContent = nEv.toLocaleString("fr-FR")));
+    $("#fab-count").textContent = nEv.toLocaleString("fr-FR");
+    $("#empty").hidden = nEv > 0;
+    $("#empty-title").textContent = state.view ? "Cette liste est vide" : "Aucune course ne correspond";
+    $("#empty-sub").textContent = state.view ? "Touchez l'étoile d'une course pour l'ajouter à cette liste." : "Élargissez la zone ou retirez un filtre.";
+    $("#empty-reset").hidden = !!state.view;
     $("#races tbody").innerHTML = "";
     $("#cards").innerHTML = "";
+    $(".table-wrap").hidden = !tableOn() || !nEv;
     shown = 0;
     renderMore(keep);
-    renderBanner(rows);
+    renderBanner(rows, curEvents);
+    renderTokens();
     document.body.classList.toggle("list-view", !!state.view);
+    state.view ? $("#nav-home").removeAttribute("aria-current") : $("#nav-home").setAttribute("aria-current", "page");
 
-    markers.clearLayers();
-    markerById.clear();
-    rows.forEach((r) => {
-      if (r.lat == null) return;
-      const m = L.circleMarker([r.lat, r.lon], { radius: 6, color: "#fff", weight: 1.5, fillColor: distColor(r.distance_km), fillOpacity: 0.95 });
-      m.bindPopup(() => popupHtml(r), { autoPanPaddingTopLeft: L.point(12, 110), maxWidth: 280 });
-      markers.addLayer(m);
-      markerById.set(r.id, m);
+    // Marqueurs : un par course
+    cluster.clearLayers();
+    markerByKey.clear();
+    const ms = [];
+    curEvents.forEach((ev) => {
+      if (ev.lat == null) return;
+      const m = L.circleMarker([ev.lat, ev.lon], markerStyle(ev));
+      m.bindPopup(() => popupHtml(ev), { autoPanPaddingTopLeft: L.point(16, 70), autoPanPaddingBottomRight: L.point(16, 90), maxWidth: 320, minWidth: 250 });
+      m.on("mouseover", () => $(`.ev[data-key="${CSS.escape(ev.key)}"]`)?.classList.add("hl"));
+      m.on("mouseout", () => $(`.ev[data-key="${CSS.escape(ev.key)}"]`)?.classList.remove("hl"));
+      m._ev = ev;
+      ms.push(m);
+      markerByKey.set(ev.key, m);
     });
+    cluster.addLayers(ms);
 
-    const parts = [];
-    if (state.selRegs.size) parts.push(`${state.selRegs.size} région${state.selRegs.size > 1 ? "s" : ""}`);
-    if (state.selDeps.size) parts.push(`${state.selDeps.size} département${state.selDeps.size > 1 ? "s" : ""}`);
-    if (state.shapes.length) parts.push(`${state.shapes.length} zone${state.shapes.length > 1 ? "s" : ""} dessinée${state.shapes.length > 1 ? "s" : ""}`);
-    $(".map-status").classList.toggle("has-sel", parts.length > 0);
-    $("#clear-sel").hidden = !parts.length;
-    $("#selection-summary").textContent = parts.length
-      ? `Zone : ${parts.join(" + ")}`
-      : "Touchez un département ou dessinez une zone pour filtrer.";
+    // Résumé de la zone
+    const zl = zoneLabel();
+    $("#map-status").hidden = !zl || !!state.view;
+    $("#selection-summary").textContent = zl;
+    $("#ms-radius").hidden = !state.radius;
+    $("#zone-btn-lbl").textContent = zl || "Zone";
+    $("#map-zone-lbl").textContent = zl || "Choisir une zone";
+    $("#open-zone").classList.toggle("on", !!zl);
+    const nz = state.selDeps.size + state.selRegs.size + state.shapes.length + (state.bbox ? 1 : 0) + (state.radius ? 1 : 0);
+    $("#zone-badge").textContent = nz;
+    $("#zone-badge").hidden = !nz || !phone.matches;
+    $("#zone-tags").innerHTML = [...state.selRegs].map((c) => tokenHtml(regName.get(c) || c, `reg:${c}`)).concat([...state.selDeps].map((c) => tokenHtml(`${depName.get(c) || c} (${c})`, `dep:${c}`))).join("");
+    if (zl) $("#search-here").hidden = true;
+
+    if (!state.view) writeUrl();
   }
 
-  // Clic sur une course : centrer la carte dessus
-  const focusRace = (e) => {
-    const el = e.target.closest("[data-id]");
-    if (!el || e.target.closest("a, button")) return;
-    const m = markerById.get(el.dataset.id);
-    if (m) {
-      $(".map-card").scrollIntoView({ behavior: "smooth", block: "start" });
-      map.setView(m.getLatLng(), Math.max(map.getZoom(), 10));
-      m.openPopup();
-    }
-  };
-  $("#races tbody").addEventListener("click", focusRace);
-  $("#cards").addEventListener("click", focusRace);
+  function zoneLabel() {
+    const parts = [];
+    const names = (set, m) => (set.size <= 2 ? [...set].map((c) => m.get(c) || c).join(", ") : null);
+    if (state.radius) parts.push(`${state.radius.km} km autour de ${state.radius.label}`);
+    if (state.selRegs.size) parts.push(names(state.selRegs, regName) || plural(state.selRegs.size, "région"));
+    if (state.selDeps.size) parts.push(names(state.selDeps, depName) || plural(state.selDeps.size, "département"));
+    if (state.shapes.length) parts.push(state.shapes.length > 1 ? `${state.shapes.length} zones dessinées` : "zone dessinée");
+    if (state.bbox) parts.push("zone affichée");
+    return parts.length ? cap(parts.join(" + ")) : "";
+  }
 
-  // Bouton « retour à la carte »
-  const io = new IntersectionObserver(([e]) => ($("#to-top").hidden = e.isIntersecting), { threshold: 0 });
-  io.observe($("#map"));
-  $("#to-top").addEventListener("click", () => $(".map-card").scrollIntoView({ behavior: "smooth" }));
+  // Filtres actifs sous forme d'étiquettes supprimables
+  const tokenHtml = (label, id) => `<button type="button" class="token" data-tok="${esc(id)}">${esc(label)}<span class="tx">${icon("x")}</span></button>`;
+  function renderTokens() {
+    if (state.view) return ($("#active-filters").hidden = true);
+    const t = [];
+    const q = $("#f-q").value.trim();
+    if (q) t.push([`« ${q} »`, "q"]);
+    if (state.radius) t.push([`${state.radius.km} km autour de ${state.radius.label}`, "radius"]);
+    state.selRegs.forEach((c) => t.push([regName.get(c) || c, `reg:${c}`]));
+    state.selDeps.forEach((c) => t.push([`${depName.get(c) || c} (${c})`, `dep:${c}`]));
+    if (state.shapes.length) t.push([state.shapes.length > 1 ? `${state.shapes.length} zones dessinées` : "Zone dessinée", "shapes"]);
+    if (state.bbox) t.push(["Zone affichée", "bbox"]);
+    const range = (a, b, unit) => (a && b ? `${a}–${b} ${unit}` : a ? `≥ ${a} ${unit}` : `≤ ${b} ${unit}`);
+    const fd = (v) => toDate(v).toLocaleDateString("fr-FR", { day: "numeric", month: "short" });
+    const from = $("#f-from").value, to = $("#f-to").value;
+    if (from || to) t.push([from && to ? `${fd(from)} → ${fd(to)}` : from ? `Dès le ${fd(from)}` : `Jusqu'au ${fd(to)}`, "dates"]);
+    [...state.months].sort().forEach((m) => t.push([cap(toDate(m).toLocaleDateString("fr-FR", { month: "long", year: "numeric" })), `month:${m}`]));
+    if (isOn("#f-km-min") || isOn("#f-km-max")) t.push([range($("#f-km-min").value, $("#f-km-max").value, "km"), "km"]);
+    if (isOn("#f-d-min") || isOn("#f-d-max")) t.push([range($("#f-d-min").value, $("#f-d-max").value, "m D+"), "dplusr"]);
+    if (isOn("#f-ke-min") || isOn("#f-ke-max")) t.push([range($("#f-ke-min").value, $("#f-ke-max").value, "km-effort"), "ke"]);
+    const profName = { roulant: "Roulant", vallonne: "Vallonné", montagne: "Montagne" };
+    state.profils.forEach((p) => t.push([profName[p], `prof:${p}`]));
+    if (isOn("#f-type")) t.push([$("#f-type").selectedOptions[0].text, "#f-type"]);
+    if (isOn("#f-utmb")) t.push([`UTMB : ${$("#f-utmb").selectedOptions[0].text}`, "#f-utmb"]);
+    if (isOn("#f-ws")) t.push([`World Series : ${$("#f-ws").selectedOptions[0].text}`, "#f-ws"]);
+    if (isOn("#f-itra")) t.push([`ITRA ≥ ${$("#f-itra").value}`, "#f-itra"]);
+    if (isOn("#f-night")) t.push(["Nocturne", "#f-night"]);
+    if (isOn("#f-dplus")) t.push(["D+ connu", "#f-dplus"]);
+    if (isOn("#f-confirmed")) t.push(["Date confirmée", "#f-confirmed"]);
+    if (isOn("#f-site")) t.push(["Site officiel", "#f-site"]);
+    $("#active-filters").hidden = !t.length;
+    $("#active-filters").innerHTML = t.map(([l, id]) => tokenHtml(l, id)).join("") + (t.length > 1 ? `<button type="button" class="clear-all" data-tok="all">Tout effacer</button>` : "");
+  }
+  function removeToken(id) {
+    if (id === "all") {
+      $("#f-q").value = "";
+      $("#q-clear").hidden = true;
+      clearZone({ silent: true });
+      return resetFilters();
+    }
+    if (id === "q") ($("#f-q").value = ""), ($("#q-clear").hidden = true);
+    else if (id === "radius") (state.radius = null), drawRadius();
+    else if (id.startsWith("reg:")) state.selRegs.delete(id.slice(4)), restyleAdmin();
+    else if (id.startsWith("dep:")) state.selDeps.delete(id.slice(4)), restyleAdmin();
+    else if (id === "shapes") (state.shapes = []), drawn.clearLayers();
+    else if (id === "bbox") clearBbox();
+    else if (id === "dates") clearInput("#f-from"), clearInput("#f-to");
+    else if (id.startsWith("month:")) state.months.delete(id.slice(6));
+    else if (id === "km") clearInput("#f-km-min"), clearInput("#f-km-max");
+    else if (id === "dplusr") clearInput("#f-d-min"), clearInput("#f-d-max");
+    else if (id === "ke") clearInput("#f-ke-min"), clearInput("#f-ke-max");
+    else if (id.startsWith("prof:")) state.profils.delete(id.slice(5));
+    else if (id.startsWith("#")) clearInput(id);
+    refresh();
+  }
+  ["#active-filters", "#zone-tags"].forEach((s) =>
+    $(s).addEventListener("click", (e) => {
+      const b = e.target.closest("[data-tok]");
+      if (b) removeToken(b.dataset.tok);
+    })
+  );
+
+  // ---------- Lien de la page = recherche en cours ----------
+  const URL_INPUTS = { q: "#f-q", du: "#f-from", au: "#f-to", kmin: "#f-km-min", kmax: "#f-km-max", dmin: "#f-d-min", dmax: "#f-d-max", kemin: "#f-ke-min", kemax: "#f-ke-max", type: "#f-type", utmb: "#f-utmb", ws: "#f-ws", itra: "#f-itra", nuit: "#f-night", dplus: "#f-dplus", conf: "#f-confirmed", site: "#f-site" };
+  function writeUrl() {
+    const p = new URLSearchParams();
+    Object.entries(URL_INPUTS).forEach(([k, id]) => {
+      const el = $(id);
+      if (el.type === "checkbox") el.checked && p.set(k, "1");
+      else if (el.value.trim()) p.set(k, el.value.trim());
+    });
+    if (state.months.size) p.set("mois", [...state.months].sort().join(","));
+    if (state.profils.size) p.set("profil", [...state.profils].join(","));
+    if (state.selDeps.size) p.set("dep", [...state.selDeps].join(","));
+    if (state.selRegs.size) p.set("reg", [...state.selRegs].join(","));
+    if (state.radius) p.set("autour", `${state.radius.lat.toFixed(4)},${state.radius.lon.toFixed(4)},${state.radius.km},${state.radius.label}`);
+    if (state.sort.k !== "date" || state.sort.dir !== 1) p.set("tri", `${state.sort.k}:${state.sort.dir}`);
+    const s = p.toString();
+    const url = location.pathname + (s ? "?" + s : "");
+    if (url !== location.pathname + location.search || location.hash) history.replaceState(history.state, "", url);
+  }
+  function readUrl() {
+    const p = new URLSearchParams(location.search);
+    Object.entries(URL_INPUTS).forEach(([k, id]) => {
+      if (!p.has(k)) return;
+      const el = $(id);
+      if (el.type === "checkbox") el.checked = p.get(k) === "1";
+      else el.value = p.get(k);
+    });
+    $("#q-clear").hidden = !$("#f-q").value;
+    (p.get("mois") || "").split(",").filter(Boolean).forEach((m) => state.months.add(m));
+    (p.get("profil") || "").split(",").filter(Boolean).forEach((m) => state.profils.add(m));
+    (p.get("dep") || "").split(",").filter((c) => depName.has(c)).forEach((c) => state.selDeps.add(c));
+    (p.get("reg") || "").split(",").filter((c) => regName.has(c)).forEach((c) => state.selRegs.add(c));
+    const a = (p.get("autour") || "").split(",");
+    if (a.length >= 3 && !isNaN(a[0]) && !isNaN(a[1])) {
+      syncRadiusInputs(Number(a[2]) || 30);
+      state.radius = { lat: Number(a[0]), lon: Number(a[1]), km: radiusKm(), label: a.slice(3).join(",") || "point choisi" };
+      $("#radius-center").innerHTML = `Centre : <b>${esc(state.radius.label)}</b>`;
+      drawRadius();
+    }
+    const t = (p.get("tri") || "").split(":");
+    if (t.length === 2 && ["date", "near", "distance_km", "denivele_pos_m", "km_effort", "nom", "ville", "utmb_index"].includes(t[0])) state.sort = { k: t[0], dir: Number(t[1]) === -1 ? -1 : 1 };
+    restyleAdmin();
+  }
+
+  // ---------- Carte ↔ liste ----------
+  function setMapMode(on, push = true) {
+    if (desk.matches) on = false;
+    const was = document.body.classList.contains("map-mode");
+    document.body.classList.toggle("map-mode", on);
+    if (on && !was) {
+      if (push) history.pushState({ ...(history.state || {}), app: true, map: true }, "", location.href);
+      flushMove();
+    } else if (!on && was && push && history.state?.map) {
+      history.back();
+    }
+  }
+  $("#view-toggle").addEventListener("click", () => setMapMode(!document.body.classList.contains("map-mode")));
+  desk.addEventListener("change", () => {
+    setMapMode(false, false);
+    setClickLayer(desk.matches ? "departements" : "none");
+    setMode(state.mode);
+    refresh({ keep: true });
+    setTimeout(flushMove, 60);
+  });
+
+  function focusEvent(key) {
+    const m = markerByKey.get(key);
+    if (!m) return;
+    if (!desk.matches) setMapMode(true);
+    setTimeout(() => {
+      map.invalidateSize();
+      pendingMove = null;
+      moveMap(() => {
+        if (map.getZoom() < 11) map.setView(m.getLatLng(), 11, { animate: false });
+        cluster.zoomToShowLayer(m, () => m.openPopup());
+      });
+    }, desk.matches ? 0 : 60);
+  }
+  const onCardClick = (e) => {
+    const el = e.target.closest("[data-key]");
+    if (!el || e.target.closest("a, button")) return;
+    focusEvent(el.dataset.key);
+  };
+  $("#cards").addEventListener("click", onCardClick);
+  $("#races tbody").addEventListener("click", onCardClick);
+  // Survol d'une fiche : point mis en évidence sur la carte
+  let hlMarker = null;
+  $("#cards").addEventListener("mouseover", (e) => {
+    const el = e.target.closest(".ev");
+    const m = el && markerByKey.get(el.dataset.key);
+    if (m === hlMarker) return;
+    if (hlMarker) hlMarker.setStyle(markerStyle(hlMarker._ev));
+    hlMarker = m && cluster.getVisibleParent(m) === m ? m : null;
+    if (hlMarker) hlMarker.setStyle(markerStyle(hlMarker._ev, true)).bringToFront();
+  });
+  $("#cards").addEventListener("mouseleave", () => {
+    if (hlMarker) hlMarker.setStyle(markerStyle(hlMarker._ev));
+    hlMarker = null;
+  });
+
+  // Hauteur de la zone collante (en-tête + barre de recherche)
+  const hdrH = () => $(".site-header").offsetHeight;
+  const stickH = () => hdrH() + (document.body.classList.contains("list-view") ? 0 : $("#searchbar").offsetHeight);
+  const syncStick = () => {
+    document.documentElement.style.setProperty("--stick", `${stickH()}px`);
+    const top = $("#searchbar").getBoundingClientRect().top;
+    $("#searchbar").classList.toggle("stuck", top <= hdrH() + 1);
+  };
+  let ticking = false;
+  window.addEventListener("scroll", () => {
+    if (ticking) return;
+    ticking = true;
+    requestAnimationFrame(() => {
+      ticking = false;
+      syncStick();
+    });
+  }, { passive: true });
+  window.addEventListener("resize", () => {
+    syncStick();
+    flushMove();
+  });
 
   // ---------- Export ----------
   $("#export").addEventListener("click", () => {
     const cols = ["date", "nom", "course", "ville", "code_postal", "departement", "region", "distance_km", "denivele_pos_m", "km_effort", "utmb_index", "utmb_world_series", "itra_points_estimes", "type", "nocturne", "organisateur", "site_web", "lien_inscription"];
     const csv = [cols.join(";")]
-      .concat(current.map((r) => cols.map((c) => `"${String(r[c] ?? "").replace(/"/g, '""')}"`).join(";")))
+      .concat(curRows.map((r) => cols.map((c) => `"${String(r[c] ?? "").replace(/"/g, '""')}"`).join(";")))
       .join("\n");
     const a = document.createElement("a");
     a.href = URL.createObjectURL(new Blob(["﻿" + csv], { type: "text/csv;charset=utf-8" }));
@@ -562,9 +1459,8 @@
     t.textContent = msg;
     t.hidden = false;
     clearTimeout(toast.t);
-    toast.t = setTimeout(() => (t.hidden = true), 2600);
+    toast.t = setTimeout(() => (t.hidden = true), 2800);
   };
-  const plural = (n, w) => `${n.toLocaleString("fr-FR")} ${w}${n > 1 ? "s" : ""}`;
   const openDlg = (id) => {
     const d = $(id);
     if (!d.open) d.showModal();
@@ -574,55 +1470,118 @@
     const n = Favoris.lists().length;
     $("#lists-badge").textContent = n;
     $("#lists-badge").hidden = !n;
-    // Étoiles déjà affichées (tableau, cartes, popup ouverte)
-    document.querySelectorAll('[data-act="fav"]').forEach((b) => {
+    $$('[data-act="fav"]').forEach((b) => {
       const on = Favoris.isFav(b.dataset.rid);
       b.classList.toggle("on", on);
-      b.textContent = on ? "★" : "☆";
       b.setAttribute("aria-pressed", on);
       b.title = on ? "Dans mes listes" : "Ajouter à mes listes";
       b.setAttribute("aria-label", b.title);
     });
   }
 
-  function fitTo(rows) {
-    const pts = rows.filter((r) => r.lat != null).map((r) => [r.lat, r.lon]);
-    if (pts.length) map.fitBounds(L.latLngBounds(pts), { padding: [40, 40], maxZoom: 11 });
+  function fitTo(evs) {
+    const pts = evs.filter((e) => e.lat != null).map((e) => [e.lat, e.lon]);
+    if (pts.length) moveMap(() => map.fitBounds(L.latLngBounds(pts), { padding: [40, 40], maxZoom: 11 }));
   }
 
-  function setView(v) {
+  // Navigation : la liste ouverte a sa propre adresse, le bouton « retour » du téléphone ramène à l'accueil.
+  const listUrl = (v) => (v.kind === "list" ? `${location.pathname}?liste=${encodeURIComponent(v.id)}` : location.pathname + location.search + location.hash);
+  function setView(v, { push = true } = {}) {
+    cancelModes();
+    closePanel();
+    setMapMode(false, false);
+    const wasView = !!state.view;
     state.view = v;
+    if (v && push) {
+      const st = { app: true, view: v.kind === "list" ? { kind: "list", id: v.id } : "shared" };
+      wasView ? history.replaceState(st, "", listUrl(v)) : history.pushState(st, "", listUrl(v));
+    }
+    $("#search-here").hidden = true;
     refresh();
+    syncStick();
     if (v) {
-      fitTo(current);
-      $(".results").scrollIntoView({ behavior: "smooth", block: "start" });
+      fitTo(curEvents);
+      window.scrollTo({ top: 0 });
     }
   }
+  function goHome() {
+    if (!state.view) {
+      window.scrollTo({ top: 0, behavior: "smooth" });
+      return;
+    }
+    if (history.state?.app && history.state.view) {
+      history.back(); // l'accueil d'où l'on venait, avec ses filtres
+      return;
+    }
+    state.view = null;
+    history.replaceState(null, "", location.pathname);
+    refresh();
+    syncStick();
+    fitAll();
+    window.scrollTo({ top: 0 });
+  }
+  const fitAll = () => {
+    if (zoneActive()) {
+      fitTo(curEvents);
+      return;
+    }
+    const pts = state.races.filter((r) => r.lat != null).map((r) => [r.lat, r.lon]);
+    if (pts.length) moveMap(() => map.fitBounds(L.latLngBounds(pts), { padding: [30, 30], maxZoom: 9 }));
+  };
+  $("#lb-back").addEventListener("click", goHome);
+  ["#home-link", "#nav-home"].forEach((s) =>
+    $(s).addEventListener("click", (e) => {
+      e.preventDefault();
+      goHome();
+    })
+  );
+  $(".foot-brand .brand").addEventListener("click", (e) => {
+    e.preventDefault();
+    goHome();
+  });
+  window.addEventListener("popstate", (e) => {
+    const s = e.state || {};
+    document.body.classList.toggle("map-mode", !!s.map && !desk.matches);
+    if (s.map) flushMove();
+    route();
+  });
+  async function route() {
+    const id = new URLSearchParams(location.search).get("liste");
+    if (id && Favoris.get(id)) {
+      if (state.view?.kind !== "list" || state.view.id !== id) setView({ kind: "list", id }, { push: false });
+      return true;
+    }
+    if (/^#liste=/.test(location.hash)) return openSharedFromHash({ push: false });
+    if (state.view) {
+      state.view = null;
+      refresh();
+      syncStick();
+      fitAll();
+    }
+    return false;
+  }
 
-  // Bandeau au-dessus des résultats quand on consulte une liste
-  function renderBanner(rows) {
+  // Bandeau de la liste consultée
+  function renderBanner(rows, evs) {
     const v = state.view;
     $("#list-banner").hidden = !v;
     if (!v) return;
     if (v.kind === "list") {
       const l = Favoris.get(v.id);
-      if (!l) return setView(null);
-      $("#lb-kicker").textContent = "★ Ma liste";
+      if (!l) return setTimeout(goHome);
+      $("#lb-kicker").textContent = "Ma liste";
       $("#lb-name").textContent = l.name;
-      $("#lb-note").textContent = `${plural(rows.length, "course")} · filtres et zone ignorés`;
+      $("#lb-note").textContent = `${plural(evs.length, "course")} · ${plural(rows.length, "format")}`;
       $("#lb-actions").innerHTML = `
-        <button class="btn" data-lb="share">Partager</button>
-        <button class="btn ghost" data-lb="rename">Renommer</button>
-        <button class="btn ghost danger-text" data-lb="delete">Supprimer</button>
-        <button class="btn ghost" data-lb="close" aria-label="Revenir à toutes les courses">✕ Toutes les courses</button>`;
+        <button class="btn" data-lb="share">${icon("share")}Partager</button>
+        <button class="btn" data-lb="rename">${icon("edit")}Renommer</button>
+        <button class="btn danger" data-lb="delete">${icon("trash")}Supprimer</button>`;
     } else {
       const lost = v.resolved.filter((x) => !x.to).length;
-      $("#lb-kicker").textContent = "🔗 Liste partagée";
+      $("#lb-kicker").textContent = "Liste partagée";
       $("#lb-name").textContent = v.data.name;
-      $("#lb-note").textContent = plural(rows.length, "course") + (lost ? ` · ${plural(lost, "course")} introuvable${lost > 1 ? "s" : ""} dans la base` : "");
-      $("#lb-actions").innerHTML = `
-        <button class="btn primary" data-lb="import">★ Enregistrer dans mes listes</button>
-        <button class="btn ghost" data-lb="close">✕ Fermer</button>`;
+      $("#lb-note").textContent = plural(evs.length, "course") + (lost ? ` · ${plural(lost, "course")} introuvable${lost > 1 ? "s" : ""} dans la base` : "");
+      $("#lb-actions").innerHTML = `<button class="btn primary" data-lb="import">${icon("star")}Enregistrer dans mes listes</button>`;
     }
   }
 
@@ -631,18 +1590,16 @@
     if (!b) return;
     const v = state.view;
     const act = b.dataset.lb;
-    if (act === "close") {
-      if (v?.kind === "shared") clearHash();
-      setView(null);
-    } else if (act === "share") shareList(v.id);
+    if (act === "share") shareList(v.id);
     else if (act === "rename") renameList(v.id);
     else if (act === "delete") deleteList(v.id);
     else if (act === "import") {
       const l = Favoris.importShared(v.data, v.resolved, state.byId);
-      clearHash();
       rebuild();
       syncFavUi();
-      setView({ kind: "list", id: l.id });
+      state.view = null;
+      history.replaceState({ app: true, view: { kind: "list", id: l.id } }, "", `${location.pathname}?liste=${encodeURIComponent(l.id)}`);
+      setView({ kind: "list", id: l.id }, { push: false });
       toast(`Liste « ${l.name} » enregistrée`);
     }
   });
@@ -659,10 +1616,10 @@
     const l = Favoris.get(id);
     if (!confirm(`Supprimer la liste « ${l.name} » (${plural(l.ids.length, "course")}) ?`)) return;
     Favoris.remove(id);
-    if (state.view?.id === id) state.view = null;
     syncFavUi();
-    refresh({ keep: true });
     renderListsDlg();
+    if (state.view?.id === id) goHome();
+    else refresh({ keep: true });
   }
 
   // ----- Dialogue « Ajouter à mes listes » -----
@@ -681,7 +1638,6 @@
   function openFav(id) {
     favRace = state.byId.get(id);
     if (!favRace) return;
-    // Première utilisation : une liste « Favoris » prête à cocher.
     if (!Favoris.lists().length) {
       const l = Favoris.create("Favoris");
       Favoris.toggle(l.id, favRace);
@@ -736,9 +1692,9 @@
             <span class="ll-meta">${plural(l.ids.length, "course")}${nextRace ? ` · prochaine : ${esc(nextRace.nom)} (${esc(fmtDate(nextRace))})` : ""}</span>
           </button>
           <span class="ll-actions">
-            <button type="button" class="icon-btn" data-ll="share" title="Partager" aria-label="Partager">🔗</button>
-            <button type="button" class="icon-btn" data-ll="rename" title="Renommer" aria-label="Renommer">✎</button>
-            <button type="button" class="icon-btn" data-ll="delete" title="Supprimer" aria-label="Supprimer">🗑</button>
+            <button type="button" class="icon-btn" data-ll="share" title="Partager" aria-label="Partager">${icon("share")}</button>
+            <button type="button" class="icon-btn" data-ll="rename" title="Renommer" aria-label="Renommer">${icon("edit")}</button>
+            <button type="button" class="icon-btn" data-ll="delete" title="Supprimer" aria-label="Supprimer">${icon("trash")}</button>
           </span>
         </li>`;
       })
@@ -770,13 +1726,13 @@
     $("#share-title").textContent = `${l.name} · ${plural(l.ids.length, "course")}`;
     $("#share-url").value = url;
     $("#share-status").textContent = "";
-    $("#share-copy").textContent = navigator.share && mobile.matches ? "Partager" : "Copier";
+    $("#share-copy").textContent = navigator.share && phone.matches ? "Partager" : "Copier";
     openDlg("#dlg-share");
     $("#share-url").select();
   }
   $("#share-copy").addEventListener("click", async () => {
     const url = $("#share-url").value;
-    if (navigator.share && mobile.matches) {
+    if (navigator.share && phone.matches) {
       try {
         await navigator.share({ title: `Trails : ${$("#share-title").textContent}`, url });
         return;
@@ -794,25 +1750,22 @@
     }
   });
 
-  function clearHash() {
-    if (location.hash) history.replaceState(null, "", location.pathname + location.search);
-  }
-  async function openSharedFromHash() {
+  async function openSharedFromHash({ push = true } = {}) {
     const m = location.hash.match(/^#liste=([A-Za-z0-9_-]+)/);
     if (!m) return false;
     try {
       const data = await Favoris.decode(m[1]);
       const resolved = Favoris.resolveShared(data, state.byId, state.races);
-      setView({ kind: "shared", data, resolved });
+      setView({ kind: "shared", data, resolved }, { push });
       return true;
     } catch (e) {
       console.warn(e);
       toast("Lien de liste illisible ou incomplet.");
-      clearHash();
+      history.replaceState(null, "", location.pathname + location.search);
       return false;
     }
   }
-  window.addEventListener("hashchange", openSharedFromHash);
+  window.addEventListener("hashchange", () => openSharedFromHash());
 
   // ----- Dialogue « Compléter la course » -----
   let editId = null;
@@ -866,7 +1819,6 @@
     return out;
   }
 
-  // Saisir une date précise vaut confirmation (décochable).
   $("#e-date").addEventListener("change", () => $("#e-date").value && ($("#e-confirmee").checked = true));
   $("#dlg-edit").addEventListener("close", () => {
     if ($("#dlg-edit").returnValue !== "save" || !editId) return;
@@ -904,12 +1856,12 @@
       date: v("#e-date") || (o.date && o.date.length === 10 ? o.date : ""),
       formats: `${km} ; ${dplus}`,
       site: v("#e-inscription") || v("#e-site") || o.site_web || "",
-      source: `Correction depuis Trail Agrégateur (id ${o.id}). Source : `,
+      source: `Correction depuis Agregatrail (id ${o.id}). Source : `,
     });
     window.open(`https://github.com/gcsys/TRAIL-AGREGATOR/issues/new?${p}`, "_blank", "noopener");
   });
 
-  // Délégation : étoiles et boutons « Compléter » (tableau, cartes, popups)
+  // Délégation : étoiles et boutons « Compléter » (tableau, fiches, popups)
   const onAct = (e) => {
     const b = e.target.closest("[data-act]");
     if (!b) return;
@@ -919,7 +1871,6 @@
     else if (b.dataset.act === "edit") openEdit(b.dataset.rid);
   };
   document.addEventListener("click", onAct);
-  // Leaflet bloque la propagation des clics hors des popups : on écoute sur la popup elle-même.
   map.on("popupopen", (e) => {
     const el = e.popup.getElement();
     if (el && !el.dataset.actBound) {
@@ -928,11 +1879,14 @@
     }
   });
 
+  // ---------- Démarrage ----------
+  setMode(desk.matches ? store.get("ta.mode", "cards") : "cards");
   syncFavUi();
-
-  if (!(await openSharedFromHash())) {
+  readUrl();
+  syncStick();
+  if (!(await route())) {
     refresh();
-    const pts = state.races.filter((r) => r.lat != null).map((r) => [r.lat, r.lon]);
-    if (pts.length) map.fitBounds(L.latLngBounds(pts), { padding: [30, 30], maxZoom: 9 });
+    if (state.radius) moveMap(() => map.fitBounds(L.latLng(state.radius.lat, state.radius.lon).toBounds(state.radius.km * 2000), { padding: [20, 20] }));
+    else fitAll();
   }
 })();
