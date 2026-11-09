@@ -10,4 +10,6 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - run: python scripts/tools/probe.py ${{ github.event.inputs.urls }}
+      - env:
+          URLS: ${{ github.event.inputs.urls }}
+        run: python scripts/tools/probe.py $URLS
