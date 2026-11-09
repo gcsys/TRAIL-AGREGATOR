@@ -187,8 +187,13 @@ def main():
     races.sort(key=lambda n: (n["date"] or "9999", n["nom"]))
 
     OUT.parent.mkdir(parents=True, exist_ok=True)
+    generated_at = datetime.now(timezone.utc).isoformat(timespec="seconds")
+    if OUT.exists():  # ne change pas la date si les courses sont identiques
+        old = json.loads(OUT.read_text(encoding="utf-8"))
+        if old.get("races") == races:
+            generated_at = old.get("generated_at", generated_at)
     payload = {
-        "generated_at": datetime.now(timezone.utc).isoformat(timespec="seconds"),
+        "generated_at": generated_at,
         "count": len(races),
         "races": races,
     }

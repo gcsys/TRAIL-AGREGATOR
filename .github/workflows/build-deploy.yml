@@ -35,7 +35,8 @@ jobs:
             echo "Aucun changement"
           else
             git commit -m "data: mise à jour automatique des courses"
-            git push
+            git pull --rebase origin main
+            git push origin HEAD:main
           fi
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3
