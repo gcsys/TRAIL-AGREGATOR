@@ -24,7 +24,7 @@ OUT = Path(__file__).resolve().parents[1] / "data" / "sources" / "runtrail.csv"
 DELAY = 3.0
 FIELDS = ["id", "nom", "course", "date", "date_confirmee", "ville", "code_postal", "departement", "lat", "lon",
           "distance_km", "denivele_pos_m", "organisateur", "site_web", "lien_inscription", "utmb_world_series",
-          "type", "nocturne", "prix_eur", "notes", "source_url"]
+          "type", "nocturne", "prix_eur", "notes", "source_url", "heure_depart", "participants_max"]
 SKIP_FORMAT = re.compile(r"\b(marche|randonn|rando|enfants?|kids?|jeunes|poussins?|benjamins?|minimes|nordique|"
                          r"canicross|vtt|v[ée]lo|relais enfant|[ée]veil)\b", re.I)
 KM = re.compile(r"(\d{1,3}(?:[.,]\d{1,2})?)\s*km\b", re.I)
@@ -105,6 +105,32 @@ def sports_event(html):
     return None
 
 
+def page_text(html):
+    body = re.sub(r"<script[\s\S]*?</script>|<style[\s\S]*?</style>|<svg[\s\S]*?</svg>", " ", html)
+    txt = htmlmod.unescape(re.sub(r"<[^>]+>", " | ", body))
+    return re.sub(r"(\s*\|\s*)+", " | ", re.sub(r"\s+", " ", txt))
+
+
+def format_blocks(txt, labels):
+    """Texte de chaque format (« Astragale Trail | Distance | 65 | km ... ») dans l'ordre de la page."""
+    i0 = txt.find("| Sur place |")
+    txt = txt[i0:] if i0 >= 0 else txt
+    pos = []
+    for lab in labels:
+        j = txt.find("| " + lab + " | Distance", pos[-1][0] + 1 if pos else 0)
+        if j < 0:
+            j = txt.find("| " + lab + " |", pos[-1][0] + 1 if pos else 0)
+        pos.append((j, lab))
+    out = {}
+    starts = sorted(p for p, _ in pos if p >= 0)
+    for j, lab in pos:
+        if j < 0:
+            continue
+        nxt = [p for p in starts if p > j]
+        out[lab] = txt[j:nxt[0] if nxt else j + 3000]
+    return out
+
+
 def num(s):
     return float(s.replace(",", "."))
 
@@ -121,6 +147,12 @@ def parse_event(path, dep, today):
     ville = htmlmod.unescape(addr.get("addressLocality", "")).strip()
     geo = (ev.get("location") or {}).get("geo") or {}
     subs = list(flatten(ev.get("subEvent") or [])) or [ev]
+    txt = page_text(html)
+    m = re.search(r"\| Organisateur \| : \| ([^|]{2,80}) \|", txt)
+    organisateur = m.group(1).strip() if m else ""
+    confirmee = "n'a pas été confirmée" not in txt and "n’a pas été confirmée" not in txt
+    labels = [re.split(r"\s+-\s+\d", htmlmod.unescape(s.get("name", "")))[0].strip() for s in subs]
+    blocks = format_blocks(txt, labels)
     rows, seen = [], set()
     for s in subs:
         label = htmlmod.unescape(s.get("name", "")).strip()
@@ -137,6 +169,10 @@ def parse_event(path, dep, today):
         dp = int(re.sub(r"\D", "", dp_m.group(1))) if dp_m else None
         if dp is not None and not 0 < dp <= 30000:
             dp = None
+        block = blocks.get(re.split(r"\s+-\s+\d", label)[0].strip(), "")
+        mx = re.search(r"Limité à ([\d\s]+) participants", block)
+        start = s.get("startDate") or ""
+        heure = start[11:16] if re.match(r"\d{4}-\d{2}-\d{2}T\d{2}:\d{2}", start) else ""
         key = (km, d)
         if key in seen:
             continue
@@ -148,7 +184,7 @@ def parse_event(path, dep, today):
             "nom": name,
             "course": course or (("%g km" % km).replace(".", ",") if km else ""),
             "date": d,
-            "date_confirmee": "true",
+            "date_confirmee": "true" if confirmee else "false",
             "ville": ville,
             "code_postal": "",
             "departement": dep,
@@ -156,15 +192,17 @@ def parse_event(path, dep, today):
             "lon": geo.get("longitude", ""),
             "distance_km": "%g" % km if km else "",
             "denivele_pos_m": str(dp) if dp else "",
-            "organisateur": "",
+            "organisateur": organisateur,
             "site_web": "",
             "lien_inscription": "",
             "utmb_world_series": "true" if "by utmb" in name.lower() else "false",
             "type": "ultra" if km and km >= 80 else "trail",
-            "nocturne": "true" if re.search(r"nocturne|night|nuit", name + " " + label, re.I) else "false",
+            "nocturne": "true" if re.search(r"nocturne|night|nuit", name + " " + label + " " + block[:200], re.I) else "false",
             "prix_eur": "",
             "notes": "",
             "source_url": BASE + path,
+            "heure_depart": heure,
+            "participants_max": re.sub(r"\D", "", mx.group(1)) if mx else "",
         })
     return rows
 
@@ -180,7 +218,8 @@ def main():
     known = {}
     if OUT.exists():
         with OUT.open(encoding="utf-8") as f:
-            for r in csv.DictReader(f):
+            rd = csv.DictReader(f)
+            for r in (rd if set(FIELDS) <= set(rd.fieldnames or []) else []):
                 if r["date"] >= today:
                     known.setdefault(r["source_url"][len(BASE):], []).append(r)
     rows = [r for path, rs in known.items() if path in events for r in rs]

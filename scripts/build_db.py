@@ -214,6 +214,8 @@ def normalize(r):
         "organisateur": r.get("organisateur", "").strip(),
         "site_web": r.get("site_web", "").strip(),
         "lien_inscription": r.get("lien_inscription", "").strip(),
+        "heure_depart": (r.get("heure_depart") or "").strip(),
+        "participants_max": to_float(r.get("participants_max")),
         "notes": r.get("notes", "").strip(),
         "source": r.get("source", ""),
         "source_url": r.get("source_url", "").strip(),

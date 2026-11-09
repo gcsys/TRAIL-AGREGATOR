@@ -40,46 +40,123 @@ def _events(races):
     return ev
 
 
-def _same_event(main_rows, other_rows):
-    a, b = main_rows[0], other_rows[0]
-    if norm(a["ville"]) != norm(b["ville"]) or (a["date"] or "")[:7] != (b["date"] or "")[:7]:
+def _month_gap(a, b):
+    try:
+        return abs((int(a[:4]) * 12 + int(a[5:7])) - (int(b[:4]) * 12 + int(b[5:7])))
+    except (TypeError, ValueError):
+        return 99
+
+
+# mots trop courants pour identifier un événement à eux seuls
+GENERIC = {"nocturne", "nocturnes", "urbain", "urbaine", "hivernal", "hivernale", "balcons", "balcon", "duo", "snow",
+           "vertical", "verticale", "foulees", "foulee", "run", "running", "marathon", "semi", "relais", "solidaire",
+           "blanc", "blanche", "cimes", "sommets", "cretes", "crete", "bois", "lacs", "chateau", "chateaux",
+           "montagne", "montagnes", "vignes", "vignoble", "vignobles", "collines", "gorges", "vallee", "patrimoine",
+           "noel", "printemps", "automne", "hiver", "classic", "challenge", "festival", "rando", "marche", "kids",
+           "night", "skyrace", "backyard", "estival", "estivale", "corrida", "sentiers", "chemins", "pays", "tour"}
+
+
+def _strong_name(a, b):
+    """Noms quasi identiques, en ignorant la commune (souvent différente d'une source à l'autre)."""
+    ca, cb = re.sub(r"[^a-z]", "", norm(a["nom"])), re.sub(r"[^a-z]", "", norm(b["nom"]))
+    if ca == cb:
+        return True
+    ta = tokens(a["nom"]) - tokens(a["ville"])
+    tb = tokens(b["nom"]) - tokens(b["ville"])
+    small, big = (ta, tb) if len(ta) <= len(tb) else (tb, ta)
+    if not small or not small <= big or not small - GENERIC:
         return False
-    return bool(tokens(a["nom"]) & tokens(b["nom"])) or norm(a["nom"]) == norm(b["nom"])
+    return len(small) >= 2 or max(len(t) for t in small) >= 6
+
+
+def _same_event(main_rows, other_rows):
+    """Même événement ? Les dates au mois près (estimées) peuvent être décalées d'un mois."""
+    a, b = main_rows[0], other_rows[0]
+    gap = _month_gap(a["date"] or "", b["date"] or "")
+    fuzzy_date = len(a["date"] or "") == 7 or len(b["date"] or "") == 7
+    if gap > (1 if fuzzy_date else 0):
+        return False
+    if norm(a["ville"]) == norm(b["ville"]):
+        if gap == 0:
+            return bool(tokens(a["nom"]) & tokens(b["nom"])) or norm(a["nom"]) == norm(b["nom"])
+        return _strong_name(a, b)
+    # communes différentes (commune voisine, ancienne commune…) : même département et nom quasi identique
+    da, db = a.get("departement_saisi"), b.get("departement_saisi")
+    return bool(da) and da == db and _strong_name(a, b)
+
+
+FILL = ("site_web", "organisateur", "lien_inscription", "prix_eur", "heure_depart", "participants_max")
+PER_FORMAT = ("prix_eur", "heure_depart", "participants_max")
 
 
 def _apply(rows, extra_rows):
-    """Copie dans `rows` ce que `extra_rows` sait de plus."""
+    """Copie dans `rows` ce que `extra_rows` sait de plus ; ajoute les formats manquants."""
     src = extra_rows[0]
+    exact = src["date"] if src["date"] and len(src["date"]) == 10 else None
     for r in rows:
-        if src["date"] and (not r["date"] or len(r["date"]) == 7) and src["date"].startswith(r["date"] or "#"):
-            r["date"], r["date_confirmee"] = src["date"], True
-        if not r["site_web"] and src.get("site_web"):
-            r["site_web"] = src["site_web"]
-        if r["denivele_pos_m"] is None:
-            for x in extra_rows:
-                if x.get("denivele_pos_m") and close(r["distance_km"], x["distance_km"]):
+        if exact and (not r["date"] or len(r["date"]) == 7):
+            r["date"], r["date_confirmee"] = exact, src.get("date_confirmee", True)
+        if r.get("lat") is None and src.get("lat") is not None and norm(r["ville"]) == norm(src["ville"]):
+            r["lat"], r["lon"] = src["lat"], src["lon"]
+        for x in extra_rows:
+            if close(r["distance_km"], x["distance_km"]):
+                if r["denivele_pos_m"] is None and x.get("denivele_pos_m"):
                     r["denivele_pos_m"] = x["denivele_pos_m"]
-                    break
+                for f in FILL:
+                    if not r.get(f) and x.get(f):
+                        r[f] = x[f]
+                break
+        for f in FILL:
+            if f not in PER_FORMAT and not r.get(f) and src.get(f):
+                r[f] = src[f]
+    # formats connus seulement de l'autre source (avec distance) : on les ajoute à l'événement
+    base = rows[0]
+    added = []
+    for x in extra_rows:
+        if x["distance_km"] is None or any(close(r["distance_km"], x["distance_km"]) for r in rows + added):
+            continue
+        n = dict(x)
+        n.update({k: base[k] for k in ("nom", "ville", "code_postal", "departement_saisi", "lat", "lon")})
+        if base["date"] and len(base["date"]) == 10 and not exact:
+            n["date"] = base["date"]
+        added.append(n)
+    return added
 
 
 def merge(races):
     main = [r for r in races if r["source"] == "catalogue"]
     others = [r for r in races if r["source"] != "catalogue"]
     main_ev = _events(main)
-    by_city_month = defaultdict(list)
-    for k, rows in main_ev.items():
-        by_city_month[(k[1], k[2])].append(rows)
-    added = enriched = 0
+    by_month = defaultdict(list)  # (département ou commune, mois) -> événements
+    for rows in main_ev.values():
+        by_month[(rows[0].get("departement_saisi") or norm(rows[0]["ville"]), (rows[0]["date"] or "")[:7])].append(rows)
+    added = enriched = formats = 0
     for k, rows in _events(others).items():
-        cands = [m for m in by_city_month.get((k[1], k[2]), []) if _same_event(m, rows)]
+        key = rows[0].get("departement_saisi") or norm(rows[0]["ville"])
+        m = k[2]
+        months = [m]
+        if len(m) == 7:
+            y, mo = int(m[:4]), int(m[5:7])
+            months += ["%04d-%02d" % ((y * 12 + mo - 2) // 12, (y * 12 + mo - 2) % 12 + 1),
+                       "%04d-%02d" % ((y * 12 + mo) // 12, (y * 12 + mo) % 12 + 1)]
+        pool = [c for mm in months for c in by_month.get((key, mm), [])]
+        if not rows[0].get("departement_saisi"):  # source sans département : recherche par commune dans tout le mois
+            pool += [c for mm in months for kk, cs in by_month.items() if kk[1] == mm for c in cs
+                     if norm(c[0]["ville"]) == norm(rows[0]["ville"]) and c not in pool]
+        cands = [c for c in pool if _same_event(c, rows)]
+        # priorité à la même commune et au même mois
+        cands.sort(key=lambda c: (norm(c[0]["ville"]) != norm(rows[0]["ville"]), _month_gap(c[0]["date"] or "", m)))
         if cands:
-            _apply(cands[0], rows)
+            new = _apply(cands[0], rows)
+            cands[0].extend(new)
+            main.extend(new)
+            formats += len(new)
             enriched += 1
         else:
             main.extend(rows)
-            by_city_month[(k[1], k[2])].append(rows)
+            by_month[(key, m)].append(rows)
             added += 1
-    print(f"fusion : {enriched} événements enrichis, {added} ajoutés par les autres sources")
+    print(f"fusion : {enriched} événements enrichis ({formats} formats ajoutés), {added} événements ajoutés par les autres sources")
     return main
 
 
