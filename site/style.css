@@ -409,3 +409,28 @@ body.list-view .filters { display: none; }
   .edit-grid { grid-template-columns: 1fr; }
   .dlg-foot .btn { flex: 1 1 auto; }
 }
+
+/* ===== Disponibilités (bêta) ===== */
+:root { --dispo-ok: #2e9d5b; --dispo-unsure: #e8912a; --dispo-busy: #d2412f; }
+.dispo-dot {
+  display: inline-grid; place-items: center; width: 16px; height: 16px; border-radius: 50%; flex: none;
+  background: var(--dot, var(--muted)); color: #fff; font: normal 800 10px/1 system-ui, sans-serif; font-style: normal;
+  vertical-align: middle;
+}
+.dispo-dot::before { content: var(--glyph); }
+.dispo-dot.ok { --dot: var(--dispo-ok); --glyph: "✓"; }
+.dispo-dot.unsure { --dot: var(--dispo-unsure); --glyph: "?"; }
+.dispo-dot.busy { --dot: var(--dispo-busy); --glyph: "✕"; }
+tr:has(.dispo-dot.busy) td:first-child { box-shadow: inset 3px 0 0 var(--dispo-busy); }
+.card:has(.dispo-dot.busy) { box-shadow: inset 3px 0 0 var(--dispo-busy); }
+td.date .dispo-dot { float: left; margin: 1px 8px 0 0; }
+.cal .dispo-dot { display: grid; margin: 0 auto 5px; width: 14px; height: 14px; font-size: 9px; }
+.pop-sub .dispo-dot { margin: -2px 6px 0 0; }
+.chip.dispo { display: inline-flex; align-items: center; gap: 6px; }
+.chip.dispo.icon { padding: 0 11px; }
+.dot-trio { width: 22px; height: 8px; flex: none; background:
+  radial-gradient(circle 4px at 4px 4px, var(--dispo-ok) 98%, transparent) ,
+  radial-gradient(circle 4px at 11px 4px, var(--dispo-unsure) 98%, transparent),
+  radial-gradient(circle 4px at 18px 4px, var(--dispo-busy) 98%, transparent); }
+.dispo-legend { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; font-size: .9rem; }
+.dispo-legend li { display: flex; align-items: center; gap: 8px; }
