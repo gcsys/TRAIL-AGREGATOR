@@ -42,6 +42,21 @@ La routine GitHub Actions relance ce script chaque lundi, commit le JSON s'il a
 changé et redéploie le site. On peut aussi la lancer à la main depuis l'onglet
 *Actions* (« Run workflow »).
 
+### Sources
+
+| Source | Contenu | Conditions |
+|---|---|---|
+| `data/sources/catalogue.csv` | catalogue principal (dont ~820 trails Occitanie/PACA relevés sur les listes publiques de Miles Republic) | — |
+| [DATAtourisme](https://www.data.gouv.fr/fr/datasets/datatourisme-2/) | événements trail saisis par les offices de tourisme : dates exactes, site officiel, parfois le D+ | Licence Ouverte 2.0 |
+| `data/sources/denivele.csv` | D+ relevés sur les sites des organisateurs ou proposés via le formulaire | — |
+
+Non utilisées car leurs conditions l'interdisent : Finishers, ATS Sport, Ultra Race Calendar.
+
+### Compléter un D+
+
+Ouvrez une issue « Compléter ou corriger une course », ou ajoutez une ligne à
+`data/sources/denivele.csv` (nom, ville, distance, D+, site).
+
 ### Ajouter une course
 
 Ajoutez une ligne à `data/sources/catalogue.csv`. `lat`/`lon` sont facultatifs :

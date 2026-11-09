@@ -1,0 +1,44 @@
+name: Compléter ou corriger une course
+description: Ajouter un D+, une date exacte, un lien d'inscription… ou signaler une course manquante.
+title: "[Course] "
+labels: ["données"]
+body:
+  - type: input
+    id: nom
+    attributes:
+      label: Nom de la course
+      placeholder: Trail des Maures
+    validations:
+      required: true
+  - type: input
+    id: ville
+    attributes:
+      label: Commune de départ
+      placeholder: Collobrières
+    validations:
+      required: true
+  - type: input
+    id: date
+    attributes:
+      label: Date (AAAA-MM-JJ)
+      placeholder: 2027-05-07
+  - type: textarea
+    id: formats
+    attributes:
+      label: Distances et D+
+      description: Une ligne par format, « km ; D+ en mètres ».
+      placeholder: |
+        166 ; 7500
+        60 ; 3000
+    validations:
+      required: true
+  - type: input
+    id: site
+    attributes:
+      label: Site officiel ou lien d'inscription
+      placeholder: https://…
+  - type: input
+    id: source
+    attributes:
+      label: Où avez-vous trouvé l'information ?
+      description: De préférence le site de l'organisateur.

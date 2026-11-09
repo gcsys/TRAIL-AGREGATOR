@@ -21,6 +21,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "scripts"))
 from sources import SOURCES  # noqa: E402
+import enrich  # noqa: E402
 
 GEO = ROOT / "site" / "geo"
 OUT = ROOT / "site" / "data" / "races.json"
@@ -233,6 +234,14 @@ def main():
             continue
         seen.add(n["id"])
         races.append(n)
+
+    races = enrich.merge(races)
+    enrich.apply_dplus_file(races)
+    for n in races:  # D+ éventuellement complété : on recalcule les champs dérivés
+        km, dplus = n["distance_km"], n["denivele_pos_m"]
+        n["km_effort"] = round(km + dplus / 100, 1) if km is not None and dplus is not None else None
+        n["utmb_index"] = utmb_category(n["km_effort"])
+        n["itra_points_estimes"] = itra_points(n["km_effort"])
 
     cache = json.loads(GEOCODE_CACHE.read_text()) if GEOCODE_CACHE.exists() else {}
     missing = [n for n in races if n["lat"] is None or n["lon"] is None]
