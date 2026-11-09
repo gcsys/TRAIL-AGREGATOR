@@ -14,6 +14,13 @@ cercle), puis filtrez les courses dans un tableau.
   catégorie UTMB Index (20K/50K/100K/100M), UTMB World Series, points ITRA,
   type (trail/ultra/KV), nocturne.
 - Tableau triable, clic sur une ligne pour centrer la carte, export CSV.
+- Favoris : étoile ☆ sur chaque course, listes nommées (« 20 km », « 50 km »…),
+  consultables depuis « Mes listes » et partageables par lien (`#liste=…`).
+- Corrections personnelles (date officielle, km exact, D+, lien d'inscription,
+  site, notes) qui remplacent les données affichées et recalculent km-effort,
+  UTMB Index et ITRA ; bouton « Proposer à la base » vers le formulaire d'issue.
+  Listes et corrections sont stockées dans le navigateur (`localStorage`,
+  logique dans `site/favoris.js`) ; les notes perso ne sont pas partagées.
 
 ## Architecture
 

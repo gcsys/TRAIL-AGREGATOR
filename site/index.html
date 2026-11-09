@@ -20,7 +20,12 @@
       <p class="sub" id="meta">Chargement des courses…</p>
     </div>
   </div>
-  <a class="gh" href="https://github.com/gcsys/TRAIL-AGREGATOR/blob/main/data/sources/catalogue.csv" target="_blank" rel="noopener">+ Ajouter une course</a>
+  <div class="top-actions">
+    <button id="open-lists" class="gh my-lists" aria-haspopup="dialog">
+      <span aria-hidden="true">★</span> Mes listes<span id="lists-badge" class="badge" hidden>0</span>
+    </button>
+    <a class="gh add-race" href="https://github.com/gcsys/TRAIL-AGREGATOR/blob/main/data/sources/catalogue.csv" target="_blank" rel="noopener">+ Ajouter une course</a>
+  </div>
 </header>
 
 <main>
@@ -137,6 +142,14 @@
 
   <!-- ===== Résultats ===== -->
   <section class="results" aria-label="Résultats">
+    <div id="list-banner" class="list-banner" hidden>
+      <div class="lb-main">
+        <span class="lb-kicker" id="lb-kicker">Ma liste</span>
+        <strong id="lb-name"></strong>
+        <span class="lb-note" id="lb-note"></span>
+      </div>
+      <div class="lb-actions" id="lb-actions"></div>
+    </div>
     <div class="results-head">
       <h2><span id="count">0</span> <span id="count-label">courses</span></h2>
       <div class="results-actions">
@@ -186,11 +199,105 @@
   Une course manquante ? <a href="https://github.com/gcsys/TRAIL-AGREGATOR/blob/main/data/sources/catalogue.csv">Ajoutez-la au catalogue</a>.
 </footer>
 
+<!-- ===== Dialogue : ajouter une course à des listes ===== -->
+<dialog id="dlg-fav" class="dlg">
+  <form method="dialog" class="dlg-inner">
+    <header class="dlg-head">
+      <div>
+        <p class="dlg-kicker">Ajouter à mes listes</p>
+        <h3 id="fav-title"></h3>
+        <p class="dlg-sub" id="fav-sub"></p>
+      </div>
+      <button class="dlg-x" value="close" aria-label="Fermer">✕</button>
+    </header>
+    <ul id="fav-lists" class="check-list"></ul>
+    <div class="new-list">
+      <input id="fav-new" type="text" placeholder="Nouvelle liste (ex. 50 km 2027)" maxlength="60" autocomplete="off">
+      <button type="button" id="fav-new-btn" class="btn">Créer</button>
+    </div>
+    <footer class="dlg-foot">
+      <button type="button" class="btn ghost" id="fav-edit">✎ Compléter les infos</button>
+      <button class="btn primary" value="close">Terminé</button>
+    </footer>
+  </form>
+</dialog>
+
+<!-- ===== Dialogue : mes listes ===== -->
+<dialog id="dlg-lists" class="dlg">
+  <form method="dialog" class="dlg-inner">
+    <header class="dlg-head">
+      <div>
+        <p class="dlg-kicker">Favoris</p>
+        <h3>Mes listes</h3>
+      </div>
+      <button class="dlg-x" value="close" aria-label="Fermer">✕</button>
+    </header>
+    <ul id="lists-list" class="lists-list"></ul>
+    <p id="lists-empty" class="dlg-sub" hidden>Aucune liste pour l'instant. Touchez l'étoile ☆ d'une course pour commencer.</p>
+    <div class="new-list">
+      <input id="lists-new" type="text" placeholder="Nouvelle liste (ex. 20 km)" maxlength="60" autocomplete="off">
+      <button type="button" id="lists-new-btn" class="btn">Créer</button>
+    </div>
+    <p class="dlg-note">Vos listes et vos corrections sont enregistrées dans ce navigateur. Pour les retrouver ailleurs, partagez la liste par lien.</p>
+  </form>
+</dialog>
+
+<!-- ===== Dialogue : compléter une course ===== -->
+<dialog id="dlg-edit" class="dlg">
+  <form method="dialog" class="dlg-inner" id="edit-form">
+    <header class="dlg-head">
+      <div>
+        <p class="dlg-kicker">Compléter la course</p>
+        <h3 id="edit-title"></h3>
+        <p class="dlg-sub" id="edit-sub"></p>
+      </div>
+      <button class="dlg-x" value="cancel" formnovalidate aria-label="Fermer">✕</button>
+    </header>
+    <div class="edit-grid">
+      <label>Date officielle<input type="date" id="e-date"><small id="o-date"></small></label>
+      <label class="check"><input type="checkbox" id="e-confirmee"> Date confirmée par l'organisateur</label>
+      <label>Distance exacte (km)<input type="number" inputmode="decimal" id="e-km" min="0" step="0.1"><small id="o-km"></small></label>
+      <label>Dénivelé D+ (m)<input type="number" inputmode="numeric" id="e-dplus" min="0" step="10"><small id="o-dplus"></small></label>
+      <label class="wide">Lien d'inscription<input type="url" id="e-inscription" placeholder="https://…"><small id="o-inscription"></small></label>
+      <label class="wide">Site officiel<input type="url" id="e-site" placeholder="https://…"><small id="o-site"></small></label>
+      <label class="wide">Notes perso<input type="text" id="e-notes" maxlength="200" placeholder="Dossard pris, ravitos, covoit…"></label>
+    </div>
+    <p class="dlg-note">Vos modifications remplacent les données affichées sur ce navigateur et voyagent avec vos listes partagées (sauf les notes perso). Pour corriger la base pour tout le monde, utilisez « Proposer à la base ».</p>
+    <footer class="dlg-foot">
+      <button type="button" class="btn ghost danger-text" id="edit-reset">Rétablir l'origine</button>
+      <button type="button" class="btn ghost" id="edit-propose" title="Ouvre un formulaire GitHub pré-rempli">Proposer à la base ↗</button>
+      <button class="btn primary" value="save">Enregistrer</button>
+    </footer>
+  </form>
+</dialog>
+
+<!-- ===== Dialogue : partager ===== -->
+<dialog id="dlg-share" class="dlg">
+  <form method="dialog" class="dlg-inner">
+    <header class="dlg-head">
+      <div>
+        <p class="dlg-kicker">Partager la liste</p>
+        <h3 id="share-title"></h3>
+      </div>
+      <button class="dlg-x" value="close" aria-label="Fermer">✕</button>
+    </header>
+    <p class="dlg-sub">Toute personne qui ouvre ce lien voit la liste, avec vos corrections, et peut l'enregistrer chez elle.</p>
+    <div class="new-list">
+      <input id="share-url" type="text" readonly>
+      <button type="button" id="share-copy" class="btn primary">Copier</button>
+    </div>
+    <p class="dlg-note" id="share-status" aria-live="polite"></p>
+  </form>
+</dialog>
+
+<div id="toast" class="toast" role="status" aria-live="polite" hidden></div>
+
 <button id="to-top" class="fab" aria-label="Revenir à la carte" hidden>↑ Carte</button>
 
 <script src="vendor/leaflet/leaflet.js"></script>
 <script src="vendor/leaflet-draw/leaflet.draw.js"></script>
 <script src="vendor/turf/turf.min.js"></script>
+<script src="favoris.js"></script>
 <script src="app.js"></script>
 </body>
 </html>
