@@ -645,6 +645,7 @@
     return ratio < 25 ? "roulant" : ratio <= 50 ? "vallonne" : "montagne";
   };
 
+  let dispoHidden = new Set(); // courses retirées par « Week-ends dispo » au dernier rafraîchissement
   function passes(r, q) {
     if (q && !r._hay.includes(q)) return false;
     const from = $("#f-from").value, to = $("#f-to").value;
@@ -669,7 +670,7 @@
     if ($("#f-dplus").checked && r.denivele_pos_m == null) return false;
     if ($("#f-confirmed").checked && !(r.date && r.date.length === 10 && r.date_confirmee)) return false;
     if ($("#f-site").checked && !(safeUrl(r.site_web) || safeUrl(r.lien_inscription))) return false;
-    if (Dispo.hiding() && Dispo.status(r) === "busy") return false;
+    if (Dispo.hiding() && Dispo.status(r) === "busy") return dispoHidden.add(evKey(r)), false;
     return true;
   }
   const hay = (r) => (r._hay ??= " " + norm([r.nom, r.course, r.ville, r.organisateur, r.departement, r.departement_code, r.region].join(" ")));
@@ -1198,6 +1199,7 @@
 
   function refresh(opts = {}) {
     const keep = opts.keep ? Math.max(shown, PAGE) : PAGE;
+    dispoHidden = new Set();
     const q = norm($("#f-q").value);
     const rows = state.view ? viewRows() : state.races.filter((r) => inZone(r) && passes(hay(r) && r, q));
     if (state.sort.k === "near" && !state.radius) state.sort = { k: "date", dir: 1 };
@@ -1225,6 +1227,7 @@
     renderMore(keep);
     renderBanner(rows, curEvents);
     renderTokens();
+    renderDispoBar(curEvents);
     document.body.classList.toggle("list-view", !!state.view);
     state.view ? $("#nav-home").removeAttribute("aria-current") : $("#nav-home").setAttribute("aria-current", "page");
 
@@ -1457,6 +1460,23 @@
   });
 
   // ---------- Disponibilités (bêta) ----------
+  function renderDispoBar(evs) {
+    const on = Dispo.active() && !state.view;
+    $("#dispo-bar").hidden = !on;
+    if (!on) return;
+    const shownKeys = new Set(evs.map((ev) => ev.key));
+    const n = [...dispoHidden].filter((k) => !shownKeys.has(k)).length; // courses entièrement retirées
+    const c = Dispo.config();
+    const kept = evs.filter((ev) => evStatus(ev) === "ok").length;
+    $("#dispo-bar-text").innerHTML = c.hide
+      ? `<strong>Week-ends dispo activé.</strong> ${n ? `${plural(n, "course")} retirée${n > 1 ? "s" : ""} car elle${n > 1 ? "s tombent" : " tombe"} un week-end indisponible` : "Aucune course retirée"} (un week-end sur ${c.every}). ${plural(kept, "course")} en vert.`
+      : `<strong>Week-ends dispo activé.</strong> Les courses d'un week-end indisponible restent affichées en rouge.`;
+  }
+  $("#dispo-off").addEventListener("click", () => {
+    Dispo.set({ on: false });
+    syncDispoUi();
+    refresh({ keep: true });
+  });
   function syncDispoUi() {
     const on = Dispo.active();
     $("#dispo-toggle").classList.toggle("active", on);
@@ -1499,7 +1519,7 @@
     Dispo.set({ on: !Dispo.config().on });
     syncDispoUi();
     refresh({ keep: true });
-    if (Dispo.active()) toast(Dispo.config().hide ? "Week-ends indisponibles retirés, pastilles affichées" : "Pastilles de disponibilité affichées");
+    if (Dispo.active()) scrollToResults();
   });
   $("#dispo-settings").addEventListener("click", openDispo);
   syncDispoUi();

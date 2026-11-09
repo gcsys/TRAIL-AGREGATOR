@@ -15,7 +15,7 @@
   <link rel="stylesheet" href="vendor/leaflet/leaflet.css">
   <link rel="stylesheet" href="vendor/leaflet-draw/leaflet.draw.css">
   <link rel="stylesheet" href="vendor/markercluster/MarkerCluster.css">
-  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="style.css?v=__BUILD__">
 </head>
 <body>
 <!-- Pictogrammes -->
@@ -113,6 +113,8 @@
         </button>
       </div>
       <div class="chips" role="group" aria-label="Filtres rapides">
+        <button class="chip dispo" id="dispo-toggle" aria-pressed="false" title="Retirer les courses qui tombent un week-end indisponible (bêta)"><i class="dot-trio" aria-hidden="true"></i>Week-ends dispo</button>
+        <span class="chips-sep"></span>
         <button class="chip" data-km="0-20"><i class="dot" style="--dc:var(--d1)"></i>&lt; 20 km</button>
         <button class="chip" data-km="20-42"><i class="dot" style="--dc:var(--d2)"></i>20–42 km</button>
         <button class="chip" data-km="42-80"><i class="dot" style="--dc:var(--d3)"></i>42–80 km</button>
@@ -125,9 +127,6 @@
         <button class="chip" data-profil="montagne"><svg aria-hidden="true"><use href="#i-mountain"/></svg>Montagne</button>
         <button class="chip" data-type="ultra">Ultra</button>
         <button class="chip" data-night><svg aria-hidden="true"><use href="#i-moon"/></svg>Nocturne</button>
-        <span class="chips-sep"></span>
-        <button class="chip dispo" id="dispo-toggle" aria-pressed="false" title="Pastille verte, orange ou rouge selon vos week-ends indisponibles (bêta)"><i class="dot-trio" aria-hidden="true"></i>Dispo</button>
-        <button class="chip dispo icon" id="dispo-settings" title="Régler les week-ends indisponibles" aria-label="Régler les week-ends indisponibles">⚙</button>
       </div>
     </div>
   </div>
@@ -177,6 +176,14 @@
       </div>
     </div>
     <div class="active-filters" id="active-filters" hidden></div>
+    <div class="dispo-bar" id="dispo-bar" hidden>
+      <p id="dispo-bar-text"></p>
+      <p class="dispo-bar-legend"><span><i class="dispo-dot ok"></i>date confirmée, week-end libre</span><span><i class="dispo-dot unsure"></i>date à confirmer</span></p>
+      <div class="dispo-bar-actions">
+        <button type="button" class="btn ghost" id="dispo-settings">Régler l'alternance</button>
+        <button type="button" class="btn ghost" id="dispo-off">Désactiver</button>
+      </div>
+    </div>
 
     <ul id="cards" class="cards" aria-live="polite">
       <li class="ev skel" aria-hidden="true"></li><li class="ev skel" aria-hidden="true"></li><li class="ev skel" aria-hidden="true"></li>
@@ -558,8 +565,8 @@
 <script src="vendor/leaflet-draw/leaflet.draw.js"></script>
 <script src="vendor/markercluster/leaflet.markercluster.js"></script>
 <script src="vendor/turf/turf.min.js"></script>
-<script src="favoris.js"></script>
-<script src="dispo.js"></script>
-<script src="app.js"></script>
+<script src="favoris.js?v=__BUILD__"></script>
+<script src="dispo.js?v=__BUILD__"></script>
+<script src="app.js?v=__BUILD__"></script>
 </body>
 </html>

@@ -28,10 +28,10 @@ cercle), puis filtrez les courses dans un tableau.
   UTMB Index et ITRA ; bouton « Proposer à la base » vers le formulaire d'issue.
   Listes et corrections sont stockées dans le navigateur (`localStorage`,
   logique dans `site/favoris.js`) ; les notes perso ne sont pas partagées.
-- Disponibilités (bêta) : puce « Dispo » au-dessus des résultats. Un clic retire
+- Disponibilités (bêta) : puce « Week-ends dispo » (première des filtres rapides). Un clic retire
   les courses qui tombent un week-end indisponible (un sur deux, toute l'année) et
   affiche une pastille verte (date confirmée, week-end libre) ou orange (date à
-  confirmer). Le rythme se règle avec ⚙ (week-end de référence, période, garder
+  confirmer). Un bandeau résume l'effet ; le rythme se règle via « Régler l'alternance » (week-end de référence, période, garder
   ou non les rouges) ; réglage stocké dans le navigateur (`site/dispo.js`).
 
 ## Architecture
