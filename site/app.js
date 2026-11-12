@@ -304,19 +304,37 @@
 
   // ---------- Rayon autour d'un point ----------
   const pinIcon = L.divIcon({ className: "radius-center-pin", html: "<div></div>", iconSize: [22, 22], iconAnchor: [11, 11] });
-  let radiusCircle = null, radiusPin = null;
-  const radiusKm = () => Number($("#radius").value) || 30;
+  let radiusCircle = null, radiusPin = null, isoLayer = null;
+  // Mesure du rayon : « km » (vol d'oiseau) ou « route » (temps de route, isochrone IGN, site/route.js)
+  let rmode = "km";
+  const last = { km: 30, route: 60 };
+  const KM_PRESETS = [10, 25, 50, 100], ROUTE_PRESETS = [30, 60, 90, 120];
+  const radiusKm = () => (rmode === "km" ? Number($("#radius").value) || 30 : last.km);
+  const radiusMin = () => (rmode === "route" ? Number($("#radius").value) || 60 : last.route);
+  const radiusText = (r = state.radius) =>
+    r && r.route ? `${Route.duree(r.route)} de route autour de ${r.label}` : r ? `${r.km} km autour de ${r.label}` : "";
+  function drawIso() {
+    isoLayer && map.removeLayer(isoLayer);
+    isoLayer = null;
+    const r = state.radius;
+    if (!r || !r.route || !r.iso) return;
+    isoLayer = L.geoJSON(r.iso, { style: { color: selColor, weight: 1.5, opacity: 0.8, fillColor: selColor, fillOpacity: 0.1 }, interactive: false }).addTo(map);
+  }
   function drawRadius() {
     const r = state.radius;
     if (!r) {
       radiusCircle && map.removeLayer(radiusCircle);
       radiusPin && map.removeLayer(radiusPin);
       radiusCircle = radiusPin = null;
+      drawIso();
       return;
     }
+    drawIso();
     const ll = [r.lat, r.lon];
+    // en temps de route, le cercle n'est pas affiché (rayon nul) : l'isochrone le remplace
+    const meters = r.route ? 0 : r.km * 1000;
     if (!radiusCircle) {
-      radiusCircle = L.circle(ll, { radius: r.km * 1000, color: selColor, weight: 2, fillColor: selColor, fillOpacity: 0.08, dashArray: "6 6", interactive: false }).addTo(map);
+      radiusCircle = L.circle(ll, { radius: meters, color: selColor, weight: 2, fillColor: selColor, fillOpacity: 0.08, dashArray: "6 6", interactive: false }).addTo(map);
       radiusPin = L.marker(ll, { icon: pinIcon, draggable: true, keyboard: false, title: "Glissez pour déplacer le centre" }).addTo(map);
       radiusPin.on("drag", (e) => radiusCircle.setLatLng(e.latlng));
       radiusPin.on("dragend", (e) => {
@@ -324,32 +342,104 @@
         setRadius({ lat: p.lat, lon: p.lng, label: "point choisi" }, { fit: false });
       });
     } else {
-      radiusCircle.setLatLng(ll).setRadius(r.km * 1000);
+      radiusCircle.setLatLng(ll).setRadius(meters);
       radiusPin.setLatLng(ll);
     }
   }
   function setRadius(center, { fit = true, km } = {}) {
     if (km != null) syncRadiusInputs(km);
-    state.radius = center ? { lat: center.lat, lon: center.lon, label: center.label || state.radius?.label || "point choisi", km: radiusKm() } : null;
+    const prev = state.radius;
+    state.radius = center
+      ? { lat: center.lat, lon: center.lon, label: center.label || prev?.label || "point choisi", km: radiusKm(), route: rmode === "route" ? radiusMin() : null }
+      : null;
     if (center) clearBbox();
     drawRadius();
-    if (center && fit) moveMap(() => map.fitBounds(radiusCircle.getBounds(), { padding: [30, 30] }));
+    if (center && fit && !state.radius.route) moveMap(() => map.fitBounds(radiusCircle.getBounds(), { padding: [30, 30] }));
     $("#radius-center").innerHTML = state.radius ? `Centre : <b>${esc(state.radius.label)}</b>` : "Aucun point choisi.";
+    if (state.radius?.route) loadIso(state.radius, { fit: center && fit });
     refresh();
   }
-  function syncRadiusInputs(km) {
-    ["#radius", "#radius-map"].forEach((s) => ($(s).value = km));
-    ["#radius-out", "#radius-map-out"].forEach((s) => ($(s).textContent = `${km} km`));
-    $$(".radius-presets [data-r]").forEach((b) => b.classList.toggle("active", Number(b.dataset.r) === Number(km)));
+
+  /* Isochrone du temps choisi d'abord (la zone), puis paliers plus courts pour estimer
+   * la durée de route de chaque course. Requêtes espacées par Route.isochrone. */
+  const simplify = (f) => {
+    try {
+      return turf.simplify(f, { tolerance: 0.002, highQuality: false }); // ~200 m : polygone 5 à 10 fois plus léger
+    } catch (e) {
+      return f;
+    }
+  };
+  async function loadIso(r, { fit } = {}) {
+    const alive = () => state.radius === r;
+    $("#radius-center").innerHTML = `Centre : <b>${esc(r.label)}</b> · <span class="dim">calcul du temps de route…</span>`;
+    try {
+      r.iso = simplify(await Route.isochrone(r.lat, r.lon, r.route));
+    } catch (e) {
+      if (!alive()) return;
+      toast("Temps de route indisponible pour le moment : recherche par distance à la place.");
+      setRmode("km");
+      return;
+    }
+    if (!alive()) return;
+    r.bands = [{ min: r.route, poly: r.iso }];
+    drawIso();
+    if (fit && isoLayer) moveMap(() => map.fitBounds(isoLayer.getBounds(), { padding: [30, 30] }));
+    $("#radius-center").innerHTML = `Centre : <b>${esc(r.label)}</b>`;
+    refresh({ keep: true });
+    // paliers intermédiaires, du plus court au plus long
+    for (const m of Route.tranches(r.route).filter((m) => m !== r.route)) {
+      try {
+        const poly = simplify(await Route.isochrone(r.lat, r.lon, m));
+        if (!alive()) return;
+        r.bands = [...r.bands, { min: m, poly }].sort((a, b) => a.min - b.min);
+      } catch (e) {
+        break; // les durées resteront plus larges (« moins de 1 h »)
+      }
+    }
+    if (alive()) refresh({ keep: true });
   }
+
+  function syncRadiusInputs(v) {
+    ["#radius", "#radius-map"].forEach((s) => ($(s).value = v));
+    const txt = rmode === "route" ? Route.duree(Number(v)) : `${v} km`;
+    ["#radius-out", "#radius-map-out"].forEach((s) => ($(s).textContent = txt));
+    $$(".radius-presets [data-r]").forEach((b) => b.classList.toggle("active", Number(b.dataset.r) === Number(v)));
+  }
+  /* Bascule distance / temps de route : mêmes curseurs, autres bornes. */
+  function setRmode(m, { apply = true } = {}) {
+    if (m === rmode) return;
+    last[rmode] = Number($("#radius").value) || last[rmode];
+    rmode = m;
+    const route = m === "route";
+    ["#radius", "#radius-map"].forEach((s) => {
+      const el = $(s);
+      Object.assign(el, route ? { min: 15, max: 180, step: 15 } : { min: 5, max: 200, step: 5 });
+      el.setAttribute("aria-label", route ? "Temps de route en minutes" : "Rayon en kilomètres");
+    });
+    $$(".radius-presets [data-r]").forEach((b, i) => {
+      b.dataset.r = (route ? ROUTE_PRESETS : KM_PRESETS)[i];
+      b.textContent = route ? Route.duree(ROUTE_PRESETS[i]) : `${KM_PRESETS[i]} km`;
+    });
+    $$("[data-rmode]").forEach((b) => b.classList.toggle("active", b.dataset.rmode === m));
+    $(".radius-head > span").textContent = route ? "Temps de route" : "Rayon";
+    $("#route-note").hidden = !route;
+    syncRadiusInputs(last[m]);
+    if (apply && state.radius) setRadius(state.radius, { fit: true });
+  }
+  $$("[data-rmode]").forEach((b) => b.addEventListener("click", () => setRmode(b.dataset.rmode)));
+
   let radiusTimer;
   ["#radius", "#radius-map"].forEach((s) =>
     $(s).addEventListener("input", (e) => {
       syncRadiusInputs(e.target.value);
       if (!state.radius) return;
+      clearTimeout(radiusTimer);
+      if (rmode === "route") {
+        radiusTimer = setTimeout(() => setRadius(state.radius, { fit: false }), 400); // une requête quand le curseur s'arrête
+        return;
+      }
       state.radius.km = radiusKm();
       drawRadius();
-      clearTimeout(radiusTimer);
       radiusTimer = setTimeout(refresh, 120);
     })
   );
@@ -367,7 +457,7 @@
     navigator.geolocation.getCurrentPosition(
       (p) => {
         setRadius({ lat: p.coords.latitude, lon: p.coords.longitude, label: "ma position" });
-        toast(`Courses à moins de ${radiusKm()} km de vous`);
+        toast(rmode === "route" ? `Courses à moins de ${Route.duree(radiusMin())} de route` : `Courses à moins de ${radiusKm()} km de vous`);
       },
       () => toast("Position indisponible. Autorisez la localisation ou cherchez une ville."),
       { timeout: 10000, maximumAge: 300000 }
@@ -837,7 +927,7 @@
   const townItem = (t, after) => ({
     icon: "pin",
     label: `Autour de ${t.name}`,
-    sub: `${t.dep ? (depName.get(t.dep) || t.dep) + " · " : ""}rayon ${radiusKm()} km`,
+    sub: `${t.dep ? (depName.get(t.dep) || t.dep) + " · " : ""}${rmode === "route" ? `${Route.duree(radiusMin())} de route` : `rayon ${radiusKm()} km`}`,
     run: () => {
       setRadius({ lat: t.lat, lon: t.lon, label: t.name });
       after && after();
@@ -988,7 +1078,7 @@
     return `<li class="ev${ev.rows.every((r) => r._absent) ? " absent" : ""}${evStatus(ev) === "busy" ? " dispo-busy" : ""}" data-key="${esc(ev.key)}">
       ${dateBox(ev)}
       <div class="ev-main">
-        <div class="ev-head"><h3 class="ev-name">${esc(ev.first.nom)}</h3>${ev.near != null ? `<span class="ev-near">à ${fmtKm(ev.near)} km</span>` : ""}</div>
+        <div class="ev-head"><h3 class="ev-name">${esc(ev.first.nom)}</h3>${nearHtml(ev)}</div>
         <p class="ev-meta">${evMeta(ev)}</p>
         <ul class="fmts">${ev.rows.map(fmtRow).join("")}</ul>
         ${ev.rows.map(notesHtml).join("")}
@@ -999,7 +1089,7 @@
   const popupHtml = (ev) => `<div class="pop">
       <div class="pop-date">${dispoDot(evStatus(ev))}${esc(fmtDate(ev.first))}</div>
       <div class="pop-title">${esc(ev.first.nom)}</div>
-      <div class="pop-sub">${esc(placeLong(ev.first))}${ev.near != null ? ` · à ${fmtKm(ev.near)} km` : ""}</div>
+      <div class="pop-sub">${esc(placeLong(ev.first))}${ev.drive ? ` · ≈ ${esc(ev.drive.texte)} de route` : ev.near != null ? ` · à ${fmtKm(ev.near)} km` : ""}</div>
       <ul class="fmts">${ev.rows.map(fmtRow).join("")}</ul>
       <div class="ev-links">${linksHtml(ev.links)}</div>
     </div>`;
@@ -1016,6 +1106,18 @@
     </tr>`;
 
   // ---------- Regroupement par course ----------
+  // Durée de route estimée (tranche d'isochrones), seulement en mode « temps de route ».
+  const driveOf = (pos) => {
+    const c = state.radius;
+    if (!c || !c.route || !c.bands || !pos || pos.lat == null) return null;
+    return Route.tranche({ type: "Feature", properties: {}, geometry: { type: "Point", coordinates: [pos.lon, pos.lat] } }, c.bands, pip);
+  };
+  // Clé de tri « les plus proches » : tranche de route d'abord, puis vol d'oiseau.
+  const nearKey = (drive, near) => (near == null ? null : (drive ? drive.haut : 999) * 1e4 + near);
+  const nearHtml = (ev, pre = "") =>
+    ev.drive
+      ? `${pre}<span class="ev-near" title="Durée de route estimée (IGN, sans trafic)">≈ ${esc(ev.drive.texte)}</span>`
+      : ev.near != null ? `${pre}<span class="ev-near">à ${fmtKm(ev.near)} km</span>` : "";
   function groupEvents(rows) {
     const m = new Map();
     rows.forEach((r) => {
@@ -1040,6 +1142,7 @@
         minKm: kms.length ? Math.min(...kms) : null, maxKm: kms.length ? Math.max(...kms) : null,
         maxD: dps.length ? Math.max(...dps) : null, maxKe: kes.length ? Math.max(...kes) : null,
         near: c && pos ? haversine(c.lat, c.lon, pos.lat, pos.lon) : null,
+        drive: driveOf(pos),
       };
     });
   }
@@ -1053,7 +1156,7 @@
     const { k, dir } = state.sort;
     const val = {
       date: (e) => (e.first.date ? dateStart(e.first.date) : null),
-      near: (e) => e.near,
+      near: (e) => nearKey(e.drive, e.near),
       distance_km: (e) => (dir === 1 ? e.minKm : e.maxKm),
       denivele_pos_m: (e) => e.maxD,
       km_effort: (e) => e.maxKe,
@@ -1167,7 +1270,7 @@
     if (state.sort.k === "near" && !state.radius) state.sort = { k: "date", dir: 1 };
     curEvents = sortEvents(groupEvents(rows));
     const { k, dir } = state.sort;
-    const rowVal = (r) => (k === "near" ? (state.radius && r.lat != null ? haversine(state.radius.lat, state.radius.lon, r.lat, r.lon) : null) : r[k]);
+    const rowVal = (r) => (k === "near" ? (state.radius && r.lat != null ? nearKey(driveOf(r), haversine(state.radius.lat, state.radius.lon, r.lat, r.lon)) : null) : r[k]);
     curRows = rows.slice().sort((a, b) => cmp(rowVal(a), rowVal(b), dir));
 
     syncSortUi();
@@ -1229,7 +1332,7 @@
   function zoneLabel() {
     const parts = [];
     const names = (set, m) => (set.size <= 2 ? [...set].map((c) => m.get(c) || c).join(", ") : null);
-    if (state.radius) parts.push(`${state.radius.km} km autour de ${state.radius.label}`);
+    if (state.radius) parts.push(radiusText());
     if (state.selRegs.size) parts.push(names(state.selRegs, regName) || plural(state.selRegs.size, "région"));
     if (state.selDeps.size) parts.push(names(state.selDeps, depName) || plural(state.selDeps.size, "département"));
     if (state.shapes.length) parts.push(state.shapes.length > 1 ? `${state.shapes.length} zones dessinées` : "zone dessinée");
@@ -1244,7 +1347,7 @@
     const t = [];
     const q = $("#f-q").value.trim();
     if (q) t.push([`« ${q} »`, "q"]);
-    if (state.radius) t.push([`${state.radius.km} km autour de ${state.radius.label}`, "radius"]);
+    if (state.radius) t.push([radiusText(), "radius"]);
     state.selRegs.forEach((c) => t.push([regName.get(c) || c, `reg:${c}`]));
     state.selDeps.forEach((c) => t.push([`${depName.get(c) || c} (${c})`, `dep:${c}`]));
     if (state.shapes.length) t.push([state.shapes.length > 1 ? `${state.shapes.length} zones dessinées` : "Zone dessinée", "shapes"]);
@@ -1313,6 +1416,7 @@
     if (state.selDeps.size) p.set("dep", [...state.selDeps].join(","));
     if (state.selRegs.size) p.set("reg", [...state.selRegs].join(","));
     if (state.radius) p.set("autour", `${state.radius.lat.toFixed(4)},${state.radius.lon.toFixed(4)},${state.radius.km},${state.radius.label}`);
+    if (state.radius?.route) p.set("route", state.radius.route);
     if (state.sort.k !== "date" || state.sort.dir !== 1) p.set("tri", `${state.sort.k}:${state.sort.dir}`);
     const s = p.toString();
     const url = location.pathname + (s ? "?" + s : "");
@@ -1334,9 +1438,16 @@
     const a = (p.get("autour") || "").split(",");
     if (a.length >= 3 && !isNaN(a[0]) && !isNaN(a[1])) {
       syncRadiusInputs(Number(a[2]) || 30);
-      state.radius = { lat: Number(a[0]), lon: Number(a[1]), km: radiusKm(), label: a.slice(3).join(",") || "point choisi" };
+      const min = Math.round(Number(p.get("route")) / 15) * 15;
+      if (min >= 15 && min <= 180) {
+        last.km = Number(a[2]) || 30;
+        last.route = min;
+        setRmode("route", { apply: false });
+      }
+      state.radius = { lat: Number(a[0]), lon: Number(a[1]), km: radiusKm(), route: rmode === "route" ? radiusMin() : null, label: a.slice(3).join(",") || "point choisi" };
       $("#radius-center").innerHTML = `Centre : <b>${esc(state.radius.label)}</b>`;
       drawRadius();
+      if (state.radius.route) loadIso(state.radius, { fit: true });
     }
     const t = (p.get("tri") || "").split(":");
     if (t.length === 2 && ["date", "near", "distance_km", "denivele_pos_m", "km_effort", "nom", "ville", "utmb_index"].includes(t[0])) state.sort = { k: t[0], dir: Number(t[1]) === -1 ? -1 : 1 };
@@ -1933,7 +2044,7 @@
   syncStick();
   if (!(await route())) {
     refresh();
-    if (state.radius) moveMap(() => map.fitBounds(L.latLng(state.radius.lat, state.radius.lon).toBounds(state.radius.km * 2000), { padding: [20, 20] }));
+    if (state.radius) moveMap(() => map.fitBounds(L.latLng(state.radius.lat, state.radius.lon).toBounds((state.radius.route ? (state.radius.route / 60) * 90 : state.radius.km) * 2000), { padding: [20, 20] }));
     else fitAll();
   }
 })();

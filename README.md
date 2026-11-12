@@ -15,6 +15,12 @@ cercle), puis filtrez les courses dans un tableau.
 - Zone de recherche pensée pour le tactile : rayon autour d'une ville, de sa position ou d'un point
   touché (centre déplaçable, rayon réglable), « Rechercher dans cette zone » après avoir cadré la carte,
   départements et régions (au toucher ou par liste), tracé au doigt. Sur ordinateur : polygone et rectangle en plus.
+- Temps de route : dans « Choisir une zone », bascule « Distance / Temps de route » (15 min à 3 h).
+  La zone devient l'isochrone calculée par l'[API Géoplateforme de l'IGN](https://geoservices.ign.fr/documentation/services/services-geoplateforme/isochrone)
+  (sans clé, 5 requêtes par seconde au plus) ; chaque fiche affiche une durée estimée (« ≈ 30 à 45 min »),
+  déduite de paliers emboîtés (15, 30, 45, 60, 90, 120… min), et le tri « les plus proches » suit ces tranches.
+  Durées estimées en voiture, sans trafic. Si le service ne répond pas, la recherche repasse en distance.
+  Logique dans `site/route.js` (requêtes espacées, cache de session) ; adresse `?autour=…&route=60`.
 - Carte : points regroupés, fonds Plan, Relief (OpenTopoMap) et Satellite.
 - Filtres : mois, dates, distance, D+, profil (roulant, vallonné, montagne en m D+/km), km-effort,
   UTMB Index, World Series, ITRA, type, nocturne, D+ connu, date confirmée, site officiel.
