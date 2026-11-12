@@ -162,8 +162,21 @@ Dans GitHub Actions, le workflow `tests.yml` tourne sur chaque PR et avant chaqu
 si un test échoue, rien n'est publié. Après la collecte, un contrôle vérifie aussi que
 l'index publié correspond bien à `races.json`.
 
-Les tests marqués `expectedFailure` décrivent des défauts connus de la fusion des sources,
-à corriger (dédoublonnage).
+### Dédoublonnage
+
+Une même course peut venir de plusieurs sources. `scripts/enrich.py` rapproche les événements
+(même commune et même mois, ou commune voisine du même département avec un nom quasi identique ;
+une date connue au mois près peut être décalée d'un mois), puis fusionne les formats de distance
+proche (à 2 km ou 10 % près) : la fiche garde la date exacte, le D+, le site et l'heure de départ
+apportés par chaque source.
+
+- Un événement absent du catalogue mais vu par RunTrail et GoTrail donne une seule fiche.
+- Le département des courses GoTrail (qui n'en donnent pas) est déduit de leurs coordonnées,
+  pour les comparer aux courses du même département.
+- Un nom générique (« Trail nocturne », « Corrida ») ne suffit pas à rapprocher deux communes.
+- « La Saintlo » et « La Saint Lo » dans la même commune sont reconnus comme un seul événement.
+
+Les cas restants sont listés dans la page [/qualite](https://gcsys.github.io/TRAIL-AGREGATOR/qualite/).
 
 ## Lancer en local
 

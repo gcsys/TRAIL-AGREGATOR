@@ -171,8 +171,7 @@ def doublons(races, rayon_km=15):
                            "même commune" if meme_commune else "communes proches"]
                 if enrich._strong_name(ra, rb):
                     raisons.append("nom quasi identique")
-                sources = {r["source"] for r in a} ^ {r["source"] for r in b}
-                if sources:
+                if ra["source"] != rb["source"]:
                     raisons.append("sources différentes")
                 out.append((a, b, raisons))
     out.sort(key=lambda x: (-len(x[2]), x[0][0]["date"], x[0][0]["nom"]))
