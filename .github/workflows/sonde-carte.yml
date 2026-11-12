@@ -10,35 +10,49 @@ jobs:
     timeout-minutes: 10
     steps:
       - uses: actions/checkout@v4
-      - name: Tuiles CARTO selon le Referer
+        with:
+          ref: claude/fond-de-carte
+          path: site-test
+      - name: Tuiles IGN, OpenTopoMap, Esri
         run: |
-          for u in "https://a.basemaps.cartocdn.com/rastertiles/voyager/6/32/22.png" "https://a.basemaps.cartocdn.com/rastertiles/voyager/6/32/22@2x.png" "https://a.basemaps.cartocdn.com/light_all/6/32/22.png"; do
-            for ref in "" "http://localhost:8802/" "https://gcsys.github.io/" "https://gcsys.github.io/TRAIL-AGREGATOR/"; do
-              curl -s -o t.png -D h.txt ${ref:+-H "Referer: $ref"} -H "User-Agent: Mozilla/5.0" "$u"
-              echo "$u | referer='$ref' | $(head -1 h.txt | tr -d '\r') | $(grep -i '^content-type' h.txt | tr -d '\r') | $(stat -c%s t.png) octets | $(md5sum t.png | cut -c1-8)"
-            done
+          for u in "https://data.geopf.fr/wmts?SERVICE=WMTS&REQUEST=GetTile&VERSION=1.0.0&LAYER=GEOGRAPHICALGRIDSYSTEMS.PLANIGNV2&STYLE=normal&TILEMATRIXSET=PM&FORMAT=image/png&TILEMATRIX=6&TILEROW=22&TILECOL=32" \
+                   "https://data.geopf.fr/wmts?SERVICE=WMTS&REQUEST=GetTile&VERSION=1.0.0&LAYER=GEOGRAPHICALGRIDSYSTEMS.PLANIGNV2&STYLE=normal&TILEMATRIXSET=PM&FORMAT=image/png&TILEMATRIX=19&TILEROW=191500&TILECOL=268000" \
+                   "https://data.geopf.fr/wmts?SERVICE=WMTS&REQUEST=GetTile&VERSION=1.0.0&LAYER=GEOGRAPHICALGRIDSYSTEMS.PLANIGNV2&STYLE=normal&TILEMATRIXSET=PM&FORMAT=image/png&TILEMATRIX=4&TILEROW=5&TILECOL=8" \
+                   "https://a.tile.opentopomap.org/6/32/22.png" \
+                   "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/6/22/32"; do
+            curl -s -o t.bin -D h.txt -H "Referer: https://gcsys.github.io/" -H "User-Agent: Mozilla/5.0" -w "%{time_total}s" "$u" > tps.txt
+            echo "$(head -1 h.txt | tr -d '\r') | $(grep -i '^content-type' h.txt | tr -d '\r') | $(stat -c%s t.bin) octets | $(cat tps.txt) | $u"
           done
-          echo "--- en-têtes (sans Referer)"; curl -s -D - -o /dev/null "https://a.basemaps.cartocdn.com/rastertiles/voyager/6/32/22.png"
       - uses: actions/setup-node@v4
         with:
           node-version: "22"
-      - name: Site publié dans Chromium
+      - name: Site de la branche dans Chromium
         run: |
+          (cd site-test/site && python3 -m http.server 8000 >/dev/null 2>&1 &)
           npm i --no-save playwright@1.48.2 >/dev/null 2>&1 && npx playwright install --with-deps chromium >/dev/null 2>&1
           cat > s.js <<'JS'
           const { chromium, devices } = require('playwright');
-          setTimeout(() => { console.log('watchdog'); process.exit(1); }, 240000);
+          setTimeout(() => { console.log('watchdog'); process.exit(1); }, 300000);
           (async () => {
             const b = await chromium.launch();
-            for (const [nom, opts] of [['ordinateur', { viewport: { width: 1280, height: 800 } }], ['mobile', devices['iPhone 13']]]) {
+            const cas = [
+              ['ordinateur', { viewport: { width: 1280, height: 800 }, deviceScaleFactor: 2 }, 'http://localhost:8000/'],
+              ['ordinateur-zoom', { viewport: { width: 1280, height: 800 }, deviceScaleFactor: 2 }, 'http://localhost:8000/?autour=44.0985,3.0785,10,Millau'],
+              ['mobile-carte', devices['iPhone 13'], 'http://localhost:8000/'],
+              ['mobile-liste', devices['iPhone 13'], 'http://localhost:8000/'],
+            ];
+            for (const [nom, opts, url] of cas) {
               const p = await (await b.newContext(opts)).newPage();
-              const tuiles = [];
-              p.on('response', r => { if (/cartocdn/.test(r.url())) tuiles.push(r.status() + ' ' + (r.headers()['content-length'] || '?') + ' ' + r.url()); });
-              await p.goto('https://gcsys.github.io/TRAIL-AGREGATOR/?vue=carte', { waitUntil: 'networkidle', timeout: 60000 }).catch(e => console.log(e.message));
-              const btn = await p.$('[data-view="map"], #btn-map, .fab-map'); if (btn) await btn.click().catch(() => {});
-              await p.waitForTimeout(5000);
+              const tuiles = [], errs = [];
+              p.on('pageerror', e => errs.push(e.message));
+              p.on('response', r => { if (/geopf\.fr\/wmts|cartocdn/.test(r.url())) tuiles.push(r.status()); });
+              const t0 = Date.now();
+              await p.goto(url, { waitUntil: 'networkidle', timeout: 90000 }).catch(e => console.log(e.message));
+              if (nom === 'mobile-carte') { const btn = await p.$('#view-map, .fab, [data-view="map"]'); if (btn) { await btn.click().catch(() => {}); await p.waitForLoadState('networkidle').catch(() => {}); } }
+              await p.waitForTimeout(3000);
               await p.screenshot({ path: `sonde-${nom}.png` });
-              console.log(nom, tuiles.length, 'tuiles'); tuiles.slice(0, 5).forEach(t => console.log('  ', t));
+              const ok = tuiles.filter(s => s === 200).length;
+              console.log(nom, `${Date.now() - t0} ms`, `tuiles ${ok}/${tuiles.length} en 200`, 'erreurs', JSON.stringify(errs));
             }
             process.exit(0);
           })();
@@ -47,4 +61,4 @@ jobs:
       - name: Captures dans la branche
         run: |
           git config user.name "trail-bot"; git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          mkdir -p sonde && mv sonde-*.png t.png sonde/ && git add sonde && git commit -qm "sonde: captures" && git push -q origin HEAD:claude/sonde-carte
+          mkdir -p sonde && mv sonde-*.png sonde/ && git add sonde && git commit -qm "sonde: captures" && git push -q origin HEAD:claude/sonde-carte
