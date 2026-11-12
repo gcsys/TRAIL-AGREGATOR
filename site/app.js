@@ -1055,6 +1055,7 @@
   };
   const editBtn = (r) => `<button type="button" class="icon-btn" data-act="edit" data-rid="${esc(r.id)}" title="Compléter : D+, date, km, inscription" aria-label="Compléter les informations">${icon("edit")}</button>`;
 
+  const ficheBtn = (key) => `<button type="button" class="link fiche-btn" data-act="fiche" data-key="${esc(key)}">Fiche et courses proches</button>`;
   const fmtRow = (r) => `<li class="fmt" data-rid="${esc(r.id)}">
       <span class="f-km"><i class="dot" style="--dc:var(${distVar(r.distance_km)})"></i>${r.distance_km == null ? '<span class="dim">? km</span>' : `${fmtNum(r.distance_km)}<small>km</small>`}</span>
       ${r.denivele_pos_m == null ? '<span class="f-dp unknown">D+ ?</span>' : `<span class="f-dp">${fmtNum(r.denivele_pos_m)}<small> m D+</small></span>`}
@@ -1082,7 +1083,7 @@
         <p class="ev-meta">${evMeta(ev)}</p>
         <ul class="fmts">${ev.rows.map(fmtRow).join("")}</ul>
         ${ev.rows.map(notesHtml).join("")}
-        ${links || also ? `<div class="ev-foot"><span class="ev-also">${esc(also)}</span><span class="ev-links">${links}</span></div>` : ""}
+        <div class="ev-foot"><span class="ev-also">${esc(also)}</span><span class="ev-links">${links}${ficheBtn(ev.key)}</span></div>
       </div>
     </li>`;
   };
@@ -1091,7 +1092,7 @@
       <div class="pop-title">${esc(ev.first.nom)}</div>
       <div class="pop-sub">${esc(placeLong(ev.first))}${ev.drive ? ` · ≈ ${esc(ev.drive.texte)} de route` : ev.near != null ? ` · à ${fmtKm(ev.near)} km` : ""}</div>
       <ul class="fmts">${ev.rows.map(fmtRow).join("")}</ul>
-      <div class="ev-links">${linksHtml(ev.links)}</div>
+      <div class="ev-links">${linksHtml(ev.links)}${ficheBtn(ev.key)}</div>
     </div>`;
 
   const rowHtml = (r) => `<tr data-key="${esc(evKey(r))}"${r._absent ? ' class="absent"' : ""}>
@@ -2019,6 +2020,62 @@
     window.open(`https://github.com/gcsys/TRAIL-AGREGATOR/issues/new?${p}`, "_blank", "noopener");
   });
 
+  // ---------- Fiche d'une course : formats, liens, courses qui ressemblent ----------
+  const fiche = { key: null, rid: null, stack: [] };
+  const simRow = (x) => {
+    const r = x.race;
+    return `<li><button type="button" class="sim" data-act="fiche" data-key="${esc(evKey(r))}" data-rid="${esc(r.id)}">
+      <span class="sim-date">${esc(fmtDate(r))}</span>
+      <span class="sim-name">${esc(r.nom)}</span>
+      <span class="sim-meta">${esc(place(r))} · <b>${fmtNum(r.distance_km)} km</b> · ${r.denivele_pos_m == null ? "D+ ?" : `${fmtNum(r.denivele_pos_m)} m D+`}</span>
+      ${x.raisons.length ? `<span class="sim-why">${x.raisons.map((t) => `<span class="tag muted">${esc(t)}</span>`).join("")}</span>` : ""}
+    </button></li>`;
+  };
+  function openFiche(key, { rid, push = false, keepStack = false } = {}) {
+    const rows = (state.eventsAll.get(key) || []).slice().sort((a, b) => (a.distance_km ?? 1e9) - (b.distance_km ?? 1e9));
+    if (!rows.length) return;
+    if (push && fiche.key && fiche.key !== key) fiche.stack.push({ key: fiche.key, rid: fiche.rid });
+    if (!push && !keepStack && fiche.key !== key) fiche.stack = [];
+    // format de référence : celui demandé, sinon le plus long dont on connaît le D+ (souvent la course phare)
+    const withD = rows.filter((r) => r.denivele_pos_m != null && r.distance_km);
+    const ref = rows.find((r) => r.id === rid) || withD[withD.length - 1] || rows[rows.length - 1];
+    Object.assign(fiche, { key, rid: ref.id });
+    const first = rows.slice().sort((a, b) => (a.date || "9").localeCompare(b.date || "9"))[0];
+    const ev = { key, rows, first, links: { site_web: rows.map((r) => r.site_web).find(safeUrl), lien_inscription: rows.map((r) => r.lien_inscription).find(safeUrl), source_url: rows.map((r) => r.source_url).find(safeUrl) } };
+    $("#fi-date").textContent = fmtDate(first);
+    $("#fi-title").textContent = first.nom;
+    $("#fi-sub").textContent = placeLong(first);
+    $("#fi-back").hidden = !fiche.stack.length;
+    const pool = state.races.filter((r) => !r._absent);
+    const proches = Similaires.proches(ref, pool, evKey, { n: 5 });
+    const ailleurs = Similaires.proches(ref, pool, evKey, { n: 3, autreDate: true });
+    const fmtPick = rows.length > 1
+      ? `<div class="fi-fmts" role="group" aria-label="Format de référence">${rows.map((r) => `<button type="button" data-act="fiche-fmt" data-rid="${esc(r.id)}" class="${r.id === ref.id ? "active" : ""}" aria-pressed="${r.id === ref.id}">${r.distance_km == null ? "?" : fmtNum(r.distance_km)} km</button>`).join("")}</div>`
+      : "";
+    const sansDplus = ref.denivele_pos_m == null ? `<p class="dlg-note">Le D+ de ce format n'est pas connu : la ressemblance repose sur la distance, la période et le lieu.</p>` : "";
+    $("#fi-body").innerHTML = `
+      <ul class="fmts">${rows.map(fmtRow).join("")}</ul>
+      <div class="ev-links">${linksHtml(ev.links)}<button type="button" class="link" data-act="fiche-map" data-key="${esc(key)}">Voir sur la carte</button></div>
+      <section class="fi-sec">
+        <h4>Courses qui ressemblent</h4>
+        ${fmtPick}${sansDplus}
+        ${proches.length ? `<ul class="sims">${proches.map(simRow).join("")}</ul>` : `<p class="dlg-note">Aucune course comparable pour l'instant.</p>`}
+      </section>
+      ${ailleurs.length ? `<section class="fi-sec"><h4>Même profil, à une autre date</h4><ul class="sims">${ailleurs.map(simRow).join("")}</ul></section>` : ""}
+      <p class="dlg-note">Rapprochement calculé sur la distance, le D+ par km, la période de l'année et le lieu.</p>`;
+    $("#fi-body").scrollTop = 0;
+    $("#dlg-fiche .dlg-inner").scrollTop = 0;
+    openDlg("#dlg-fiche");
+  }
+  $("#fi-back").addEventListener("click", () => {
+    const prev = fiche.stack.pop();
+    if (prev) openFiche(prev.key, { rid: prev.rid, push: false, keepStack: true });
+  });
+  $("#dlg-fiche").addEventListener("close", () => {
+    fiche.stack = [];
+    fiche.key = null;
+  });
+
   // Délégation : étoiles et boutons « Compléter » (tableau, fiches, popups)
   const onAct = (e) => {
     const b = e.target.closest("[data-act]");
@@ -2027,6 +2084,11 @@
     e.stopPropagation();
     if (b.dataset.act === "fav") openFav(b.dataset.rid);
     else if (b.dataset.act === "edit") openEdit(b.dataset.rid);
+    else if (b.dataset.act === "fiche") openFiche(b.dataset.key, { rid: b.dataset.rid, push: !!b.closest("#dlg-fiche") });
+    else if (b.dataset.act === "fiche-map") {
+      $("#dlg-fiche").close();
+      focusEvent(b.dataset.key);
+    } else if (b.dataset.act === "fiche-fmt") openFiche(fiche.key, { rid: b.dataset.rid });
   };
   document.addEventListener("click", onAct);
   map.on("popupopen", (e) => {

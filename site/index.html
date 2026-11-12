@@ -437,6 +437,22 @@
   </footer>
 </aside>
 
+<!-- ===== Dialogue : fiche d'une course ===== -->
+<dialog id="dlg-fiche" class="dlg dlg-wide" aria-labelledby="fi-title">
+  <form method="dialog" class="dlg-inner">
+    <header class="dlg-head">
+      <div>
+        <button type="button" class="link fi-back" id="fi-back" hidden><svg aria-hidden="true"><use href="#i-back"/></svg>Retour</button>
+        <p class="dlg-kicker" id="fi-date"></p>
+        <h3 id="fi-title"></h3>
+        <p class="dlg-sub" id="fi-sub"></p>
+      </div>
+      <button class="dlg-x" value="close" aria-label="Fermer"><svg><use href="#i-x"/></svg></button>
+    </header>
+    <div id="fi-body" class="fi-body"></div>
+  </form>
+</dialog>
+
 <!-- ===== Dialogue : ajouter une course à des listes ===== -->
 <dialog id="dlg-fav" class="dlg">
   <form method="dialog" class="dlg-inner">
@@ -573,6 +589,7 @@
 <script src="donnees.js?v=__BUILD__"></script>
 <script src="filtres.js?v=__BUILD__"></script>
 <script src="route.js?v=__BUILD__"></script>
+<script src="similaires.js?v=__BUILD__"></script>
 <script src="favoris.js?v=__BUILD__"></script>
 <script src="dispo.js?v=__BUILD__"></script>
 <script src="app.js?v=__BUILD__"></script>
