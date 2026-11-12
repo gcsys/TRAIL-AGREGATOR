@@ -123,7 +123,7 @@
     [depsGeo, regsGeo, data] = await Promise.all([
       fetch("geo/departements.geojson").then((r) => r.json()),
       fetch("geo/regions.geojson").then((r) => r.json()),
-      fetch("data/races.json").then((r) => r.json()),
+      fetch("data/index.json").then((r) => r.json()),
     ]);
   } catch (e) {
     $("#cards").innerHTML = "";
@@ -138,7 +138,8 @@
   const regName = new Map(regsGeo.features.map((f) => [f.properties.code, f.properties.nom]));
 
   // ---------- Données ----------
-  state.base = data.races;
+  // Index léger (data/index.json) : le détail secondaire se charge à la demande (Donnees.withDetails).
+  state.base = Donnees.decode(data, depName, regName);
   const baseById = new Map(state.base.map((r) => [r.id, r]));
   const evKey = (r) => `${norm(r.nom)}|${norm(r.ville)}|${(r.date || "").slice(0, 7)}`;
   function rebuild() {
@@ -1525,7 +1526,8 @@
   syncDispoUi();
 
   // ---------- Export ----------
-  $("#export").addEventListener("click", () => {
+  $("#export").addEventListener("click", async () => {
+    await Donnees.withDetails(curRows, data.detail_fields);
     const cols = ["date", "nom", "course", "ville", "code_postal", "departement", "region", "distance_km", "denivele_pos_m", "km_effort", "utmb_index", "utmb_world_series", "itra_points_estimes", "type", "nocturne", "organisateur", "site_web", "lien_inscription"];
     const csv = [cols.join(";")]
       .concat(curRows.map((r) => cols.map((c) => `"${String(r[c] ?? "").replace(/"/g, '""')}"`).join(";")))
@@ -1534,6 +1536,7 @@
     a.href = URL.createObjectURL(new Blob(["﻿" + csv], { type: "text/csv;charset=utf-8" }));
     a.download = "trails.csv";
     a.click();
+    URL.revokeObjectURL(a.href);
   });
 
   // ---------- Favoris : listes, corrections, partage ----------

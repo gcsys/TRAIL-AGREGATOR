@@ -22,6 +22,7 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "scripts"))
 from sources import SOURCES  # noqa: E402
 import enrich  # noqa: E402
+import site_data  # noqa: E402
 
 GEO = ROOT / "site" / "geo"
 OUT = ROOT / "site" / "data" / "races.json"
@@ -288,7 +289,19 @@ def main():
     OUT.write_text(new + "\n", encoding="utf-8")
     missing = sum(1 for n in races if n["lat"] is None)
     print(f"{len(races)} courses écrites dans {OUT.relative_to(ROOT)} ({missing} sans coordonnées)")
+    export_site(payload)
+
+
+def export_site(payload):
+    """Index léger + détail par région, lus par le site (voir scripts/site_data.py).
+    races.json reste publié pour les anciennes versions du site encore en cache."""
+    sizes = site_data.write(payload["races"], payload["generated_at"], OUT.parent)
+    detail = sum(v for k, v in sizes.items() if k.startswith("detail/"))
+    print(f"index.json : {sizes['index.json'] / 1e6:.2f} Mo ; détail : {detail / 1e6:.2f} Mo en {len(sizes) - 1} fichiers")
 
 
 if __name__ == "__main__":
-    main()
+    if "--export-only" in sys.argv:  # régénère index et détail depuis races.json, sans relancer la collecte
+        export_site(json.loads(OUT.read_text(encoding="utf-8")))
+    else:
+        main()

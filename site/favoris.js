@@ -170,7 +170,7 @@
       if (e.date && /^\d{4}-\d{2}-\d{2}$/.test(e.date) && e.date_confirmee === undefined) o.date_confirmee = true;
       const km = o.distance_km, d = o.denivele_pos_m;
       if ("distance_km" in e || "denivele_pos_m" in e) {
-        o.km_effort = km != null && d != null ? Math.round((km + d / 100) * 10) / 10 : null;
+        o.km_effort = root.Donnees ? root.Donnees.kmEffort(km, d) : km != null && d != null ? Math.round((km + d / 100) * 10) / 10 : null;
         o.utmb_index = F.utmbCategory(o.km_effort);
         o.itra_points_estimes = F.itraPoints(o.km_effort);
       }
