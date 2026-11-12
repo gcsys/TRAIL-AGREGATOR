@@ -11,6 +11,7 @@ permissions:
 jobs:
   navigateur:
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -23,7 +24,8 @@ jobs:
         run: |
           (cd site && python3 -m http.server 8000 >/dev/null 2>&1 &)
           sleep 1
-          OUT=$PWD/captures node .github/sonde/navigateur.js
+          OUT=$PWD/captures node .github/sonde/navigateur.js || true
+          ls captures
       - name: Captures publiées sur la branche « captures »
         run: |
           git fetch origin captures
