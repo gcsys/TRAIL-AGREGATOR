@@ -17,7 +17,11 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
+  tests:
+    uses: ./.github/workflows/tests.yml
+
   build:
+    needs: tests # rien n'est publié si un test échoue
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -26,6 +30,13 @@ jobs:
           python-version: "3.12"
       - name: Import des sources et génération de la base
         run: python scripts/build_db.py
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Contrôle des données générées
+        run: |
+          python -m unittest discover -s tests/python -p "test_site_data.py"
+          node --test tests/js/donnees.test.js
       - name: Commit de la base si elle a changé
         run: |
           git config user.name "trail-bot"

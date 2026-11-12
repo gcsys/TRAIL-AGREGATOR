@@ -1,0 +1,21 @@
+name: Tests
+
+on:
+  pull_request:
+  workflow_call: # appelé par build-deploy.yml avant la mise à jour des données
+
+jobs:
+  tests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Tests Python (unittest)
+        run: python -m unittest discover -s tests/python -v
+      - name: Tests JavaScript (node --test)
+        run: node --test tests/js/*.test.js
