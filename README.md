@@ -25,6 +25,11 @@ cercle), puis filtrez les courses dans un tableau.
   **courses qui ressemblent** (3 à 5) pour le format choisi, puis « Même profil, à une autre date »
   (au moins 4 semaines d'écart). Calcul dans le navigateur (`site/similaires.js`) : écart de distance,
   de D+ par km, de période dans l'année et de lieu ; les raisons du rapprochement sont affichées.
+- Estimation de temps (dans la fiche) : à partir d'un chrono de référence (10 km, semi, marathon
+  ou un trail déjà couru), une fourchette de temps pour chaque format dont le D+ est connu.
+  Méthode km-effort + formule de Riegel (exposant 1,06), facteur de terrain selon le profil, fourchette
+  -8 % / +15 % ; toujours affichée comme une estimation. Chrono gardé dans le navigateur
+  (`localStorage`, clé `ta.chrono.v1`) ; logique dans `site/estimation.js`.
 - Carte : points regroupés, fonds Plan, Relief (OpenTopoMap) et Satellite.
 - Filtres : mois, dates, distance, D+, profil (roulant, vallonné, montagne en m D+/km), km-effort,
   UTMB Index, World Series, ITRA, type, nocturne, D+ connu, date confirmée, site officiel.
