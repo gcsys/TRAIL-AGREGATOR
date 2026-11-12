@@ -17,7 +17,11 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
+  tests:
+    uses: ./.github/workflows/tests.yml
+
   build:
+    needs: tests # rien n'est publié si un test échoue
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -26,11 +30,18 @@ jobs:
           python-version: "3.12"
       - name: Import des sources et génération de la base
         run: python scripts/build_db.py
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Contrôle des données générées
+        run: |
+          python -m unittest discover -s tests/python -p "test_site_data.py"
+          node --test tests/js/donnees.test.js
       - name: Commit de la base si elle a changé
         run: |
           git config user.name "trail-bot"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add site/data/races.json data/geocode_cache.json
+          git add site/data/races.json site/data/index.json site/data/detail data/geocode_cache.json
           git add data/sources/datatourisme_cache.csv 2>/dev/null || true
           if git diff --cached --quiet; then
             echo "Aucun changement"
@@ -39,6 +50,8 @@ jobs:
             git pull --rebase origin main
             git push origin HEAD:main
           fi
+      - name: Tableau de bord qualité (page /qualite et résumé de l'exécution)
+        run: python scripts/quality.py --summary "$GITHUB_STEP_SUMMARY"
       - name: Version des fichiers (évite l'ancien code en cache dans les navigateurs)
         run: sed -i "s/__BUILD__/${GITHUB_SHA::8}/g" site/index.html
       - uses: actions/configure-pages@v5

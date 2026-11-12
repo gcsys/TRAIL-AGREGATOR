@@ -3,7 +3,8 @@
 - Les sources complémentaires (DATAtourisme…) enrichissent les courses du
   catalogue quand il s'agit du même événement (même commune, même mois, nom
   proche) : date exacte, site de l'organisateur, D+ par distance. Sinon,
-  leurs courses sont ajoutées.
+  leurs courses sont ajoutées, après fusion des formats vus par plusieurs
+  de ces sources (RunTrail et GoTrail pour un même événement).
 - Le fichier data/sources/denivele.csv (relevés manuels sur les sites des
   organisateurs ou contributions) complète le D+ et le site web.
 """
@@ -59,8 +60,8 @@ GENERIC = {"nocturne", "nocturnes", "urbain", "urbaine", "hivernal", "hivernale"
 def _strong_name(a, b):
     """Noms quasi identiques, en ignorant la commune (souvent différente d'une source à l'autre)."""
     ca, cb = re.sub(r"[^a-z]", "", norm(a["nom"])), re.sub(r"[^a-z]", "", norm(b["nom"]))
-    if ca == cb:
-        return True
+    if ca == cb:  # même nom, sauf s'il est générique (« Trail nocturne » existe dans bien des communes)
+        return bool(tokens(a["nom"]) - GENERIC)
     ta = tokens(a["nom"]) - tokens(a["ville"])
     tb = tokens(b["nom"]) - tokens(b["ville"])
     small, big = (ta, tb) if len(ta) <= len(tb) else (tb, ta)
@@ -78,7 +79,8 @@ def _same_event(main_rows, other_rows):
         return False
     if norm(a["ville"]) == norm(b["ville"]):
         if gap == 0:
-            return bool(tokens(a["nom"]) & tokens(b["nom"])) or norm(a["nom"]) == norm(b["nom"])
+            # « La Saintlo » / « La Saint Lo » : aucun mot en commun mais même nom une fois les espaces retirés
+            return bool(tokens(a["nom"]) & tokens(b["nom"])) or norm(a["nom"]) == norm(b["nom"]) or _strong_name(a, b)
         return _strong_name(a, b)
     # communes différentes (commune voisine, ancienne commune…) : même département et nom quasi identique
     da, db = a.get("departement_saisi"), b.get("departement_saisi")
@@ -123,6 +125,19 @@ def _apply(rows, extra_rows):
     return added
 
 
+def _fusion_interne(rows):
+    """Un événement absent du catalogue peut être vu par plusieurs sources (RunTrail et GoTrail) :
+    on garde les formats de la première source et on y fusionne ceux des autres, comme pour le catalogue."""
+    par_source = defaultdict(list)
+    for r in rows:
+        par_source[r["source"]].append(r)
+    groupes = list(par_source.values())
+    base = groupes[0]
+    for autre in groupes[1:]:
+        base.extend(_apply(base, autre))
+    return base
+
+
 def merge(races):
     main = [r for r in races if r["source"] == "catalogue"]
     others = [r for r in races if r["source"] != "catalogue"]
@@ -153,6 +168,7 @@ def merge(races):
             formats += len(new)
             enriched += 1
         else:
+            rows = _fusion_interne(rows)
             main.extend(rows)
             by_month[(key, m)].append(rows)
             added += 1

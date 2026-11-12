@@ -22,6 +22,7 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "scripts"))
 from sources import SOURCES  # noqa: E402
 import enrich  # noqa: E402
+import site_data  # noqa: E402
 
 GEO = ROOT / "site" / "geo"
 OUT = ROOT / "site" / "data" / "races.json"
@@ -105,9 +106,11 @@ class Geocoder:
     """Géocodage des communes : une seule requête pour toutes les communes de France
     (API Découpage administratif), puis recherche locale par nom + département."""
 
-    def __init__(self, cache):
+    def __init__(self, cache, online=True):
         self.cache = cache
         self.index = {}
+        if not online:  # NO_GEOCODE=1 : cache seulement
+            return
         try:
             url = "https://geo.api.gouv.fr/communes?fields=nom,codeDepartement,centre,population&format=json"
             communes = _get_json(url, timeout=120)
@@ -222,6 +225,14 @@ def normalize(r):
     }
 
 
+def departement_par_point(races, deps):
+    """Sources sans département mais avec coordonnées (GoTrail) : département déduit du point,
+    pour que la fusion compare les événements d'un même département."""
+    for n in races:
+        if not n["departement_saisi"] and n["lat"] is not None:
+            n["departement_saisi"] = locate(n["lon"], n["lat"], deps)[0] or ""
+
+
 def main():
     raw = []
     for src in SOURCES:
@@ -237,6 +248,8 @@ def main():
         seen.add(n["id"])
         races.append(n)
 
+    deps = load_layer("departements")
+    departement_par_point(races, deps)
     races = enrich.merge(races)
     enrich.apply_dplus_file(races)
     for n in races:  # D+ éventuellement complété : on recalcule les champs dérivés
@@ -247,7 +260,7 @@ def main():
 
     cache = json.loads(GEOCODE_CACHE.read_text()) if GEOCODE_CACHE.exists() else {}
     missing = [n for n in races if n["lat"] is None or n["lon"] is None]
-    geocode = Geocoder(cache) if missing and os.environ.get("NO_GEOCODE") != "1" else None
+    geocode = Geocoder(cache, online=os.environ.get("NO_GEOCODE") != "1") if missing else None
     for n in missing:
         if geocode:
             res = geocode(n["ville"], n["code_postal"], n["departement_saisi"])
@@ -255,7 +268,7 @@ def main():
                 n["lon"], n["lat"] = res
     GEOCODE_CACHE.write_text(json.dumps(cache, ensure_ascii=False, indent=1, sort_keys=True) + "\n")
 
-    deps, regs = load_layer("departements"), load_layer("regions")
+    regs = load_layer("regions")
     dep_names = {f["properties"]["code"]: f["properties"]["nom"] for f in deps}
     dep_region = dep_to_region(deps, regs)
     for n in races:
@@ -288,7 +301,19 @@ def main():
     OUT.write_text(new + "\n", encoding="utf-8")
     missing = sum(1 for n in races if n["lat"] is None)
     print(f"{len(races)} courses écrites dans {OUT.relative_to(ROOT)} ({missing} sans coordonnées)")
+    export_site(payload)
+
+
+def export_site(payload):
+    """Index léger + détail par région, lus par le site (voir scripts/site_data.py).
+    races.json reste publié pour les anciennes versions du site encore en cache."""
+    sizes = site_data.write(payload["races"], payload["generated_at"], OUT.parent)
+    detail = sum(v for k, v in sizes.items() if k.startswith("detail/"))
+    print(f"index.json : {sizes['index.json'] / 1e6:.2f} Mo ; détail : {detail / 1e6:.2f} Mo en {len(sizes) - 1} fichiers")
 
 
 if __name__ == "__main__":
-    main()
+    if "--export-only" in sys.argv:  # régénère index et détail depuis races.json, sans relancer la collecte
+        export_site(json.loads(OUT.read_text(encoding="utf-8")))
+    else:
+        main()

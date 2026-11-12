@@ -29,12 +29,9 @@
   };
 
   // ---------- Outils ----------
+  const { safeUrl, norm, dateStart, haversine } = Filtres;
   const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
-  const safeUrl = (u) => (/^https?:\/\//i.test(u || "") ? u : null);
-  const norm = (s) => String(s || "").normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase().replace(/[^a-z0-9]+/g, " ").trim();
   const toDate = (d) => new Date((d.length === 7 ? d + "-01" : d) + "T00:00");
-  const dateStart = (d) => (d.length === 7 ? d + "-01" : d);
-  const dateEnd = (d) => (d.length === 7 ? d + "-31" : d);
   const iso = (d) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
   const fmtNum = (v) => (v == null ? "—" : Number(v).toLocaleString("fr-FR"));
   const cap = (s) => s.charAt(0).toUpperCase() + s.slice(1);
@@ -44,11 +41,6 @@
     if (!r.date) return "Date inconnue";
     if (r.date.length === 7) return cap(toDate(r.date).toLocaleDateString("fr-FR", { month: "long", year: "numeric" })) + " (à préciser)";
     return toDate(r.date).toLocaleDateString("fr-FR", { weekday: "short", day: "numeric", month: "short", year: "numeric" });
-  };
-  const haversine = (lat1, lon1, lat2, lon2) => {
-    const R = 6371, rad = Math.PI / 180;
-    const a = Math.sin(((lat2 - lat1) * rad) / 2) ** 2 + Math.cos(lat1 * rad) * Math.cos(lat2 * rad) * Math.sin(((lon2 - lon1) * rad) / 2) ** 2;
-    return 2 * R * Math.asin(Math.sqrt(a));
   };
   const fmtKm = (v) => (v < 10 ? v.toLocaleString("fr-FR", { maximumFractionDigits: 1 }) : Math.round(v).toLocaleString("fr-FR"));
 
@@ -125,7 +117,7 @@
     [depsGeo, regsGeo, data] = await Promise.all([
       fetch("geo/departements.geojson").then((r) => r.json()),
       fetch("geo/regions.geojson").then((r) => r.json()),
-      fetch("data/races.json").then((r) => r.json()),
+      fetch("data/index.json").then((r) => r.json()),
     ]);
   } catch (e) {
     $("#cards").innerHTML = "";
@@ -140,7 +132,8 @@
   const regName = new Map(regsGeo.features.map((f) => [f.properties.code, f.properties.nom]));
 
   // ---------- Données ----------
-  state.base = data.races;
+  // Index léger (data/index.json) : le détail secondaire se charge à la demande (Donnees.withDetails).
+  state.base = Donnees.decode(data, depName, regName);
   const baseById = new Map(state.base.map((r) => [r.id, r]));
   const evKey = (r) => `${norm(r.nom)}|${norm(r.ville)}|${(r.date || "").slice(0, 7)}`;
   function rebuild() {
@@ -313,19 +306,37 @@
 
   // ---------- Rayon autour d'un point ----------
   const pinIcon = L.divIcon({ className: "radius-center-pin", html: "<div></div>", iconSize: [22, 22], iconAnchor: [11, 11] });
-  let radiusCircle = null, radiusPin = null;
-  const radiusKm = () => Number($("#radius").value) || 30;
+  let radiusCircle = null, radiusPin = null, isoLayer = null;
+  // Mesure du rayon : « km » (vol d'oiseau) ou « route » (temps de route, isochrone IGN, site/route.js)
+  let rmode = "km";
+  const last = { km: 30, route: 60 };
+  const KM_PRESETS = [10, 25, 50, 100], ROUTE_PRESETS = [30, 60, 90, 120];
+  const radiusKm = () => (rmode === "km" ? Number($("#radius").value) || 30 : last.km);
+  const radiusMin = () => (rmode === "route" ? Number($("#radius").value) || 60 : last.route);
+  const radiusText = (r = state.radius) =>
+    r && r.route ? `${Route.duree(r.route)} de route autour de ${r.label}` : r ? `${r.km} km autour de ${r.label}` : "";
+  function drawIso() {
+    isoLayer && map.removeLayer(isoLayer);
+    isoLayer = null;
+    const r = state.radius;
+    if (!r || !r.route || !r.iso) return;
+    isoLayer = L.geoJSON(r.iso, { style: { color: selColor, weight: 1.5, opacity: 0.8, fillColor: selColor, fillOpacity: 0.1 }, interactive: false }).addTo(map);
+  }
   function drawRadius() {
     const r = state.radius;
     if (!r) {
       radiusCircle && map.removeLayer(radiusCircle);
       radiusPin && map.removeLayer(radiusPin);
       radiusCircle = radiusPin = null;
+      drawIso();
       return;
     }
+    drawIso();
     const ll = [r.lat, r.lon];
+    // en temps de route, le cercle n'est pas affiché (rayon nul) : l'isochrone le remplace
+    const meters = r.route ? 0 : r.km * 1000;
     if (!radiusCircle) {
-      radiusCircle = L.circle(ll, { radius: r.km * 1000, color: selColor, weight: 2, fillColor: selColor, fillOpacity: 0.08, dashArray: "6 6", interactive: false }).addTo(map);
+      radiusCircle = L.circle(ll, { radius: meters, color: selColor, weight: 2, fillColor: selColor, fillOpacity: 0.08, dashArray: "6 6", interactive: false }).addTo(map);
       radiusPin = L.marker(ll, { icon: pinIcon, draggable: true, keyboard: false, title: "Glissez pour déplacer le centre" }).addTo(map);
       radiusPin.on("drag", (e) => radiusCircle.setLatLng(e.latlng));
       radiusPin.on("dragend", (e) => {
@@ -333,32 +344,104 @@
         setRadius({ lat: p.lat, lon: p.lng, label: "point choisi" }, { fit: false });
       });
     } else {
-      radiusCircle.setLatLng(ll).setRadius(r.km * 1000);
+      radiusCircle.setLatLng(ll).setRadius(meters);
       radiusPin.setLatLng(ll);
     }
   }
   function setRadius(center, { fit = true, km } = {}) {
     if (km != null) syncRadiusInputs(km);
-    state.radius = center ? { lat: center.lat, lon: center.lon, label: center.label || state.radius?.label || "point choisi", km: radiusKm() } : null;
+    const prev = state.radius;
+    state.radius = center
+      ? { lat: center.lat, lon: center.lon, label: center.label || prev?.label || "point choisi", km: radiusKm(), route: rmode === "route" ? radiusMin() : null }
+      : null;
     if (center) clearBbox();
     drawRadius();
-    if (center && fit) moveMap(() => map.fitBounds(radiusCircle.getBounds(), { padding: [30, 30] }));
+    if (center && fit && !state.radius.route) moveMap(() => map.fitBounds(radiusCircle.getBounds(), { padding: [30, 30] }));
     $("#radius-center").innerHTML = state.radius ? `Centre : <b>${esc(state.radius.label)}</b>` : "Aucun point choisi.";
+    if (state.radius?.route) loadIso(state.radius, { fit: center && fit });
     refresh();
   }
-  function syncRadiusInputs(km) {
-    ["#radius", "#radius-map"].forEach((s) => ($(s).value = km));
-    ["#radius-out", "#radius-map-out"].forEach((s) => ($(s).textContent = `${km} km`));
-    $$(".radius-presets [data-r]").forEach((b) => b.classList.toggle("active", Number(b.dataset.r) === Number(km)));
+
+  /* Isochrone du temps choisi d'abord (la zone), puis paliers plus courts pour estimer
+   * la durée de route de chaque course. Requêtes espacées par Route.isochrone. */
+  const simplify = (f) => {
+    try {
+      return turf.simplify(f, { tolerance: 0.002, highQuality: false }); // ~200 m : polygone 5 à 10 fois plus léger
+    } catch (e) {
+      return f;
+    }
+  };
+  async function loadIso(r, { fit } = {}) {
+    const alive = () => state.radius === r;
+    $("#radius-center").innerHTML = `Centre : <b>${esc(r.label)}</b> · <span class="dim">calcul du temps de route…</span>`;
+    try {
+      r.iso = simplify(await Route.isochrone(r.lat, r.lon, r.route));
+    } catch (e) {
+      if (!alive()) return;
+      toast("Temps de route indisponible pour le moment : recherche par distance à la place.");
+      setRmode("km");
+      return;
+    }
+    if (!alive()) return;
+    r.bands = [{ min: r.route, poly: r.iso }];
+    drawIso();
+    if (fit && isoLayer) moveMap(() => map.fitBounds(isoLayer.getBounds(), { padding: [30, 30] }));
+    $("#radius-center").innerHTML = `Centre : <b>${esc(r.label)}</b>`;
+    refresh({ keep: true });
+    // paliers intermédiaires, du plus court au plus long
+    for (const m of Route.tranches(r.route).filter((m) => m !== r.route)) {
+      try {
+        const poly = simplify(await Route.isochrone(r.lat, r.lon, m));
+        if (!alive()) return;
+        r.bands = [...r.bands, { min: m, poly }].sort((a, b) => a.min - b.min);
+      } catch (e) {
+        break; // les durées resteront plus larges (« moins de 1 h »)
+      }
+    }
+    if (alive()) refresh({ keep: true });
   }
+
+  function syncRadiusInputs(v) {
+    ["#radius", "#radius-map"].forEach((s) => ($(s).value = v));
+    const txt = rmode === "route" ? Route.duree(Number(v)) : `${v} km`;
+    ["#radius-out", "#radius-map-out"].forEach((s) => ($(s).textContent = txt));
+    $$(".radius-presets [data-r]").forEach((b) => b.classList.toggle("active", Number(b.dataset.r) === Number(v)));
+  }
+  /* Bascule distance / temps de route : mêmes curseurs, autres bornes. */
+  function setRmode(m, { apply = true } = {}) {
+    if (m === rmode) return;
+    last[rmode] = Number($("#radius").value) || last[rmode];
+    rmode = m;
+    const route = m === "route";
+    ["#radius", "#radius-map"].forEach((s) => {
+      const el = $(s);
+      Object.assign(el, route ? { min: 15, max: 180, step: 15 } : { min: 5, max: 200, step: 5 });
+      el.setAttribute("aria-label", route ? "Temps de route en minutes" : "Rayon en kilomètres");
+    });
+    $$(".radius-presets [data-r]").forEach((b, i) => {
+      b.dataset.r = (route ? ROUTE_PRESETS : KM_PRESETS)[i];
+      b.textContent = route ? Route.duree(ROUTE_PRESETS[i]) : `${KM_PRESETS[i]} km`;
+    });
+    $$("[data-rmode]").forEach((b) => b.classList.toggle("active", b.dataset.rmode === m));
+    $(".radius-head > span").textContent = route ? "Temps de route" : "Rayon";
+    $("#route-note").hidden = !route;
+    syncRadiusInputs(last[m]);
+    if (apply && state.radius) setRadius(state.radius, { fit: true });
+  }
+  $$("[data-rmode]").forEach((b) => b.addEventListener("click", () => setRmode(b.dataset.rmode)));
+
   let radiusTimer;
   ["#radius", "#radius-map"].forEach((s) =>
     $(s).addEventListener("input", (e) => {
       syncRadiusInputs(e.target.value);
       if (!state.radius) return;
+      clearTimeout(radiusTimer);
+      if (rmode === "route") {
+        radiusTimer = setTimeout(() => setRadius(state.radius, { fit: false }), 400); // une requête quand le curseur s'arrête
+        return;
+      }
       state.radius.km = radiusKm();
       drawRadius();
-      clearTimeout(radiusTimer);
       radiusTimer = setTimeout(refresh, 120);
     })
   );
@@ -376,7 +459,7 @@
     navigator.geolocation.getCurrentPosition(
       (p) => {
         setRadius({ lat: p.coords.latitude, lon: p.coords.longitude, label: "ma position" });
-        toast(`Courses à moins de ${radiusKm()} km de vous`);
+        toast(rmode === "route" ? `Courses à moins de ${Route.duree(radiusMin())} de route` : `Courses à moins de ${radiusKm()} km de vous`);
       },
       () => toast("Position indisponible. Autorisez la localisation ou cherchez une ville."),
       { timeout: 10000, maximumAge: 300000 }
@@ -624,58 +707,27 @@
     return n;
   }
 
-  const zoneActive = () => state.selDeps.size || state.selRegs.size || state.shapes.length || state.bbox || state.radius;
-  function inZone(r) {
-    if (!zoneActive()) return true;
-    if (r.departement_code && state.selDeps.has(r.departement_code)) return true;
-    if (r.region_code && state.selRegs.has(r.region_code)) return true;
-    if (r.lat == null) return false;
-    if (state.radius && haversine(state.radius.lat, state.radius.lon, r.lat, r.lon) <= state.radius.km) return true;
-    if (state.bbox) {
-      const [w, s, e, n] = state.bbox;
-      if (r.lon >= w && r.lon <= e && r.lat >= s && r.lat <= n) return true;
-    }
-    if (!state.shapes.length) return false;
-    const pt = turf.point([r.lon, r.lat]);
-    return state.shapes.some((s) => turf.booleanPointInPolygon(pt, s));
-  }
-
-  const between = (v, min, max) => (min == null || (v != null && v >= min)) && (max == null || (v != null && v <= max));
-  const profilOf = (r) => {
-    if (r.denivele_pos_m == null || !r.distance_km) return null;
-    const ratio = r.denivele_pos_m / r.distance_km;
-    return ratio < 25 ? "roulant" : ratio <= 50 ? "vallonne" : "montagne";
-  };
+  // Logique des filtres et de la zone : site/filtres.js (testée dans tests/js/).
+  const zone = () => ({ deps: state.selDeps, regs: state.selRegs, shapes: state.shapes, bbox: state.bbox, radius: state.radius });
+  const zoneActive = () => Filtres.zoneActive(zone());
+  const pip = (pt, poly) => turf.booleanPointInPolygon(pt, poly);
+  // Lit le formulaire une seule fois par rafraîchissement.
+  const readCriteria = () =>
+    Filtres.criteres({
+      q: norm($("#f-q").value), from: $("#f-from").value, to: $("#f-to").value,
+      months: state.months, profils: state.profils,
+      kmMin: num("#f-km-min"), kmMax: num("#f-km-max"), dMin: num("#f-d-min"), dMax: num("#f-d-max"),
+      keMin: num("#f-ke-min"), keMax: num("#f-ke-max"),
+      utmb: $("#f-utmb").value, ws: $("#f-ws").value, itra: num("#f-itra"), type: $("#f-type").value,
+      night: $("#f-night").checked, dplus: $("#f-dplus").checked, confirmed: $("#f-confirmed").checked, site: $("#f-site").checked,
+    });
 
   let dispoHidden = new Set(); // courses retirées par « Week-ends dispo » au dernier rafraîchissement
-  function passes(r, q) {
-    if (q && !r._hay.includes(q)) return false;
-    const from = $("#f-from").value, to = $("#f-to").value;
-    if (from && (!r.date || dateEnd(r.date) < from)) return false;
-    if (to && (!r.date || dateStart(r.date) > to)) return false;
-    if (state.months.size && (!r.date || !state.months.has(r.date.slice(0, 7)))) return false;
-    if (!between(r.distance_km, num("#f-km-min"), num("#f-km-max"))) return false;
-    if (!between(r.denivele_pos_m, num("#f-d-min"), num("#f-d-max"))) return false;
-    if (!between(r.km_effort, num("#f-ke-min"), num("#f-ke-max"))) return false;
-    if (state.profils.size && !state.profils.has(profilOf(r))) return false;
-    const u = $("#f-utmb").value;
-    if (u === "any" && !r.utmb_index) return false;
-    if (u === "none" && r.utmb_index) return false;
-    if (u && !["any", "none"].includes(u) && r.utmb_index !== u) return false;
-    const ws = $("#f-ws").value;
-    if (ws === "yes" && !r.utmb_world_series) return false;
-    if (ws === "no" && r.utmb_world_series) return false;
-    const itra = num("#f-itra");
-    if (itra != null && (r.itra_points_estimes ?? -1) < itra) return false;
-    if ($("#f-type").value && r.type !== $("#f-type").value) return false;
-    if ($("#f-night").checked && !r.nocturne) return false;
-    if ($("#f-dplus").checked && r.denivele_pos_m == null) return false;
-    if ($("#f-confirmed").checked && !(r.date && r.date.length === 10 && r.date_confirmee)) return false;
-    if ($("#f-site").checked && !(safeUrl(r.site_web) || safeUrl(r.lien_inscription))) return false;
+  function passes(r, c, z) {
+    if (!Filtres.dansZone(r, z, pip) || !Filtres.passe(r, c)) return false;
     if (Dispo.hiding() && Dispo.status(r) === "busy") return dispoHidden.add(evKey(r)), false;
     return true;
   }
-  const hay = (r) => (r._hay ??= " " + norm([r.nom, r.course, r.ville, r.organisateur, r.departement, r.departement_code, r.region].join(" ")));
 
   // ---------- Panneaux (filtres, zone) ----------
   let openPanelEl = null;
@@ -877,7 +929,7 @@
   const townItem = (t, after) => ({
     icon: "pin",
     label: `Autour de ${t.name}`,
-    sub: `${t.dep ? (depName.get(t.dep) || t.dep) + " · " : ""}rayon ${radiusKm()} km`,
+    sub: `${t.dep ? (depName.get(t.dep) || t.dep) + " · " : ""}${rmode === "route" ? `${Route.duree(radiusMin())} de route` : `rayon ${radiusKm()} km`}`,
     run: () => {
       setRadius({ lat: t.lat, lon: t.lon, label: t.name });
       after && after();
@@ -1005,6 +1057,7 @@
   };
   const editBtn = (r) => `<button type="button" class="icon-btn" data-act="edit" data-rid="${esc(r.id)}" title="Compléter : D+, date, km, inscription" aria-label="Compléter les informations">${icon("edit")}</button>`;
 
+  const ficheBtn = (key) => `<button type="button" class="link fiche-btn" data-act="fiche" data-key="${esc(key)}">Fiche et courses proches</button>`;
   const fmtRow = (r) => `<li class="fmt" data-rid="${esc(r.id)}">
       <span class="f-km"><i class="dot" style="--dc:var(${distVar(r.distance_km)})"></i>${r.distance_km == null ? '<span class="dim">? km</span>' : `${fmtNum(r.distance_km)}<small>km</small>`}</span>
       ${r.denivele_pos_m == null ? '<span class="f-dp unknown">D+ ?</span>' : `<span class="f-dp">${fmtNum(r.denivele_pos_m)}<small> m D+</small></span>`}
@@ -1028,20 +1081,20 @@
     return `<li class="ev${ev.rows.every((r) => r._absent) ? " absent" : ""}${evStatus(ev) === "busy" ? " dispo-busy" : ""}" data-key="${esc(ev.key)}">
       ${dateBox(ev)}
       <div class="ev-main">
-        <div class="ev-head"><h3 class="ev-name">${esc(ev.first.nom)}</h3>${ev.near != null ? `<span class="ev-near">à ${fmtKm(ev.near)} km</span>` : ""}</div>
+        <div class="ev-head"><h3 class="ev-name">${esc(ev.first.nom)}</h3>${nearHtml(ev)}</div>
         <p class="ev-meta">${evMeta(ev)}</p>
         <ul class="fmts">${ev.rows.map(fmtRow).join("")}</ul>
         ${ev.rows.map(notesHtml).join("")}
-        ${links || also ? `<div class="ev-foot"><span class="ev-also">${esc(also)}</span><span class="ev-links">${links}</span></div>` : ""}
+        <div class="ev-foot"><span class="ev-also">${esc(also)}</span><span class="ev-links">${links}${ficheBtn(ev.key)}</span></div>
       </div>
     </li>`;
   };
   const popupHtml = (ev) => `<div class="pop">
       <div class="pop-date">${dispoDot(evStatus(ev))}${esc(fmtDate(ev.first))}</div>
       <div class="pop-title">${esc(ev.first.nom)}</div>
-      <div class="pop-sub">${esc(placeLong(ev.first))}${ev.near != null ? ` · à ${fmtKm(ev.near)} km` : ""}</div>
+      <div class="pop-sub">${esc(placeLong(ev.first))}${ev.drive ? ` · ≈ ${esc(ev.drive.texte)} de route` : ev.near != null ? ` · à ${fmtKm(ev.near)} km` : ""}</div>
       <ul class="fmts">${ev.rows.map(fmtRow).join("")}</ul>
-      <div class="ev-links">${linksHtml(ev.links)}</div>
+      <div class="ev-links">${linksHtml(ev.links)}${ficheBtn(ev.key)}</div>
     </div>`;
 
   const rowHtml = (r) => `<tr data-key="${esc(evKey(r))}"${r._absent ? ' class="absent"' : ""}>
@@ -1056,6 +1109,18 @@
     </tr>`;
 
   // ---------- Regroupement par course ----------
+  // Durée de route estimée (tranche d'isochrones), seulement en mode « temps de route ».
+  const driveOf = (pos) => {
+    const c = state.radius;
+    if (!c || !c.route || !c.bands || !pos || pos.lat == null) return null;
+    return Route.tranche({ type: "Feature", properties: {}, geometry: { type: "Point", coordinates: [pos.lon, pos.lat] } }, c.bands, pip);
+  };
+  // Clé de tri « les plus proches » : tranche de route d'abord, puis vol d'oiseau.
+  const nearKey = (drive, near) => (near == null ? null : (drive ? drive.haut : 999) * 1e4 + near);
+  const nearHtml = (ev, pre = "") =>
+    ev.drive
+      ? `${pre}<span class="ev-near" title="Durée de route estimée (IGN, sans trafic)">≈ ${esc(ev.drive.texte)}</span>`
+      : ev.near != null ? `${pre}<span class="ev-near">à ${fmtKm(ev.near)} km</span>` : "";
   function groupEvents(rows) {
     const m = new Map();
     rows.forEach((r) => {
@@ -1080,6 +1145,7 @@
         minKm: kms.length ? Math.min(...kms) : null, maxKm: kms.length ? Math.max(...kms) : null,
         maxD: dps.length ? Math.max(...dps) : null, maxKe: kes.length ? Math.max(...kes) : null,
         near: c && pos ? haversine(c.lat, c.lon, pos.lat, pos.lon) : null,
+        drive: driveOf(pos),
       };
     });
   }
@@ -1093,7 +1159,7 @@
     const { k, dir } = state.sort;
     const val = {
       date: (e) => (e.first.date ? dateStart(e.first.date) : null),
-      near: (e) => e.near,
+      near: (e) => nearKey(e.drive, e.near),
       distance_km: (e) => (dir === 1 ? e.minKm : e.maxKm),
       denivele_pos_m: (e) => e.maxD,
       km_effort: (e) => e.maxKe,
@@ -1202,12 +1268,12 @@
   function refresh(opts = {}) {
     const keep = opts.keep ? Math.max(shown, PAGE) : PAGE;
     dispoHidden = new Set();
-    const q = norm($("#f-q").value);
-    const rows = state.view ? viewRows() : state.races.filter((r) => inZone(r) && passes(hay(r) && r, q));
+    const c = readCriteria(), z = zone();
+    const rows = state.view ? viewRows() : state.races.filter((r) => passes(r, c, z));
     if (state.sort.k === "near" && !state.radius) state.sort = { k: "date", dir: 1 };
     curEvents = sortEvents(groupEvents(rows));
     const { k, dir } = state.sort;
-    const rowVal = (r) => (k === "near" ? (state.radius && r.lat != null ? haversine(state.radius.lat, state.radius.lon, r.lat, r.lon) : null) : r[k]);
+    const rowVal = (r) => (k === "near" ? (state.radius && r.lat != null ? nearKey(driveOf(r), haversine(state.radius.lat, state.radius.lon, r.lat, r.lon)) : null) : r[k]);
     curRows = rows.slice().sort((a, b) => cmp(rowVal(a), rowVal(b), dir));
 
     syncSortUi();
@@ -1269,7 +1335,7 @@
   function zoneLabel() {
     const parts = [];
     const names = (set, m) => (set.size <= 2 ? [...set].map((c) => m.get(c) || c).join(", ") : null);
-    if (state.radius) parts.push(`${state.radius.km} km autour de ${state.radius.label}`);
+    if (state.radius) parts.push(radiusText());
     if (state.selRegs.size) parts.push(names(state.selRegs, regName) || plural(state.selRegs.size, "région"));
     if (state.selDeps.size) parts.push(names(state.selDeps, depName) || plural(state.selDeps.size, "département"));
     if (state.shapes.length) parts.push(state.shapes.length > 1 ? `${state.shapes.length} zones dessinées` : "zone dessinée");
@@ -1284,7 +1350,7 @@
     const t = [];
     const q = $("#f-q").value.trim();
     if (q) t.push([`« ${q} »`, "q"]);
-    if (state.radius) t.push([`${state.radius.km} km autour de ${state.radius.label}`, "radius"]);
+    if (state.radius) t.push([radiusText(), "radius"]);
     state.selRegs.forEach((c) => t.push([regName.get(c) || c, `reg:${c}`]));
     state.selDeps.forEach((c) => t.push([`${depName.get(c) || c} (${c})`, `dep:${c}`]));
     if (state.shapes.length) t.push([state.shapes.length > 1 ? `${state.shapes.length} zones dessinées` : "Zone dessinée", "shapes"]);
@@ -1353,6 +1419,7 @@
     if (state.selDeps.size) p.set("dep", [...state.selDeps].join(","));
     if (state.selRegs.size) p.set("reg", [...state.selRegs].join(","));
     if (state.radius) p.set("autour", `${state.radius.lat.toFixed(4)},${state.radius.lon.toFixed(4)},${state.radius.km},${state.radius.label}`);
+    if (state.radius?.route) p.set("route", state.radius.route);
     if (state.sort.k !== "date" || state.sort.dir !== 1) p.set("tri", `${state.sort.k}:${state.sort.dir}`);
     const s = p.toString();
     const url = location.pathname + (s ? "?" + s : "");
@@ -1374,9 +1441,16 @@
     const a = (p.get("autour") || "").split(",");
     if (a.length >= 3 && !isNaN(a[0]) && !isNaN(a[1])) {
       syncRadiusInputs(Number(a[2]) || 30);
-      state.radius = { lat: Number(a[0]), lon: Number(a[1]), km: radiusKm(), label: a.slice(3).join(",") || "point choisi" };
+      const min = Math.round(Number(p.get("route")) / 15) * 15;
+      if (min >= 15 && min <= 180) {
+        last.km = Number(a[2]) || 30;
+        last.route = min;
+        setRmode("route", { apply: false });
+      }
+      state.radius = { lat: Number(a[0]), lon: Number(a[1]), km: radiusKm(), route: rmode === "route" ? radiusMin() : null, label: a.slice(3).join(",") || "point choisi" };
       $("#radius-center").innerHTML = `Centre : <b>${esc(state.radius.label)}</b>`;
       drawRadius();
+      if (state.radius.route) loadIso(state.radius, { fit: true });
     }
     const t = (p.get("tri") || "").split(":");
     if (t.length === 2 && ["date", "near", "distance_km", "denivele_pos_m", "km_effort", "nom", "ville", "utmb_index"].includes(t[0])) state.sort = { k: t[0], dir: Number(t[1]) === -1 ? -1 : 1 };
@@ -1527,7 +1601,8 @@
   syncDispoUi();
 
   // ---------- Export ----------
-  $("#export").addEventListener("click", () => {
+  $("#export").addEventListener("click", async () => {
+    await Donnees.withDetails(curRows, data.detail_fields);
     const cols = ["date", "nom", "course", "ville", "code_postal", "departement", "region", "distance_km", "denivele_pos_m", "km_effort", "utmb_index", "utmb_world_series", "itra_points_estimes", "type", "nocturne", "organisateur", "site_web", "lien_inscription"];
     const csv = [cols.join(";")]
       .concat(curRows.map((r) => cols.map((c) => `"${String(r[c] ?? "").replace(/"/g, '""')}"`).join(";")))
@@ -1536,6 +1611,7 @@
     a.href = URL.createObjectURL(new Blob(["﻿" + csv], { type: "text/csv;charset=utf-8" }));
     a.download = "trails.csv";
     a.click();
+    URL.revokeObjectURL(a.href);
   });
 
   // ---------- Favoris : listes, corrections, partage ----------
@@ -1658,6 +1734,7 @@
       $("#lb-name").textContent = l.name;
       $("#lb-note").textContent = `${plural(evs.length, "course")} · ${plural(rows.length, "format")}`;
       $("#lb-actions").innerHTML = `
+        <button class="btn" data-lb="ics" title="Fichier .ics à ouvrir avec l'agenda du téléphone">${icon("calendar")}Agenda</button>
         <button class="btn" data-lb="share">${icon("share")}Partager</button>
         <button class="btn" data-lb="rename">${icon("edit")}Renommer</button>
         <button class="btn danger" data-lb="delete">${icon("trash")}Supprimer</button>`;
@@ -1666,7 +1743,7 @@
       $("#lb-kicker").textContent = "Liste partagée";
       $("#lb-name").textContent = v.data.name;
       $("#lb-note").textContent = plural(evs.length, "course") + (lost ? ` · ${plural(lost, "course")} introuvable${lost > 1 ? "s" : ""} dans la base` : "");
-      $("#lb-actions").innerHTML = `<button class="btn primary" data-lb="import">${icon("star")}Enregistrer dans mes listes</button>`;
+      $("#lb-actions").innerHTML = `<button class="btn" data-lb="ics" title="Fichier .ics à ouvrir avec l'agenda du téléphone">${icon("calendar")}Agenda</button><button class="btn primary" data-lb="import">${icon("star")}Enregistrer dans mes listes</button>`;
     }
   }
 
@@ -1675,7 +1752,8 @@
     if (!b) return;
     const v = state.view;
     const act = b.dataset.lb;
-    if (act === "share") shareList(v.id);
+    if (act === "ics") exportIcs();
+    else if (act === "share") shareList(v.id);
     else if (act === "rename") renameList(v.id);
     else if (act === "delete") deleteList(v.id);
     else if (act === "import") {
@@ -1688,6 +1766,22 @@
       toast(`Liste « ${l.name} » enregistrée`);
     }
   });
+
+  // Export .ics de la liste affichée (site/ical.js) ; l'heure de départ vient du détail par région.
+  async function exportIcs() {
+    const v = state.view;
+    const name = v.kind === "list" ? Favoris.get(v.id)?.name : v.data.name;
+    const rows = viewRows().map((r) => ({ ...r }));
+    await Donnees.withDetails(rows, data.detail_fields);
+    const { texte, exportees, ecartees } = Ical.construire(rows, { nom: name || "Agregatrail", lien: location.origin + location.pathname });
+    if (!exportees) return toast("Aucune course de cette liste n'a encore de jour précis : rien à exporter.");
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(new Blob([texte], { type: "text/calendar;charset=utf-8" }));
+    a.download = Ical.fichier(name);
+    a.click();
+    setTimeout(() => URL.revokeObjectURL(a.href), 2000);
+    toast(`${plural(exportees, "course")} dans le fichier` + (ecartees.length ? ` · ${plural(ecartees.length, "course")} sans jour précis, non exportée${ecartees.length > 1 ? "s" : ""}` : ""));
+  }
 
   function renameList(id) {
     const l = Favoris.get(id);
@@ -1946,6 +2040,129 @@
     window.open(`https://github.com/gcsys/TRAIL-AGREGATOR/issues/new?${p}`, "_blank", "noopener");
   });
 
+  // ---------- Fiche d'une course : formats, liens, courses qui ressemblent ----------
+  const fiche = { key: null, rid: null, stack: [] };
+  const simRow = (x) => {
+    const r = x.race;
+    return `<li><button type="button" class="sim" data-act="fiche" data-key="${esc(evKey(r))}" data-rid="${esc(r.id)}">
+      <span class="sim-date">${esc(fmtDate(r))}</span>
+      <span class="sim-name">${esc(r.nom)}</span>
+      <span class="sim-meta">${esc(place(r))} · <b>${fmtNum(r.distance_km)} km</b> · ${r.denivele_pos_m == null ? "D+ ?" : `${fmtNum(r.denivele_pos_m)} m D+`}</span>
+      ${x.raisons.length ? `<span class="sim-why">${x.raisons.map((t) => `<span class="tag muted">${esc(t)}</span>`).join("")}</span>` : ""}
+    </button></li>`;
+  };
+  // Estimation de temps (site/estimation.js) : chrono de référence gardé dans ce navigateur.
+  let chronoEdit = false;
+  const hms = (sec) => {
+    const h = Math.floor(sec / 3600), m = Math.floor((sec % 3600) / 60), x = Math.round(sec % 60);
+    const p2 = (n) => String(n).padStart(2, "0");
+    return h ? `${h}:${p2(m)}:${p2(x)}` : `${m}:${p2(x)}`;
+  };
+  function chronoForm() {
+    const c = Estimation.chrono() || { type: "10k" };
+    const opt = (v, t) => `<option value="${v}"${c.type === v ? " selected" : ""}>${t}</option>`;
+    const trail = c.type === "trail";
+    return `<div class="chrono-form" id="chrono-form">
+      <label>Ma référence<select id="ch-type">${opt("10k", "10 km route")}${opt("semi", "Semi-marathon")}${opt("marathon", "Marathon")}${opt("trail", "Un trail déjà couru")}</select></label>
+      <label>Mon temps<input id="ch-temps" inputmode="numeric" placeholder="ex. 48:30" value="${c.temps ? hms(c.temps) : ""}"></label>
+      <label class="ch-trail"${trail ? "" : " hidden"}>Distance (km)<input id="ch-km" type="number" min="1" step="0.1" value="${c.km ?? ""}"></label>
+      <label class="ch-trail"${trail ? "" : " hidden"}>D+ (m)<input id="ch-dplus" type="number" min="0" step="10" value="${c.dplus ?? ""}"></label>
+      <button type="button" class="btn primary" id="ch-ok">Estimer</button>
+      <p class="dlg-note" id="ch-err" hidden></p>
+    </div>`;
+  }
+  function estimationHtml(rows) {
+    const c = Estimation.chrono();
+    const head = `<h4>Mon temps estimé <span class="tag muted">estimation</span></h4>`;
+    if (!c || chronoEdit)
+      return `<section class="fi-sec">${head}<p class="dlg-note">Indiquez un chrono de référence pour obtenir une fourchette de temps sur chaque format. Il reste dans ce navigateur.</p>${chronoForm()}</section>`;
+    const li = rows
+      .map((r) => {
+        const e = Estimation.estimer(c, r);
+        const what = `${r.distance_km == null ? "?" : fmtNum(r.distance_km)} km${r.denivele_pos_m == null ? "" : ` · ${fmtNum(r.denivele_pos_m)} m D+`}`;
+        return `<li><span>${what}</span>${e ? `<b>≈ ${Estimation.fourchette(e)}</b>` : `<span class="dim">D+ inconnu : pas d'estimation</span>`}</li>`;
+      })
+      .join("");
+    return `<section class="fi-sec">${head}
+      <ul class="est">${li}</ul>
+      <p class="dlg-note">D'après votre référence : ${esc(Estimation.libelle(c))}. <button type="button" class="link" id="ch-edit">Modifier</button><br>
+      Méthode km-effort (km + D+/100) et formule de Riegel, corrigée selon le profil. Ni la technicité, ni la météo, ni les barrières horaires ne sont prises en compte.</p>
+    </section>`;
+  }
+  // Entrée dans le formulaire du chrono : estimer, sans fermer la fiche
+  $("#fi-body").addEventListener("keydown", (e) => {
+    if (e.key === "Enter" && e.target.closest("#chrono-form")) {
+      e.preventDefault();
+      $("#ch-ok").click();
+    }
+  });
+  $("#fi-body").addEventListener("change", (e) => {
+    if (e.target.id === "ch-type") $$(".ch-trail").forEach((l) => (l.hidden = e.target.value !== "trail"));
+  });
+  $("#fi-body").addEventListener("click", (e) => {
+    if (e.target.id === "ch-edit") {
+      chronoEdit = true;
+      openFiche(fiche.key, { rid: fiche.rid, keepStack: true });
+    } else if (e.target.id === "ch-ok") {
+      const ref = { type: $("#ch-type").value, temps: Estimation.parseDuree($("#ch-temps").value) };
+      if (ref.type === "trail") Object.assign(ref, { km: Number($("#ch-km").value), dplus: Number($("#ch-dplus").value) });
+      if (!Estimation.reference(ref)) {
+        $("#ch-err").hidden = false;
+        $("#ch-err").textContent = ref.temps ? "Indiquez la distance et le D+ de ce trail." : "Temps illisible : écrivez par exemple 48:30 ou 1:45:00.";
+        return;
+      }
+      Estimation.enregistrer(ref);
+      chronoEdit = false;
+      openFiche(fiche.key, { rid: fiche.rid, keepStack: true });
+    }
+  });
+
+  function openFiche(key, { rid, push = false, keepStack = false } = {}) {
+    const rows = (state.eventsAll.get(key) || []).slice().sort((a, b) => (a.distance_km ?? 1e9) - (b.distance_km ?? 1e9));
+    if (!rows.length) return;
+    if (push && fiche.key && fiche.key !== key) fiche.stack.push({ key: fiche.key, rid: fiche.rid });
+    if (!push && !keepStack && fiche.key !== key) fiche.stack = [];
+    // format de référence : celui demandé, sinon le plus long dont on connaît le D+ (souvent la course phare)
+    const withD = rows.filter((r) => r.denivele_pos_m != null && r.distance_km);
+    const ref = rows.find((r) => r.id === rid) || withD[withD.length - 1] || rows[rows.length - 1];
+    Object.assign(fiche, { key, rid: ref.id });
+    const first = rows.slice().sort((a, b) => (a.date || "9").localeCompare(b.date || "9"))[0];
+    const ev = { key, rows, first, links: { site_web: rows.map((r) => r.site_web).find(safeUrl), lien_inscription: rows.map((r) => r.lien_inscription).find(safeUrl), source_url: rows.map((r) => r.source_url).find(safeUrl) } };
+    $("#fi-date").textContent = fmtDate(first);
+    $("#fi-title").textContent = first.nom;
+    $("#fi-sub").textContent = placeLong(first);
+    $("#fi-back").hidden = !fiche.stack.length;
+    const pool = state.races.filter((r) => !r._absent);
+    const proches = Similaires.proches(ref, pool, evKey, { n: 5 });
+    const ailleurs = Similaires.proches(ref, pool, evKey, { n: 3, autreDate: true });
+    const fmtPick = rows.length > 1
+      ? `<div class="fi-fmts" role="group" aria-label="Format de référence">${rows.map((r) => `<button type="button" data-act="fiche-fmt" data-rid="${esc(r.id)}" class="${r.id === ref.id ? "active" : ""}" aria-pressed="${r.id === ref.id}">${r.distance_km == null ? "?" : fmtNum(r.distance_km)} km</button>`).join("")}</div>`
+      : "";
+    const sansDplus = ref.denivele_pos_m == null ? `<p class="dlg-note">Le D+ de ce format n'est pas connu : la ressemblance repose sur la distance, la période et le lieu.</p>` : "";
+    $("#fi-body").innerHTML = `
+      <ul class="fmts">${rows.map(fmtRow).join("")}</ul>
+      <div class="ev-links">${linksHtml(ev.links)}<button type="button" class="link" data-act="fiche-map" data-key="${esc(key)}">Voir sur la carte</button></div>
+      ${estimationHtml(rows)}
+      <section class="fi-sec">
+        <h4>Courses qui ressemblent</h4>
+        ${fmtPick}${sansDplus}
+        ${proches.length ? `<ul class="sims">${proches.map(simRow).join("")}</ul>` : `<p class="dlg-note">Aucune course comparable pour l'instant.</p>`}
+      </section>
+      ${ailleurs.length ? `<section class="fi-sec"><h4>Même profil, à une autre date</h4><ul class="sims">${ailleurs.map(simRow).join("")}</ul></section>` : ""}
+      <p class="dlg-note">Rapprochement calculé sur la distance, le D+ par km, la période de l'année et le lieu.</p>`;
+    $("#fi-body").scrollTop = 0;
+    $("#dlg-fiche .dlg-inner").scrollTop = 0;
+    openDlg("#dlg-fiche");
+  }
+  $("#fi-back").addEventListener("click", () => {
+    const prev = fiche.stack.pop();
+    if (prev) openFiche(prev.key, { rid: prev.rid, push: false, keepStack: true });
+  });
+  $("#dlg-fiche").addEventListener("close", () => {
+    fiche.stack = [];
+    fiche.key = null;
+  });
+
   // Délégation : étoiles et boutons « Compléter » (tableau, fiches, popups)
   const onAct = (e) => {
     const b = e.target.closest("[data-act]");
@@ -1954,6 +2171,11 @@
     e.stopPropagation();
     if (b.dataset.act === "fav") openFav(b.dataset.rid);
     else if (b.dataset.act === "edit") openEdit(b.dataset.rid);
+    else if (b.dataset.act === "fiche") openFiche(b.dataset.key, { rid: b.dataset.rid, push: !!b.closest("#dlg-fiche") });
+    else if (b.dataset.act === "fiche-map") {
+      $("#dlg-fiche").close();
+      focusEvent(b.dataset.key);
+    } else if (b.dataset.act === "fiche-fmt") openFiche(fiche.key, { rid: b.dataset.rid });
   };
   document.addEventListener("click", onAct);
   map.on("popupopen", (e) => {
@@ -1971,7 +2193,7 @@
   syncStick();
   if (!(await route())) {
     refresh();
-    if (state.radius) moveMap(() => map.fitBounds(L.latLng(state.radius.lat, state.radius.lon).toBounds(state.radius.km * 2000), { padding: [20, 20] }));
+    if (state.radius) moveMap(() => map.fitBounds(L.latLng(state.radius.lat, state.radius.lon).toBounds((state.radius.route ? (state.radius.route / 60) * 90 : state.radius.km) * 2000), { padding: [20, 20] }));
     else fitAll();
   }
 })();
