@@ -41,7 +41,8 @@ Site 100 % statique, hébergé sur GitHub Pages, sans serveur ni base à adminis
 ```
 data/sources/catalogue.csv   catalogue des courses, éditable à la main ou par PR
 data/geocode_cache.json      cache du géocodage des villes
-scripts/build_db.py          import des sources -> site/data/races.json
+scripts/build_db.py          import des sources -> site/data/races.json, index.json et detail/
+scripts/site_data.py         format des fichiers lus par le site (index léger + détail par région)
 scripts/sources/             une source = un module avec fetch()
 site/                        le site publié (HTML/JS/CSS, données, contours)
 .github/workflows/           routine hebdomadaire + déploiement Pages
@@ -55,7 +56,27 @@ site/                        le site publié (HTML/JS/CSS, données, contours)
 2. géocode les villes sans coordonnées via l'[API Adresse](https://adresse.data.gouv.fr/api-doc/adresse) (avec cache) ;
 3. rattache chaque course à son département et sa région (point dans polygone) ;
 4. calcule le km-effort (km + D+/100), une catégorie UTMB Index et des points ITRA **estimés** ;
-5. ne garde que les courses à venir.
+5. ne garde que les courses à venir ;
+6. écrit les fichiers lus par le site (`scripts/site_data.py`).
+
+### Fichiers de données du site
+
+Pour un premier affichage rapide, le site ne charge pas `races.json` (4,7 Mo) :
+
+- `site/data/index.json` (environ 0,75 Mo, 160 Ko compressé) : tout ce qu'il faut aux filtres,
+  à la liste, à la carte et aux fiches, en colonnes, avec les textes répétés stockés une seule fois ;
+- `site/data/detail/<code région>.json` : champs secondaires (code postal, heure de départ,
+  participants, prix, notes, source), chargés seulement quand il le faut (export CSV).
+
+Le km-effort, la catégorie UTMB et les points ITRA estimés ne sont pas publiés dans l'index :
+`site/donnees.js` les recalcule avec les mêmes règles (et le même arrondi) que `build_db.py`.
+`races.json` reste publié, complet, pour les versions du site encore en cache et pour qui
+veut réutiliser les données ; il sera retiré plus tard.
+Pour régénérer seulement l'index et le détail à partir de `races.json` :
+`python3 scripts/build_db.py --export-only`.
+
+Les contours `site/geo/*.geojson` sont arrondis à 4 décimales (environ 10 m,
+`scripts/tools/arrondir_contours.py`) : deux fois plus légers, sans changement de rattachement.
 
 La routine GitHub Actions relance ce script chaque lundi, commit le JSON s'il a
 changé et redéploie le site. On peut aussi la lancer à la main depuis l'onglet
