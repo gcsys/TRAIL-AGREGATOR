@@ -63,13 +63,22 @@
   /* Zone : { deps: Set, regs: Set, shapes: [Feature<Polygon>], bbox: [o, s, e, n], radius: {lat, lon, km} }.
    * Une course est dans la zone si elle est dans l'un des éléments (union).
    * pip(point, polygone) : test point-dans-polygone (turf.booleanPointInPolygon dans le site). */
+  /* Rayon en km, ou temps de route : isochrone (polygone) quand elle est arrivée ; en attendant,
+   * borne large à vol d'oiseau (130 km/h), pour ne rien écarter à tort. */
+  const VOL_OISEAU_KMH = 130;
+  function dansRayon(r, rad, pip) {
+    const d = haversine(rad.lat, rad.lon, r.lat, r.lon);
+    if (!rad.route) return d <= rad.km;
+    if (!rad.iso) return d <= (rad.route / 60) * VOL_OISEAU_KMH;
+    return pip({ type: "Feature", properties: {}, geometry: { type: "Point", coordinates: [r.lon, r.lat] } }, rad.iso);
+  }
   const zoneActive = (z) => !!(z.deps.size || z.regs.size || z.shapes.length || z.bbox || z.radius);
   function dansZone(r, z, pip) {
     if (!zoneActive(z)) return true;
     if (r.departement_code && z.deps.has(r.departement_code)) return true;
     if (r.region_code && z.regs.has(r.region_code)) return true;
     if (r.lat == null) return false;
-    if (z.radius && haversine(z.radius.lat, z.radius.lon, r.lat, r.lon) <= z.radius.km) return true;
+    if (z.radius && dansRayon(r, z.radius, pip)) return true;
     if (z.bbox) {
       const [w, s, e, n] = z.bbox;
       if (r.lon >= w && r.lon <= e && r.lat >= s && r.lat <= n) return true;
@@ -79,5 +88,5 @@
     return z.shapes.some((s) => pip(pt, s));
   }
 
-  root.Filtres = { norm, haversine, between, profilOf, hay, criteres, passe, zoneActive, dansZone, dateStart, dateEnd, safeUrl };
+  root.Filtres = { norm, haversine, between, profilOf, hay, criteres, passe, zoneActive, dansZone, dansRayon, dateStart, dateEnd, safeUrl };
 })(typeof window !== "undefined" ? window : globalThis);

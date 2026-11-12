@@ -546,6 +546,9 @@ input[type="range"]::-moz-range-thumb { width: 22px; height: 22px; border-radius
 .radius-presets button { flex: 1; border: 1px solid var(--border-strong); background: var(--surface); border-radius: 999px; min-height: 34px; font-size: .8rem; font-weight: 600; }
 .radius-presets button.active { border-color: var(--primary); color: var(--primary); background: var(--primary-soft); }
 .radius-center { margin: 0; font-size: .84rem; color: var(--muted); }
+.rmode { display: flex; }
+.rmode button { flex: 1; justify-content: center; }
+.route-note { margin: 0; font-size: .76rem; color: var(--muted); }
 .radius-center b { color: var(--text); }
 .zone-tags { display: flex; flex-wrap: wrap; gap: 6px; }
 .zone-tags:empty { display: none; }

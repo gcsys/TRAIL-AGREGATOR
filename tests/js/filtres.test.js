@@ -114,3 +114,13 @@ test("course sans coordonnées : seulement par département ou région", () => {
   assert.ok(!F.dansZone(r, zone({ bbox: [-5, 40, 10, 52] }), pip));
   assert.ok(F.dansZone(r, zone({ deps: new Set(["12"]) }), pip));
 });
+
+test("temps de route : isochrone quand elle est là, borne large en attendant", () => {
+  const nimes = { lat: 43.8367, lon: 4.3601 };
+  // Millau est à ~107 km à vol d'oiseau de Nîmes
+  assert.ok(F.dansZone(course(), zone({ radius: { ...nimes, route: 60 } }), pip), "1 h à 130 km/h couvre 130 km : provisoirement dedans");
+  assert.ok(!F.dansZone(course(), zone({ radius: { ...nimes, route: 30 } }), pip));
+  const iso = carre(3.5, 43.5, 5, 44.5); // n'atteint pas Millau
+  assert.ok(!F.dansZone(course(), zone({ radius: { ...nimes, route: 60, iso } }), pip));
+  assert.ok(F.dansZone(course({ lat: 43.9, lon: 4.0 }), zone({ radius: { ...nimes, route: 60, iso } }), pip));
+});
