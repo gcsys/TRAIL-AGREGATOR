@@ -63,6 +63,7 @@ data/sources/catalogue.csv   catalogue des courses, éditable à la main ou par 
 data/geocode_cache.json      cache du géocodage des villes
 scripts/build_db.py          import des sources -> site/data/races.json, index.json et detail/
 scripts/site_data.py         format des fichiers lus par le site (index léger + détail par région)
+scripts/quality.py           tableau de bord qualité -> site/qualite/index.html (généré au déploiement)
 scripts/sources/             une source = un module avec fetch()
 site/                        le site publié (HTML/JS/CSS, données, contours)
 .github/workflows/           routine hebdomadaire + déploiement Pages
@@ -114,6 +115,23 @@ changé et redéploie le site. On peut aussi la lancer à la main depuis l'ongle
 
 Non utilisées car leurs conditions ou leur robots.txt l'interdisent : Finishers, ATS Sport, Ultra Race Calendar, ITRA, UTMB World, Betrail, Kikourou (robots.txt bloque les IA), Ahotu (refuse les robots).
 
+### Qualité des données
+
+La page [/qualite](https://gcsys.github.io/TRAIL-AGREGATOR/qualite/) (lien en pied de page) est
+recalculée à chaque déploiement par `scripts/quality.py` à partir de `races.json` :
+
+- taux de remplissage par région et par source d'origine (D+, jour précis, date confirmée,
+  coordonnées, site web, lien d'inscription, organisateur, heure de départ) ;
+- doublons probables : deux événements distincts le même jour (ou à un mois près si une date
+  n'est connue qu'au mois), à moins de 15 km, avec un mot distinctif du nom en commun et une
+  distance proche ;
+- distances ou D+ incohérents (distance inconnue ou improbable, libellé « 42 km » pour 21 km,
+  plus de 150 m D+/km hors kilomètre vertical, D+ nul) ;
+- formats sans coordonnées ou hors des trois régions couvertes.
+
+Le même résumé s'affiche dans l'onglet *Actions*, à la fin de chaque exécution. La page n'est pas
+versionnée (`site/qualite/` est ignoré par git) ; pour la voir en local : `python3 scripts/quality.py`.
+
 ### Compléter un D+
 
 Ouvrez une issue « Compléter ou corriger une course », ou ajoutez une ligne à
@@ -134,7 +152,7 @@ la réutilisation (open data, API publiques, flux fournis par les organisateurs)
 ## Tests
 
 ```bash
-python3 -m unittest discover -s tests/python   # fusion des sources, calculs, géographie, index
+python3 -m unittest discover -s tests/python   # fusion des sources, calculs, géographie, index, qualité
 node --test tests/js/*.test.js                 # filtres, zone, disponibilités, favoris, décodage de l'index
 ```
 
