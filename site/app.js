@@ -55,10 +55,12 @@
   // ---------- Carte ----------
   const map = L.map("map", { zoomSnap: 0.5, preferCanvas: true, zoomControl: true }).setView([46.6, 2.4], 5.5);
   const bases = {
-    plan: L.tileLayer("https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png", {
-      maxZoom: 19, subdomains: "abcd",
-      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://carto.com/attributions">CARTO</a>',
-    }),
+    // Plan IGN v2 (Géoplateforme, sans clé, Licence Ouverte). CARTO exige une clé depuis août 2026.
+    plan: L.tileLayer(
+      "https://data.geopf.fr/wmts?SERVICE=WMTS&REQUEST=GetTile&VERSION=1.0.0&LAYER=GEOGRAPHICALGRIDSYSTEMS.PLANIGNV2" +
+        "&STYLE=normal&TILEMATRIXSET=PM&FORMAT=image/png&TILEMATRIX={z}&TILEROW={y}&TILECOL={x}",
+      { maxZoom: 19, attribution: '&copy; <a href="https://www.ign.fr/">IGN</a> · Géoplateforme' },
+    ),
     relief: L.tileLayer("https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png", {
       maxZoom: 17,
       attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>, SRTM · <a href="https://opentopomap.org">OpenTopoMap</a> (CC-BY-SA)',

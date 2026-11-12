@@ -15,7 +15,7 @@ cercle), puis filtrez les courses dans un tableau.
 - Zone de recherche pensée pour le tactile : rayon autour d'une ville, de sa position ou d'un point
   touché (centre déplaçable, rayon réglable), « Rechercher dans cette zone » après avoir cadré la carte,
   départements et régions (au toucher ou par liste), tracé au doigt. Sur ordinateur : polygone et rectangle en plus.
-- Carte : points regroupés, fonds Plan, Relief (OpenTopoMap) et Satellite.
+- Carte : points regroupés, fonds Plan (Plan IGN v2 de la Géoplateforme, sans clé), Relief (OpenTopoMap) et Satellite (Esri).
 - Filtres : mois, dates, distance, D+, profil (roulant, vallonné, montagne en m D+/km), km-effort,
   UTMB Index, World Series, ITRA, type, nocturne, D+ connu, date confirmée, site officiel.
   Filtres actifs affichés en étiquettes supprimables ; la recherche est enregistrée dans l'adresse de la page.
