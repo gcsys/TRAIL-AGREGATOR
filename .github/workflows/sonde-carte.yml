@@ -1,0 +1,50 @@
+name: Sonde fond de carte (temporaire)
+on:
+  push:
+    branches: [claude/sonde-carte]
+permissions:
+  contents: write
+jobs:
+  sonde:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - name: Tuiles CARTO selon le Referer
+        run: |
+          for u in "https://a.basemaps.cartocdn.com/rastertiles/voyager/6/32/22.png" "https://a.basemaps.cartocdn.com/rastertiles/voyager/6/32/22@2x.png" "https://a.basemaps.cartocdn.com/light_all/6/32/22.png"; do
+            for ref in "" "http://localhost:8802/" "https://gcsys.github.io/" "https://gcsys.github.io/TRAIL-AGREGATOR/"; do
+              curl -s -o t.png -D h.txt ${ref:+-H "Referer: $ref"} -H "User-Agent: Mozilla/5.0" "$u"
+              echo "$u | referer='$ref' | $(head -1 h.txt | tr -d '\r') | $(grep -i '^content-type' h.txt | tr -d '\r') | $(stat -c%s t.png) octets | $(md5sum t.png | cut -c1-8)"
+            done
+          done
+          echo "--- en-têtes (sans Referer)"; curl -s -D - -o /dev/null "https://a.basemaps.cartocdn.com/rastertiles/voyager/6/32/22.png"
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Site publié dans Chromium
+        run: |
+          npm i --no-save playwright@1.48.2 >/dev/null 2>&1 && npx playwright install --with-deps chromium >/dev/null 2>&1
+          cat > s.js <<'JS'
+          const { chromium, devices } = require('playwright');
+          setTimeout(() => { console.log('watchdog'); process.exit(1); }, 240000);
+          (async () => {
+            const b = await chromium.launch();
+            for (const [nom, opts] of [['ordinateur', { viewport: { width: 1280, height: 800 } }], ['mobile', devices['iPhone 13']]]) {
+              const p = await (await b.newContext(opts)).newPage();
+              const tuiles = [];
+              p.on('response', r => { if (/cartocdn/.test(r.url())) tuiles.push(r.status() + ' ' + (r.headers()['content-length'] || '?') + ' ' + r.url()); });
+              await p.goto('https://gcsys.github.io/TRAIL-AGREGATOR/?vue=carte', { waitUntil: 'networkidle', timeout: 60000 }).catch(e => console.log(e.message));
+              const btn = await p.$('[data-view="map"], #btn-map, .fab-map'); if (btn) await btn.click().catch(() => {});
+              await p.waitForTimeout(5000);
+              await p.screenshot({ path: `sonde-${nom}.png` });
+              console.log(nom, tuiles.length, 'tuiles'); tuiles.slice(0, 5).forEach(t => console.log('  ', t));
+            }
+            process.exit(0);
+          })();
+          JS
+          node s.js
+      - name: Captures dans la branche
+        run: |
+          git config user.name "trail-bot"; git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          mkdir -p sonde && mv sonde-*.png t.png sonde/ && git add sonde && git commit -qm "sonde: captures" && git push -q origin HEAD:claude/sonde-carte
