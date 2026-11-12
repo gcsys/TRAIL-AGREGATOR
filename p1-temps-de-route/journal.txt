@@ -1,12 +1,12 @@
-fetch direct : HTTP 200, Polygon, 1098 ms
-isochrone 30 min : HTTP 200 en 1096 ms, CORS *
-isochrone 60 min : HTTP 200 en 920 ms, CORS *
-isochrone 15 min : HTTP 200 en 472 ms, CORS *
-isochrone 30 min : HTTP 200 en 423 ms, CORS *
-isochrone 45 min : HTTP 200 en 528 ms, CORS *
-ordinateur : zone 1 h affichée en 2807 ms
+fetch direct : HTTP 200, Polygon, 744 ms
+isochrone 30 min : HTTP 200 en 742 ms, CORS *
+isochrone 60 min : HTTP 200 en 1019 ms, CORS *
+isochrone 15 min : HTTP 200 en 173 ms, CORS *
+isochrone 30 min : HTTP 200 en 274 ms, CORS *
+isochrone 45 min : HTTP 200 en 489 ms, CORS *
+ordinateur : zone 1 h affichée en 2491 ms
 ordinateur : 234 formats · 1 h de route autour de Nîmes ; ≈ moins de 15 min | ≈ 15 à 30 min | ≈ 15 à 30 min | ≈ 15 à 30 min | ≈ 15 à 30 min | ≈ 15 à 30 min | ≈ 15 à 30 min | ≈ 30 à 45 min
-isochrone 60 min : HTTP 200 en 905 ms, CORS *
-isochrone 15 min : HTTP 200 en 207 ms, CORS *
-isochrone 30 min : HTTP 200 en 336 ms, CORS *
-isochrone 45 min : HTTP 200 en 457 ms, CORS *
+isochrone 60 min : HTTP 200 en 962 ms, CORS *
+isochrone 15 min : HTTP 200 en 170 ms, CORS *
+isochrone 30 min : HTTP 200 en 252 ms, CORS *
+isochrone 45 min : HTTP 200 en 462 ms, CORS *
