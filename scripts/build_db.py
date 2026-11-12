@@ -225,6 +225,14 @@ def normalize(r):
     }
 
 
+def departement_par_point(races, deps):
+    """Sources sans département mais avec coordonnées (GoTrail) : département déduit du point,
+    pour que la fusion compare les événements d'un même département."""
+    for n in races:
+        if not n["departement_saisi"] and n["lat"] is not None:
+            n["departement_saisi"] = locate(n["lon"], n["lat"], deps)[0] or ""
+
+
 def main():
     raw = []
     for src in SOURCES:
@@ -240,6 +248,8 @@ def main():
         seen.add(n["id"])
         races.append(n)
 
+    deps = load_layer("departements")
+    departement_par_point(races, deps)
     races = enrich.merge(races)
     enrich.apply_dplus_file(races)
     for n in races:  # D+ éventuellement complété : on recalcule les champs dérivés
@@ -258,7 +268,7 @@ def main():
                 n["lon"], n["lat"] = res
     GEOCODE_CACHE.write_text(json.dumps(cache, ensure_ascii=False, indent=1, sort_keys=True) + "\n")
 
-    deps, regs = load_layer("departements"), load_layer("regions")
+    regs = load_layer("regions")
     dep_names = {f["properties"]["code"]: f["properties"]["nom"] for f in deps}
     dep_region = dep_to_region(deps, regs)
     for n in races:

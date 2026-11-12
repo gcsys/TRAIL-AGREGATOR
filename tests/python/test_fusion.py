@@ -36,6 +36,11 @@ class MemeEvenement(unittest.TestCase):
         b = course(nom="Festival des Templiers", ville="Millau", date="2027-10-24", source="runtrail")
         self.assertTrue(enrich._same_event([a], [b]))
 
+    def test_meme_commune_nom_colle(self):
+        a = course(nom="La Saintlo", ville="Saint-Laurent-d'Agny", date="2027-01")
+        b = course(nom="La Saint Lo", ville="Saint-Laurent-d'Agny", date="2027-01-17", source="runtrail")
+        self.assertTrue(enrich._same_event([a], [b]))
+
     def test_meme_commune_noms_differents(self):
         a = course(nom="Trail des Templiers", ville="Millau", date="2027-10-24")
         b = course(nom="Course du Viaduc", ville="Millau", date="2027-10-10", source="runtrail")
@@ -56,12 +61,22 @@ class MemeEvenement(unittest.TestCase):
         b = course(nom="Trail des crêtes du Levezou", ville="Villefranche-de-Panat", date="2027-06-12", source="gotrail")
         self.assertTrue(enrich._same_event([a], [b]))
 
-    @unittest.expectedFailure  # défaut connu, à corriger dans la PR « dédoublonnage »
     def test_commune_voisine_nom_generique(self):
         # « Trail nocturne » seul ne suffit pas à identifier un événement
         a = course(nom="Trail nocturne", ville="Salles-Curan", date="2027-06-12")
         b = course(nom="Trail nocturne", ville="Rodez", date="2027-06-12", source="gotrail")
         self.assertFalse(enrich._same_event([a], [b]))
+
+    def test_nom_generique_meme_commune(self):
+        # dans la même commune et le même mois, un nom générique suffit
+        a = course(nom="Trail nocturne", ville="Rodez", date="2027-06-12")
+        b = course(nom="Trail nocturne", ville="Rodez", date="2027-06-12", source="gotrail")
+        self.assertTrue(enrich._same_event([a], [b]))
+
+    def test_nom_distinctif_identique_commune_voisine(self):
+        a = course(nom="Beille Trail", ville="Les Cabannes", departement="09", date="2027-01-03")
+        b = course(nom="Beille Trail", ville="Albiès", departement="09", date="2027-01-03", source="gotrail")
+        self.assertTrue(enrich._same_event([a], [b]))
 
     def test_commune_voisine_autre_departement(self):
         a = course(nom="Trail des Crêtes du Lévezou", ville="Salles-Curan", date="2027-06-12")
@@ -92,12 +107,36 @@ class Fusion(unittest.TestCase):
         rt = [course(id="r1", nom="Ronde des Causses", date="2027-10-24", source="runtrail")]
         self.assertEqual({r["id"] for r in enrich.merge(cat + rt)}, {"c1", "r1"})
 
-    @unittest.expectedFailure  # défaut connu (33 formats en double dans la base), à corriger dans la PR « dédoublonnage »
     def test_deux_sources_complementaires_entre_elles(self):
         # un événement absent du catalogue, vu par RunTrail puis GoTrail : une seule fiche
         rt = [course(id="r1", nom="Trail de la Pouncho", ville="Agde", departement="34", date="2027-03-14", source="runtrail")]
         gt = [course(id="g1", nom="Trail de la Pouncho", ville="Agde", departement="34", date="2027-03-14", source="gotrail")]
         self.assertEqual([r["id"] for r in enrich.merge(rt + gt)], ["r1"])
+
+    def test_deux_sources_formats_complementaires(self):
+        # RunTrail connaît le 20 et le 40 km, GoTrail le 21 (doublon du 20) et le 10 km, avec la date exacte
+        rt = [course(id="r20", nom="Trail de la Pouncho", ville="Agde", departement="34", date="2027-03", km="20", source="runtrail",
+                     dplus="600"),
+              course(id="r40", nom="Trail de la Pouncho", ville="Agde", departement="34", date="2027-03", km="40", source="runtrail")]
+        gt = [course(id="g21", nom="Trail de la Pouncho", ville="Agde", departement="34", date="2027-03-14", km="21", source="gotrail",
+                     site_web="https://pouncho.example"),
+              course(id="g10", nom="Trail de la Pouncho", ville="Agde", departement="34", date="2027-03-14", km="10", source="gotrail")]
+        out = {r["id"]: r for r in enrich.merge(rt + gt)}
+        self.assertEqual(set(out), {"r20", "r40", "g10"})
+        self.assertEqual(out["r20"]["date"], "2027-03-14")
+        self.assertEqual(out["r20"]["site_web"], "https://pouncho.example")
+        self.assertEqual(out["r20"]["denivele_pos_m"], 600)
+        self.assertEqual(out["g10"]["date"], "2027-03-14")
+
+    def test_source_sans_departement_rapprochee_par_le_point(self):
+        # GoTrail ne donne pas le département : il est déduit des coordonnées avant la fusion
+        import build_db
+        cat = [course(id="c1", nom="Beille Trail", ville="Les Cabannes", departement="09", date="2027-01-03", km="20")]
+        gt = [course(id="g1", nom="Beille Trail", ville="Albiès", departement="", date="2027-01-03", km="20", source="gotrail",
+                     lat="42.7713", lon="1.7225")]
+        build_db.departement_par_point(cat + gt, build_db.load_layer("departements"))
+        self.assertEqual(gt[0]["departement_saisi"], "09")
+        self.assertEqual([r["id"] for r in enrich.merge(cat + gt)], ["c1"])
 
     def test_ne_remplace_pas_une_date_exacte(self):
         cat = [course(id="c1", nom="Trail des Templiers", date="2027-10-24")]
