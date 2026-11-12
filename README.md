@@ -21,6 +21,10 @@ cercle), puis filtrez les courses dans un tableau.
   déduite de paliers emboîtés (15, 30, 45, 60, 90, 120… min), et le tri « les plus proches » suit ces tranches.
   Durées estimées en voiture, sans trafic. Si le service ne répond pas, la recherche repasse en distance.
   Logique dans `site/route.js` (requêtes espacées, cache de session) ; adresse `?autour=…&route=60`.
+- Fiche d'une course (bouton « Fiche et courses proches ») : tous les formats, liens, et
+  **courses qui ressemblent** (3 à 5) pour le format choisi, puis « Même profil, à une autre date »
+  (au moins 4 semaines d'écart). Calcul dans le navigateur (`site/similaires.js`) : écart de distance,
+  de D+ par km, de période dans l'année et de lieu ; les raisons du rapprochement sont affichées.
 - Carte : points regroupés, fonds Plan, Relief (OpenTopoMap) et Satellite.
 - Filtres : mois, dates, distance, D+, profil (roulant, vallonné, montagne en m D+/km), km-effort,
   UTMB Index, World Series, ITRA, type, nocturne, D+ connu, date confirmée, site officiel.
