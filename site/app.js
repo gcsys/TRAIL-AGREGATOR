@@ -2031,6 +2031,72 @@
       ${x.raisons.length ? `<span class="sim-why">${x.raisons.map((t) => `<span class="tag muted">${esc(t)}</span>`).join("")}</span>` : ""}
     </button></li>`;
   };
+  // Estimation de temps (site/estimation.js) : chrono de référence gardé dans ce navigateur.
+  let chronoEdit = false;
+  const hms = (sec) => {
+    const h = Math.floor(sec / 3600), m = Math.floor((sec % 3600) / 60), x = Math.round(sec % 60);
+    const p2 = (n) => String(n).padStart(2, "0");
+    return h ? `${h}:${p2(m)}:${p2(x)}` : `${m}:${p2(x)}`;
+  };
+  function chronoForm() {
+    const c = Estimation.chrono() || { type: "10k" };
+    const opt = (v, t) => `<option value="${v}"${c.type === v ? " selected" : ""}>${t}</option>`;
+    const trail = c.type === "trail";
+    return `<div class="chrono-form" id="chrono-form">
+      <label>Ma référence<select id="ch-type">${opt("10k", "10 km route")}${opt("semi", "Semi-marathon")}${opt("marathon", "Marathon")}${opt("trail", "Un trail déjà couru")}</select></label>
+      <label>Mon temps<input id="ch-temps" inputmode="numeric" placeholder="ex. 48:30" value="${c.temps ? hms(c.temps) : ""}"></label>
+      <label class="ch-trail"${trail ? "" : " hidden"}>Distance (km)<input id="ch-km" type="number" min="1" step="0.1" value="${c.km ?? ""}"></label>
+      <label class="ch-trail"${trail ? "" : " hidden"}>D+ (m)<input id="ch-dplus" type="number" min="0" step="10" value="${c.dplus ?? ""}"></label>
+      <button type="button" class="btn primary" id="ch-ok">Estimer</button>
+      <p class="dlg-note" id="ch-err" hidden></p>
+    </div>`;
+  }
+  function estimationHtml(rows) {
+    const c = Estimation.chrono();
+    const head = `<h4>Mon temps estimé <span class="tag muted">estimation</span></h4>`;
+    if (!c || chronoEdit)
+      return `<section class="fi-sec">${head}<p class="dlg-note">Indiquez un chrono de référence pour obtenir une fourchette de temps sur chaque format. Il reste dans ce navigateur.</p>${chronoForm()}</section>`;
+    const li = rows
+      .map((r) => {
+        const e = Estimation.estimer(c, r);
+        const what = `${r.distance_km == null ? "?" : fmtNum(r.distance_km)} km${r.denivele_pos_m == null ? "" : ` · ${fmtNum(r.denivele_pos_m)} m D+`}`;
+        return `<li><span>${what}</span>${e ? `<b>≈ ${Estimation.fourchette(e)}</b>` : `<span class="dim">D+ inconnu : pas d'estimation</span>`}</li>`;
+      })
+      .join("");
+    return `<section class="fi-sec">${head}
+      <ul class="est">${li}</ul>
+      <p class="dlg-note">D'après votre référence : ${esc(Estimation.libelle(c))}. <button type="button" class="link" id="ch-edit">Modifier</button><br>
+      Méthode km-effort (km + D+/100) et formule de Riegel, corrigée selon le profil. Ni la technicité, ni la météo, ni les barrières horaires ne sont prises en compte.</p>
+    </section>`;
+  }
+  // Entrée dans le formulaire du chrono : estimer, sans fermer la fiche
+  $("#fi-body").addEventListener("keydown", (e) => {
+    if (e.key === "Enter" && e.target.closest("#chrono-form")) {
+      e.preventDefault();
+      $("#ch-ok").click();
+    }
+  });
+  $("#fi-body").addEventListener("change", (e) => {
+    if (e.target.id === "ch-type") $$(".ch-trail").forEach((l) => (l.hidden = e.target.value !== "trail"));
+  });
+  $("#fi-body").addEventListener("click", (e) => {
+    if (e.target.id === "ch-edit") {
+      chronoEdit = true;
+      openFiche(fiche.key, { rid: fiche.rid, keepStack: true });
+    } else if (e.target.id === "ch-ok") {
+      const ref = { type: $("#ch-type").value, temps: Estimation.parseDuree($("#ch-temps").value) };
+      if (ref.type === "trail") Object.assign(ref, { km: Number($("#ch-km").value), dplus: Number($("#ch-dplus").value) });
+      if (!Estimation.reference(ref)) {
+        $("#ch-err").hidden = false;
+        $("#ch-err").textContent = ref.temps ? "Indiquez la distance et le D+ de ce trail." : "Temps illisible : écrivez par exemple 48:30 ou 1:45:00.";
+        return;
+      }
+      Estimation.enregistrer(ref);
+      chronoEdit = false;
+      openFiche(fiche.key, { rid: fiche.rid, keepStack: true });
+    }
+  });
+
   function openFiche(key, { rid, push = false, keepStack = false } = {}) {
     const rows = (state.eventsAll.get(key) || []).slice().sort((a, b) => (a.distance_km ?? 1e9) - (b.distance_km ?? 1e9));
     if (!rows.length) return;
@@ -2056,6 +2122,7 @@
     $("#fi-body").innerHTML = `
       <ul class="fmts">${rows.map(fmtRow).join("")}</ul>
       <div class="ev-links">${linksHtml(ev.links)}<button type="button" class="link" data-act="fiche-map" data-key="${esc(key)}">Voir sur la carte</button></div>
+      ${estimationHtml(rows)}
       <section class="fi-sec">
         <h4>Courses qui ressemblent</h4>
         ${fmtPick}${sansDplus}

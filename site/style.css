@@ -575,6 +575,13 @@ input[type="range"]::-moz-range-thumb { width: 22px; height: 22px; border-radius
 .sim-meta { font-size: .84rem; color: var(--muted); }
 .sim-meta b { color: var(--text); }
 .sim-why { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 4px; }
+.est { list-style: none; margin: 0; padding: 0; display: grid; gap: 4px; }
+.est li { display: flex; justify-content: space-between; gap: 12px; padding: 8px 12px; border-radius: var(--radius-sm); background: var(--surface-2); font-size: .9rem; }
+.est b { color: var(--primary); white-space: nowrap; }
+.chrono-form { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; align-items: end; }
+.chrono-form label { display: grid; gap: 4px; font-size: .82rem; font-weight: 600; }
+.chrono-form label[hidden] { display: none; }
+.chrono-form .btn, .chrono-form .dlg-note { grid-column: 1 / -1; }
 .fiche-btn { font-size: .86rem; }
 .dlg::backdrop { background: rgba(8, 14, 11, .5); }
 .dlg-inner { margin: 0; padding: 20px; display: grid; gap: 14px; }
