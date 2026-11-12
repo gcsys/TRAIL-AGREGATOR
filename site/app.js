@@ -1732,6 +1732,7 @@
       $("#lb-name").textContent = l.name;
       $("#lb-note").textContent = `${plural(evs.length, "course")} · ${plural(rows.length, "format")}`;
       $("#lb-actions").innerHTML = `
+        <button class="btn" data-lb="ics" title="Fichier .ics à ouvrir avec l'agenda du téléphone">${icon("calendar")}Agenda</button>
         <button class="btn" data-lb="share">${icon("share")}Partager</button>
         <button class="btn" data-lb="rename">${icon("edit")}Renommer</button>
         <button class="btn danger" data-lb="delete">${icon("trash")}Supprimer</button>`;
@@ -1740,7 +1741,7 @@
       $("#lb-kicker").textContent = "Liste partagée";
       $("#lb-name").textContent = v.data.name;
       $("#lb-note").textContent = plural(evs.length, "course") + (lost ? ` · ${plural(lost, "course")} introuvable${lost > 1 ? "s" : ""} dans la base` : "");
-      $("#lb-actions").innerHTML = `<button class="btn primary" data-lb="import">${icon("star")}Enregistrer dans mes listes</button>`;
+      $("#lb-actions").innerHTML = `<button class="btn" data-lb="ics" title="Fichier .ics à ouvrir avec l'agenda du téléphone">${icon("calendar")}Agenda</button><button class="btn primary" data-lb="import">${icon("star")}Enregistrer dans mes listes</button>`;
     }
   }
 
@@ -1749,7 +1750,8 @@
     if (!b) return;
     const v = state.view;
     const act = b.dataset.lb;
-    if (act === "share") shareList(v.id);
+    if (act === "ics") exportIcs();
+    else if (act === "share") shareList(v.id);
     else if (act === "rename") renameList(v.id);
     else if (act === "delete") deleteList(v.id);
     else if (act === "import") {
@@ -1762,6 +1764,22 @@
       toast(`Liste « ${l.name} » enregistrée`);
     }
   });
+
+  // Export .ics de la liste affichée (site/ical.js) ; l'heure de départ vient du détail par région.
+  async function exportIcs() {
+    const v = state.view;
+    const name = v.kind === "list" ? Favoris.get(v.id)?.name : v.data.name;
+    const rows = viewRows().map((r) => ({ ...r }));
+    await Donnees.withDetails(rows, data.detail_fields);
+    const { texte, exportees, ecartees } = Ical.construire(rows, { nom: name || "Agregatrail", lien: location.origin + location.pathname });
+    if (!exportees) return toast("Aucune course de cette liste n'a encore de jour précis : rien à exporter.");
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(new Blob([texte], { type: "text/calendar;charset=utf-8" }));
+    a.download = Ical.fichier(name);
+    a.click();
+    setTimeout(() => URL.revokeObjectURL(a.href), 2000);
+    toast(`${plural(exportees, "course")} dans le fichier` + (ecartees.length ? ` · ${plural(ecartees.length, "course")} sans jour précis, non exportée${ecartees.length > 1 ? "s" : ""}` : ""));
+  }
 
   function renameList(id) {
     const l = Favoris.get(id);

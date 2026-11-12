@@ -30,6 +30,11 @@ cercle), puis filtrez les courses dans un tableau.
   Méthode km-effort + formule de Riegel (exposant 1,06), facteur de terrain selon le profil, fourchette
   -8 % / +15 % ; toujours affichée comme une estimation. Chrono gardé dans le navigateur
   (`localStorage`, clé `ta.chrono.v1`) ; logique dans `site/estimation.js`.
+- Export agenda (bouton « Agenda » d'une liste) : fichier `.ics` (iCalendar, RFC 5545) à importer
+  dans Google Agenda, Apple Calendrier ou Outlook. Un événement « journée entière » par format, avec
+  lieu, coordonnées, distance, D+, heure de départ si connue et lien ; « (date à confirmer) » quand
+  l'organisateur ne l'a pas confirmée. Les courses datées au mois près ne sont pas exportées (le
+  message de confirmation en donne le nombre). Fichier construit dans le navigateur (`site/ical.js`).
 - Carte : points regroupés, fonds Plan, Relief (OpenTopoMap) et Satellite.
 - Filtres : mois, dates, distance, D+, profil (roulant, vallonné, montagne en m D+/km), km-effort,
   UTMB Index, World Series, ITRA, type, nocturne, D+ connu, date confirmée, site officiel.
