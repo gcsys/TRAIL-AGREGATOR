@@ -10,6 +10,7 @@ jobs:
     timeout-minutes: 10
     steps:
       - uses: actions/checkout@v4
+      - uses: actions/checkout@v4
         with:
           ref: claude/fond-de-carte
           path: site-test
@@ -28,6 +29,7 @@ jobs:
           node-version: "22"
       - name: Site de la branche dans Chromium
         run: |
+          mkdir -p sonde
           (cd site-test/site && python3 -m http.server 8000 >/dev/null 2>&1 &)
           npm i --no-save playwright@1.48.2 >/dev/null 2>&1 && npx playwright install --with-deps chromium >/dev/null 2>&1
           cat > s.js <<'JS'
@@ -45,14 +47,16 @@ jobs:
               const p = await (await b.newContext(opts)).newPage();
               const tuiles = [], errs = [];
               p.on('pageerror', e => errs.push(e.message));
-              p.on('response', r => { if (/geopf\.fr\/wmts|cartocdn/.test(r.url())) tuiles.push(r.status()); });
+              p.on('response', async r => { if (/geopf\.fr\/wmts|cartocdn/.test(r.url())) { let n = 0; try { n = (await r.body()).length; } catch (e) {} tuiles.push([r.status(), n, r.url().replace(/.*TILEMATRIX=/, 'z=')]); } });
+              p.on('requestfailed', r => { if (/geopf/.test(r.url())) tuiles.push(['échec ' + r.failure().errorText, 0, r.url().replace(/.*TILEMATRIX=/, 'z=')]); });
               const t0 = Date.now();
               await p.goto(url, { waitUntil: 'networkidle', timeout: 90000 }).catch(e => console.log(e.message));
               if (nom === 'mobile-carte') { const btn = await p.$('#view-map, .fab, [data-view="map"]'); if (btn) { await btn.click().catch(() => {}); await p.waitForLoadState('networkidle').catch(() => {}); } }
               await p.waitForTimeout(3000);
-              await p.screenshot({ path: `sonde-${nom}.png` });
-              const ok = tuiles.filter(s => s === 200).length;
-              console.log(nom, `${Date.now() - t0} ms`, `tuiles ${ok}/${tuiles.length} en 200`, 'erreurs', JSON.stringify(errs));
+              await p.screenshot({ path: `sonde/${nom}.png` });
+              const ok = tuiles.filter(t => t[0] === 200);
+              console.log(nom, `${Date.now() - t0} ms`, `tuiles ${ok.length}/${tuiles.length} en 200`, `${Math.round(ok.reduce((a, t) => a + t[1], 0) / 1024)} Ko`, 'erreurs', JSON.stringify(errs));
+              tuiles.filter(t => t[0] !== 200).forEach(t => console.log('   ', t.join(' ')));
             }
             process.exit(0);
           })();
@@ -61,4 +65,4 @@ jobs:
       - name: Captures dans la branche
         run: |
           git config user.name "trail-bot"; git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          mkdir -p sonde && mv sonde-*.png sonde/ && git add sonde && git commit -qm "sonde: captures" && git push -q origin HEAD:claude/sonde-carte
+          git add sonde && git commit -qm "sonde: captures" && git push -q origin HEAD:claude/sonde-carte
