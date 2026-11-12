@@ -35,7 +35,7 @@ cercle), puis filtrez les courses dans un tableau.
   lieu, coordonnées, distance, D+, heure de départ si connue et lien ; « (date à confirmer) » quand
   l'organisateur ne l'a pas confirmée. Les courses datées au mois près ne sont pas exportées (le
   message de confirmation en donne le nombre). Fichier construit dans le navigateur (`site/ical.js`).
-- Carte : points regroupés, fonds Plan, Relief (OpenTopoMap) et Satellite.
+- Carte : points regroupés, fonds Plan (Plan IGN v2 de la Géoplateforme, sans clé), Relief (OpenTopoMap) et Satellite (Esri).
 - Filtres : mois, dates, distance, D+, profil (roulant, vallonné, montagne en m D+/km), km-effort,
   UTMB Index, World Series, ITRA, type, nocturne, D+ connu, date confirmée, site officiel.
   Filtres actifs affichés en étiquettes supprimables ; la recherche est enregistrée dans l'adresse de la page.
