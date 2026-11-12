@@ -318,7 +318,7 @@
     isoLayer = null;
     const r = state.radius;
     if (!r || !r.route || !r.iso) return;
-    isoLayer = L.geoJSON(r.iso, { style: { color: selColor, weight: 2, fillColor: selColor, fillOpacity: 0.08, dashArray: "6 6" }, interactive: false }).addTo(map);
+    isoLayer = L.geoJSON(r.iso, { style: { color: selColor, weight: 1.5, opacity: 0.8, fillColor: selColor, fillOpacity: 0.1 }, interactive: false }).addTo(map);
   }
   function drawRadius() {
     const r = state.radius;
