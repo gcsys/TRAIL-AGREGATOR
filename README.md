@@ -111,10 +111,26 @@ renvoie des dictionnaires aux mêmes colonnes que le catalogue, puis ajoutez-la 
 `SOURCES`. N'utilisez que des sources dont les conditions d'utilisation autorisent
 la réutilisation (open data, API publiques, flux fournis par les organisateurs).
 
+## Tests
+
+```bash
+python3 -m unittest discover -s tests/python   # fusion des sources, calculs, géographie, index
+node --test tests/js/*.test.js                 # filtres, zone, disponibilités, favoris, décodage de l'index
+```
+
+Aucune dépendance : `unittest` (Python) et `node --test` (Node 18 ou plus) sont fournis d'origine.
+La logique des filtres et de la zone est dans `site/filtres.js`, sans DOM, pour être testable.
+Dans GitHub Actions, le workflow `tests.yml` tourne sur chaque PR et avant chaque mise à jour du site :
+si un test échoue, rien n'est publié. Après la collecte, un contrôle vérifie aussi que
+l'index publié correspond bien à `races.json`.
+
+Les tests marqués `expectedFailure` décrivent des défauts connus de la fusion des sources,
+à corriger (dédoublonnage).
+
 ## Lancer en local
 
 ```bash
-python3 scripts/build_db.py
+python3 scripts/build_db.py        # NO_GEOCODE=1 : géocodage par le cache seulement
 cd site && python3 -m http.server 8000
 # puis http://localhost:8000
 ```

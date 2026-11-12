@@ -106,9 +106,11 @@ class Geocoder:
     """Géocodage des communes : une seule requête pour toutes les communes de France
     (API Découpage administratif), puis recherche locale par nom + département."""
 
-    def __init__(self, cache):
+    def __init__(self, cache, online=True):
         self.cache = cache
         self.index = {}
+        if not online:  # NO_GEOCODE=1 : cache seulement
+            return
         try:
             url = "https://geo.api.gouv.fr/communes?fields=nom,codeDepartement,centre,population&format=json"
             communes = _get_json(url, timeout=120)
@@ -248,7 +250,7 @@ def main():
 
     cache = json.loads(GEOCODE_CACHE.read_text()) if GEOCODE_CACHE.exists() else {}
     missing = [n for n in races if n["lat"] is None or n["lon"] is None]
-    geocode = Geocoder(cache) if missing and os.environ.get("NO_GEOCODE") != "1" else None
+    geocode = Geocoder(cache, online=os.environ.get("NO_GEOCODE") != "1") if missing else None
     for n in missing:
         if geocode:
             res = geocode(n["ville"], n["code_postal"], n["departement_saisi"])

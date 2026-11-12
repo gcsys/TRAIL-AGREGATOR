@@ -29,12 +29,9 @@
   };
 
   // ---------- Outils ----------
+  const { safeUrl, norm, dateStart, haversine } = Filtres;
   const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
-  const safeUrl = (u) => (/^https?:\/\//i.test(u || "") ? u : null);
-  const norm = (s) => String(s || "").normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase().replace(/[^a-z0-9]+/g, " ").trim();
   const toDate = (d) => new Date((d.length === 7 ? d + "-01" : d) + "T00:00");
-  const dateStart = (d) => (d.length === 7 ? d + "-01" : d);
-  const dateEnd = (d) => (d.length === 7 ? d + "-31" : d);
   const iso = (d) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
   const fmtNum = (v) => (v == null ? "—" : Number(v).toLocaleString("fr-FR"));
   const cap = (s) => s.charAt(0).toUpperCase() + s.slice(1);
@@ -44,11 +41,6 @@
     if (!r.date) return "Date inconnue";
     if (r.date.length === 7) return cap(toDate(r.date).toLocaleDateString("fr-FR", { month: "long", year: "numeric" })) + " (à préciser)";
     return toDate(r.date).toLocaleDateString("fr-FR", { weekday: "short", day: "numeric", month: "short", year: "numeric" });
-  };
-  const haversine = (lat1, lon1, lat2, lon2) => {
-    const R = 6371, rad = Math.PI / 180;
-    const a = Math.sin(((lat2 - lat1) * rad) / 2) ** 2 + Math.cos(lat1 * rad) * Math.cos(lat2 * rad) * Math.sin(((lon2 - lon1) * rad) / 2) ** 2;
-    return 2 * R * Math.asin(Math.sqrt(a));
   };
   const fmtKm = (v) => (v < 10 ? v.toLocaleString("fr-FR", { maximumFractionDigits: 1 }) : Math.round(v).toLocaleString("fr-FR"));
 
@@ -623,58 +615,27 @@
     return n;
   }
 
-  const zoneActive = () => state.selDeps.size || state.selRegs.size || state.shapes.length || state.bbox || state.radius;
-  function inZone(r) {
-    if (!zoneActive()) return true;
-    if (r.departement_code && state.selDeps.has(r.departement_code)) return true;
-    if (r.region_code && state.selRegs.has(r.region_code)) return true;
-    if (r.lat == null) return false;
-    if (state.radius && haversine(state.radius.lat, state.radius.lon, r.lat, r.lon) <= state.radius.km) return true;
-    if (state.bbox) {
-      const [w, s, e, n] = state.bbox;
-      if (r.lon >= w && r.lon <= e && r.lat >= s && r.lat <= n) return true;
-    }
-    if (!state.shapes.length) return false;
-    const pt = turf.point([r.lon, r.lat]);
-    return state.shapes.some((s) => turf.booleanPointInPolygon(pt, s));
-  }
-
-  const between = (v, min, max) => (min == null || (v != null && v >= min)) && (max == null || (v != null && v <= max));
-  const profilOf = (r) => {
-    if (r.denivele_pos_m == null || !r.distance_km) return null;
-    const ratio = r.denivele_pos_m / r.distance_km;
-    return ratio < 25 ? "roulant" : ratio <= 50 ? "vallonne" : "montagne";
-  };
+  // Logique des filtres et de la zone : site/filtres.js (testée dans tests/js/).
+  const zone = () => ({ deps: state.selDeps, regs: state.selRegs, shapes: state.shapes, bbox: state.bbox, radius: state.radius });
+  const zoneActive = () => Filtres.zoneActive(zone());
+  const pip = (pt, poly) => turf.booleanPointInPolygon(pt, poly);
+  // Lit le formulaire une seule fois par rafraîchissement.
+  const readCriteria = () =>
+    Filtres.criteres({
+      q: norm($("#f-q").value), from: $("#f-from").value, to: $("#f-to").value,
+      months: state.months, profils: state.profils,
+      kmMin: num("#f-km-min"), kmMax: num("#f-km-max"), dMin: num("#f-d-min"), dMax: num("#f-d-max"),
+      keMin: num("#f-ke-min"), keMax: num("#f-ke-max"),
+      utmb: $("#f-utmb").value, ws: $("#f-ws").value, itra: num("#f-itra"), type: $("#f-type").value,
+      night: $("#f-night").checked, dplus: $("#f-dplus").checked, confirmed: $("#f-confirmed").checked, site: $("#f-site").checked,
+    });
 
   let dispoHidden = new Set(); // courses retirées par « Week-ends dispo » au dernier rafraîchissement
-  function passes(r, q) {
-    if (q && !r._hay.includes(q)) return false;
-    const from = $("#f-from").value, to = $("#f-to").value;
-    if (from && (!r.date || dateEnd(r.date) < from)) return false;
-    if (to && (!r.date || dateStart(r.date) > to)) return false;
-    if (state.months.size && (!r.date || !state.months.has(r.date.slice(0, 7)))) return false;
-    if (!between(r.distance_km, num("#f-km-min"), num("#f-km-max"))) return false;
-    if (!between(r.denivele_pos_m, num("#f-d-min"), num("#f-d-max"))) return false;
-    if (!between(r.km_effort, num("#f-ke-min"), num("#f-ke-max"))) return false;
-    if (state.profils.size && !state.profils.has(profilOf(r))) return false;
-    const u = $("#f-utmb").value;
-    if (u === "any" && !r.utmb_index) return false;
-    if (u === "none" && r.utmb_index) return false;
-    if (u && !["any", "none"].includes(u) && r.utmb_index !== u) return false;
-    const ws = $("#f-ws").value;
-    if (ws === "yes" && !r.utmb_world_series) return false;
-    if (ws === "no" && r.utmb_world_series) return false;
-    const itra = num("#f-itra");
-    if (itra != null && (r.itra_points_estimes ?? -1) < itra) return false;
-    if ($("#f-type").value && r.type !== $("#f-type").value) return false;
-    if ($("#f-night").checked && !r.nocturne) return false;
-    if ($("#f-dplus").checked && r.denivele_pos_m == null) return false;
-    if ($("#f-confirmed").checked && !(r.date && r.date.length === 10 && r.date_confirmee)) return false;
-    if ($("#f-site").checked && !(safeUrl(r.site_web) || safeUrl(r.lien_inscription))) return false;
+  function passes(r, c, z) {
+    if (!Filtres.dansZone(r, z, pip) || !Filtres.passe(r, c)) return false;
     if (Dispo.hiding() && Dispo.status(r) === "busy") return dispoHidden.add(evKey(r)), false;
     return true;
   }
-  const hay = (r) => (r._hay ??= " " + norm([r.nom, r.course, r.ville, r.organisateur, r.departement, r.departement_code, r.region].join(" ")));
 
   // ---------- Panneaux (filtres, zone) ----------
   let openPanelEl = null;
@@ -1201,8 +1162,8 @@
   function refresh(opts = {}) {
     const keep = opts.keep ? Math.max(shown, PAGE) : PAGE;
     dispoHidden = new Set();
-    const q = norm($("#f-q").value);
-    const rows = state.view ? viewRows() : state.races.filter((r) => inZone(r) && passes(hay(r) && r, q));
+    const c = readCriteria(), z = zone();
+    const rows = state.view ? viewRows() : state.races.filter((r) => passes(r, c, z));
     if (state.sort.k === "near" && !state.radius) state.sort = { k: "date", dir: 1 };
     curEvents = sortEvents(groupEvents(rows));
     const { k, dir } = state.sort;
