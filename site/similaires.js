@@ -2,7 +2,7 @@
  * Score de distance entre deux formats (plus petit = plus proche) :
  *   - distance : écart relatif (log), poids 3 ;
  *   - profil : écart de D+ par km, rapporté à 25 m/km, poids 1,5 (pénalité fixe si un D+ manque) ;
- *   - période : écart de jour dans l'année (sur un cercle), rapporté à 30 jours, poids 1 ;
+ *   - période : écart de jour dans l'année (sur un cercle), rapporté à 45 jours, plafonné à 2,5 ;
  *   - lieu : 0 même département, 0,4 même région, 1 sinon.
  * Une seule ligne par événement (son format le plus proche), jamais l'événement lui-même. */
 (function (root) {
@@ -29,7 +29,7 @@
     const ra = ratio(r), rc = ratio(c);
     parts.profil = ra != null && rc != null ? (Math.abs(ra - rc) / 25) * P.profil : P.profilInconnu;
     const ja = jour(r.date), jc = jour(c.date);
-    parts.periode = periode ? (ja && jc ? (ecartJours(ja.doy, jc.doy) / 30) * P.periode : P.periode) : 0;
+    parts.periode = periode ? (ja && jc ? Math.min(ecartJours(ja.doy, jc.doy) / 45, 2.5) * P.periode : P.periode) : 0;
     parts.lieu = r.departement_code && r.departement_code === c.departement_code ? 0 : r.region_code && r.region_code === c.region_code ? 0.4 : 1;
     parts.lieu *= P.lieu;
     return { total: parts.km + parts.profil + parts.periode + parts.lieu, parts };

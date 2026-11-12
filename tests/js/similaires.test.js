@@ -17,7 +17,7 @@ test("la course elle-même est exclue, une ligne par événement", () => {
 test("ordre : distance, puis profil, période et lieu", () => {
   const races = [
     ref,
-    c("loin-en-km", { distance_km: 60 }),
+    c("loin-en-km", { distance_km: 80 }),
     c("plat", { denivele_pos_m: 150 }),
     c("automne", { date: "2027-10-17" }),
     c("autre-region", { departement_code: "05", region_code: "93" }),
