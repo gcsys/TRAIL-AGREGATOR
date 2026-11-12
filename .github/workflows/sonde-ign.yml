@@ -1,0 +1,49 @@
+name: Sonde API isochrone IGN (temporaire)
+
+on:
+  push:
+    branches: [claude/p1-temps-de-route]
+    paths: [.github/workflows/sonde-ign.yml]
+
+jobs:
+  sonde:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Capacités du service
+        run: |
+          curl -sS -m 30 "https://data.geopf.fr/navigation/getcapabilities" -o cap.json -w "HTTP %{http_code} en %{time_total}s\n"
+          python3 -c "
+          import json; c=json.load(open('cap.json'))
+          for r in c.get('resources',[]):
+              print(r.get('id'), [o.get('id') for o in r.get('availableOperations',[])])
+          print(json.dumps(c.get('info',{}),ensure_ascii=False)[:600])
+          " || head -c 1500 cap.json
+      - name: Préflight CORS (comme un navigateur depuis github.io)
+        run: |
+          curl -sS -m 30 -X OPTIONS -D - -o /dev/null \
+            -H "Origin: https://gcsys.github.io" -H "Access-Control-Request-Method: GET" \
+            "https://data.geopf.fr/navigation/isochrone?point=4.3601,43.8367&resource=bdtopo-valhalla&costValue=3600&costType=time&profile=car" | grep -i -E "^HTTP|access-control|ratelimit|retry"
+      - name: Isochrones depuis Nîmes (30 min, 1 h, 2 h) et Millau
+        run: |
+          for res in bdtopo-valhalla bdtopo-pgr bdtopo-iso; do
+            for t in 1800 3600 7200; do
+              curl -sS -m 60 -D h.txt -o iso.json -H "Origin: https://gcsys.github.io" \
+                "https://data.geopf.fr/navigation/isochrone?point=4.3601,43.8367&resource=$res&costValue=$t&costType=time&profile=car&direction=departure&timeUnit=second&geometryFormat=geojson" \
+                -w "$res $t s : HTTP %{http_code} en %{time_total}s, %{size_download} octets\n"
+              grep -i -E "access-control-allow-origin|ratelimit|content-encoding" h.txt || echo "  (pas d'en-tête CORS)"
+              python3 -c "
+          import json; d=json.load(open('iso.json')); g=d.get('geometry') or {}
+          def n(x): return 1 if isinstance(x[0],(int,float)) else sum(n(y) for y in x)
+          print('  ', g.get('type'), 'points:', n(g['coordinates']) if g else '-', 'clés:', list(d)[:12])
+          " 2>/dev/null || head -c 300 iso.json; echo
+              sleep 1
+            done
+          done
+      - name: Rafale de 8 requêtes (limite annoncée 5/s)
+        run: |
+          for i in 1 2 3 4 5 6 7 8; do
+            curl -sS -m 60 -o /dev/null -w "%{http_code} " "https://data.geopf.fr/navigation/isochrone?point=3.078,44.098&resource=bdtopo-valhalla&costValue=$((900*i))&costType=time&profile=car&geometryFormat=geojson" &
+          done; wait; echo
+      - name: Géocodage (déjà utilisé par le site)
+        run: |
+          curl -sS -m 30 -D - -o /dev/null -H "Origin: https://gcsys.github.io" "https://data.geopf.fr/geocodage/search?q=nimes&type=municipality&limit=1" | grep -i -E "^HTTP|access-control"
