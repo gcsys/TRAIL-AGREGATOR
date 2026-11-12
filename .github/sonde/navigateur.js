@@ -83,5 +83,5 @@ setTimeout(() => { console.log("DÉLAI GLOBAL DÉPASSÉ"); process.exit(2); }, 2
 
   fs.writeFileSync(`${OUT}/journal.txt`, log.join("\n") + "\n");
   console.log(log.join("\n"));
-  await b.close();
+  process.exit(0); // b.close() peut rester bloqué sur des requêtes de tuiles en cours
 })().catch((e) => { console.log("ÉCHEC", e.message); process.exit(1); });
