@@ -40,6 +40,12 @@ cercle), puis filtrez les courses dans un tableau.
   quand la course n'est annoncée qu'au mois (« à confirmer par l'organisateur »), et changements de
   date relevés d'une semaine à l'autre. Calculé au build (`scripts/historique.py`), affiché par
   `site/historique.js` à partir de `site/data/historique.json` (environ 15 Ko, 3 Ko compressé).
+- Nouveautés : page `/nouveautes/` (lien sous le compteur de l'accueil et en pied de page) avec les
+  courses apparues, les dates confirmées et les D+ ajoutés des 4 dernières semaines, et flux Atom pour
+  un lecteur de flux : `/flux/nouveautes.xml` (tout), `/flux/dates-confirmees.xml`,
+  `/flux/region-<code>.xml` et `/flux/dep-<code>.xml`. Une nouveauté est datée du build où elle est
+  relevée ; ce qui arrive d'un coup (premier build, nouvelle source : plus de 100 événements et plus de
+  5 % de la base) n'est pas compté. Page et flux générés au déploiement (`scripts/nouveautes.py`, non versionnés).
 - Carte : points regroupés, fonds Plan (Plan IGN v2 de la Géoplateforme, sans clé), Relief (OpenTopoMap) et Satellite (Esri).
 - Filtres : mois, dates, distance, D+, profil (roulant, vallonné, montagne en m D+/km), km-effort,
   UTMB Index, World Series, ITRA, type, nocturne, D+ connu, date confirmée, site officiel.
@@ -67,9 +73,11 @@ Site 100 % statique, hébergé sur GitHub Pages, sans serveur ni base à adminis
 data/sources/catalogue.csv   catalogue des courses, éditable à la main ou par PR
 data/geocode_cache.json      cache du géocodage des villes
 data/archive/editions.json   archive des éditions (dates, formats, changements), jamais vidée
+data/archive/premiere_vue.json  apparition, date confirmée et D+ de chaque événement (nouveautés)
 scripts/build_db.py          import des sources -> site/data/races.json, index.json et detail/
 scripts/site_data.py         format des fichiers lus par le site (index léger + détail par région)
 scripts/quality.py           tableau de bord qualité -> site/qualite/index.html (généré au déploiement)
+scripts/nouveautes.py        nouveautés -> site/nouveautes/ et site/flux/*.xml (au déploiement)
 scripts/sources/             une source = un module avec fetch()
 site/                        le site publié (HTML/JS/CSS, données, contours)
 .github/workflows/           routine hebdomadaire + déploiement Pages

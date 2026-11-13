@@ -135,6 +135,7 @@ button { font: inherit; color: inherit; cursor: pointer; }
 .hero h1 { font-family: var(--font-display); font-weight: 700; font-size: clamp(2.3rem, 4.6vw, 3.9rem); line-height: .98; text-transform: uppercase; letter-spacing: .2px; max-width: 14ch; }
 .hero-sub { margin: 14px 0 0; font-size: 1.05rem; color: rgba(255, 255, 255, .82); max-width: 56ch; }
 .hero-sub b { color: #fff; font-weight: 700; }
+.hero-sub a { color: #fff; font-weight: 600; text-underline-offset: 3px; white-space: nowrap; }
 body.list-view .hero { display: none; }
 
 /* ===== Barre de recherche ===== */

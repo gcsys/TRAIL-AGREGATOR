@@ -23,6 +23,7 @@ sys.path.insert(0, str(ROOT / "scripts"))
 from sources import SOURCES  # noqa: E402
 import enrich  # noqa: E402
 import historique  # noqa: E402
+import nouveautes  # noqa: E402
 import site_data  # noqa: E402
 
 GEO = ROOT / "site" / "geo"
@@ -287,6 +288,7 @@ def main():
     # courses à venir (une date peut n'être connue qu'au mois près : AAAA-MM)
     races = [n for n in races if not n["date"] or n["date"] >= today[: len(n["date"])]]
     races.sort(key=lambda n: (n["date"] or "9999", n["nom"]))
+    nouveautes.ecrire_archive(races, today)  # jour d'apparition de chaque événement (page et flux des nouveautés)
 
     OUT.parent.mkdir(parents=True, exist_ok=True)
     generated_at = datetime.now(timezone.utc).isoformat(timespec="seconds")
