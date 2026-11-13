@@ -1063,6 +1063,11 @@
     const t = on ? "Dans mes listes" : "Ajouter à mes listes";
     return `<button type="button" class="icon-btn fav-btn${on ? " on" : ""}" data-act="fav" data-rid="${esc(r.id)}" aria-pressed="${on}" title="${t}" aria-label="${t}">${icon("star")}</button>`;
   };
+  const cmpBtn = (r) => {
+    const on = Comparateur.a(r.id);
+    const t = on ? "Retirer de la comparaison" : "Comparer ce format";
+    return `<button type="button" class="icon-btn cmp-btn${on ? " on" : ""}" data-act="cmp" data-rid="${esc(r.id)}" aria-pressed="${on}" title="${t}" aria-label="${t}"><svg aria-hidden="true" viewBox="0 0 24 24"><rect x="3.5" y="5" width="7" height="14" rx="1.5"/><rect x="13.5" y="5" width="7" height="14" rx="1.5"/></svg></button>`;
+  };
   const editBtn = (r) => `<button type="button" class="icon-btn" data-act="edit" data-rid="${esc(r.id)}" title="Compléter : D+, date, km, inscription" aria-label="Compléter les informations">${icon("edit")}</button>`;
 
   const ficheBtn = (key) => `<button type="button" class="link fiche-btn" data-act="fiche" data-key="${esc(key)}">Fiche et courses proches</button>`;
@@ -1070,7 +1075,7 @@
       <span class="f-km"><i class="dot" style="--dc:var(${distVar(r.distance_km)})"></i>${r.distance_km == null ? '<span class="dim">? km</span>' : `${fmtNum(r.distance_km)}<small>km</small>`}</span>
       ${r.denivele_pos_m == null ? '<span class="f-dp unknown">D+ ?</span>' : `<span class="f-dp">${fmtNum(r.denivele_pos_m)}<small> m D+</small></span>`}
       <span class="f-info">${courseLabel(r) ? `<span class="f-label">${esc(courseLabel(r))}</span>` : ""}${labelsHtml(r)}${editedTag(r)}</span>
-      <span class="f-acts">${editBtn(r)}${favBtn(r)}</span>
+      <span class="f-acts">${editBtn(r)}${cmpBtn(r)}${favBtn(r)}</span>
     </li>`;
 
   function evMeta(ev) {
@@ -1113,7 +1118,7 @@
       <td class="num">${r.denivele_pos_m == null ? '<span class="dim">?</span>' : fmtNum(r.denivele_pos_m) + " m"}</td>
       <td class="num">${r.km_effort == null ? '<span class="dim">—</span>' : fmtNum(r.km_effort)}</td>
       <td>${labelsHtml(r) || '<span class="dim">—</span>'}</td>
-      <td class="links">${[safeUrl(r.site_web) && `<a href="${esc(r.site_web)}" target="_blank" rel="noopener">Site</a>`, safeUrl(r.source_url) && `<a href="${esc(r.source_url)}" target="_blank" rel="noopener">Source</a>`].filter(Boolean).join("")}${editBtn(r)}</td>
+      <td class="links">${[safeUrl(r.site_web) && `<a href="${esc(r.site_web)}" target="_blank" rel="noopener">Site</a>`, safeUrl(r.source_url) && `<a href="${esc(r.source_url)}" target="_blank" rel="noopener">Source</a>`].filter(Boolean).join("")}${editBtn(r)}${cmpBtn(r)}</td>
     </tr>`;
 
   // ---------- Regroupement par course ----------
@@ -1332,6 +1337,7 @@
     renderCal();
     renderBanner(rows, curEvents);
     renderTokens();
+    syncCmp();
     renderDispoBar(curEvents);
     document.body.classList.toggle("list-view", !!state.view);
     state.view ? $("#nav-home").removeAttribute("aria-current") : $("#nav-home").setAttribute("aria-current", "page");
@@ -1653,6 +1659,61 @@
   });
 
   // ---------- Favoris : listes, corrections, partage ----------
+  // ---------- Comparateur (site/comparateur.js) ----------
+  const cmpRows = () => Comparateur.ids().map((id) => state.byId.get(id)).filter(Boolean);
+  function syncCmp() {
+    const n = cmpRows().length;
+    $("#cmp-bar").hidden = !n;
+    $("#cmp-n").textContent = n;
+    $$(".cmp-btn").forEach((b) => {
+      const on = Comparateur.a(b.dataset.rid);
+      b.classList.toggle("on", on);
+      b.setAttribute("aria-pressed", on);
+      b.title = b.ariaLabel = on ? "Retirer de la comparaison" : "Comparer ce format";
+    });
+  }
+  function basculerCmp(id) {
+    const r = Comparateur.basculer(id);
+    if (r === null) toast(`${Comparateur.MAX} formats au plus : retirez-en un pour en ajouter un autre.`);
+    else if (r && Comparateur.ids().length === 1) toast("Choisissez un ou plusieurs autres formats à comparer.");
+    syncCmp();
+    if ($("#dlg-cmp").open) renderCmp();
+  }
+  function renderCmp() {
+    const c = Estimation.chrono();
+    const pos = state.radius;
+    $("#cmp-body").innerHTML = Comparateur.html(cmpRows(), {
+      cle: evKey,
+      chrono: c ? Estimation.libelle(c) : "",
+      trajet: (r) => {
+        if (!pos || r.lat == null) return null;
+        const d = driveOf(r);
+        return d ? `≈ ${d.texte} de route` : `${fmtKm(haversine(pos.lat, pos.lon, r.lat, r.lon))} km à vol d'oiseau`;
+      },
+      temps: (r) => {
+        const e = c && Estimation.estimer(c, r);
+        return e ? `≈ ${Estimation.fourchette(e)}` : null;
+      },
+    }, esc);
+  }
+  $("#cmp-open").addEventListener("click", () => {
+    renderCmp();
+    openDlg("#dlg-cmp");
+  });
+  $("#cmp-clear").addEventListener("click", () => {
+    Comparateur.vider();
+    syncCmp();
+  });
+  $("#cmp-body").addEventListener("click", (e) => {
+    const b = e.target.closest("[data-cmp-retirer]");
+    if (!b) return;
+    e.preventDefault();
+    Comparateur.retirer(b.dataset.cmpRetirer);
+    syncCmp();
+    renderCmp();
+    if (!cmpRows().length) $("#dlg-cmp").close();
+  });
+
   const toast = (msg) => {
     const t = $("#toast");
     t.textContent = msg;
@@ -2230,6 +2291,7 @@
     e.stopPropagation();
     if (b.dataset.act === "fav") openFav(b.dataset.rid);
     else if (b.dataset.act === "edit") openEdit(b.dataset.rid);
+    else if (b.dataset.act === "cmp") basculerCmp(b.dataset.rid);
     else if (b.dataset.act === "fiche") openFiche(b.dataset.key, { rid: b.dataset.rid, push: !!b.closest("#dlg-fiche") });
     else if (b.dataset.act === "fiche-map") {
       $("#dlg-fiche").close();

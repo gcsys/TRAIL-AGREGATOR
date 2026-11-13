@@ -834,3 +834,28 @@ table.cal td.auj .cal-num span { background: var(--primary); color: #fff; border
   .cal-n { display: inline-block; }
   .cal-num { flex-direction: column; align-items: flex-start; gap: 2px; height: 100%; }
 }
+
+/* ---------- Comparateur (site/comparateur.js) ---------- */
+.cmp-btn svg { fill: none; stroke: currentColor; stroke-width: 1.8; }
+.cmp-btn.on { color: var(--primary); background: var(--primary-soft); }
+.cmp-bar { position: fixed; z-index: 1140; right: 24px; bottom: 24px; display: flex; gap: 8px; padding: 8px; border-radius: 999px; background: var(--surface); border: 1px solid var(--border); box-shadow: var(--shadow-lg); }
+.cmp-bar[hidden] { display: none; }
+.cmp-bar .btn { min-height: 40px; }
+.cmp-wrap { overflow-x: auto; }
+table.cmp { width: 100%; border-collapse: collapse; font-size: .9rem; }
+table.cmp th, table.cmp td { text-align: left; vertical-align: top; padding: 8px 10px; border-bottom: 1px solid var(--border); }
+table.cmp th { position: static; top: auto; z-index: auto; background: none; text-transform: none; letter-spacing: normal; font-size: .9rem; cursor: default; color: var(--text); white-space: normal; user-select: auto; }
+table.cmp thead th { position: relative; padding-right: 26px; min-width: 120px; vertical-align: bottom; }
+table.cmp tbody tr { cursor: default; }
+table.cmp tbody th { min-width: 0; }
+@media (max-width: 700px) { table.cmp thead th { min-width: 140px; } table.cmp tbody th { position: sticky; left: 0; background: var(--surface); z-index: 1; white-space: normal; min-width: 96px; } }
+table.cmp thead th .link { font-weight: 700; text-align: left; }
+table.cmp thead th .dim { display: block; font-size: .8rem; font-weight: 500; }
+table.cmp tbody th { font-weight: 600; color: var(--text-2); width: 9.5em; }
+table.cmp td { font-variant-numeric: tabular-nums; }
+.cmp-x { position: absolute; top: 6px; right: 2px; border: 0; background: none; font-size: 1.1rem; line-height: 1; color: var(--muted); cursor: pointer; padding: 2px 6px; border-radius: 6px; }
+.cmp-x:hover { background: var(--surface-2); color: var(--text); }
+@media (max-width: 1023px) {
+  .cmp-bar { left: 50%; right: auto; transform: translateX(-50%); bottom: calc(max(20px, calc(env(safe-area-inset-bottom) + 12px)) + 60px); }
+  body.map-mode .cmp-bar { display: none; }
+}

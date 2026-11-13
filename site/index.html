@@ -446,6 +446,19 @@
 </aside>
 
 <!-- ===== Dialogue : fiche d'une course ===== -->
+<div id="cmp-bar" class="cmp-bar" hidden>
+  <button type="button" class="btn primary" id="cmp-open">Comparer <b id="cmp-n">0</b></button>
+  <button type="button" class="btn ghost" id="cmp-clear">Vider</button>
+</div>
+<dialog id="dlg-cmp" class="dlg dlg-wide" aria-labelledby="cmp-title">
+  <form method="dialog" class="dlg-inner">
+    <header class="dlg-head">
+      <div><h3 id="cmp-title">Comparer les formats</h3><p class="dlg-sub">Jusqu'à 4 formats, choisis avec le bouton « comparer » de chaque ligne.</p></div>
+      <button class="dlg-x" value="close" aria-label="Fermer"><svg><use href="#i-x"/></svg></button>
+    </header>
+    <div id="cmp-body" class="fi-body"></div>
+  </form>
+</dialog>
 <dialog id="dlg-fiche" class="dlg dlg-wide" aria-labelledby="fi-title">
   <form method="dialog" class="dlg-inner">
     <header class="dlg-head">
@@ -620,6 +633,7 @@
 <script src="pratique.js?v=__BUILD__"></script>
 <script src="inscriptions.js?v=__BUILD__"></script>
 <script src="calendrier.js?v=__BUILD__"></script>
+<script src="comparateur.js?v=__BUILD__"></script>
 <script src="couverture.js?v=__BUILD__"></script>
 <script src="favoris.js?v=__BUILD__"></script>
 <script src="dispo.js?v=__BUILD__"></script>
