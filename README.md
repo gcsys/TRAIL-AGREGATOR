@@ -73,6 +73,7 @@ data/sources/catalogue.csv   catalogue des courses, éditable à la main ou par 
 data/geocode_cache.json      cache du géocodage des villes
 data/archive/editions.json   archive des éditions (dates, formats, changements), jamais vidée
 data/archive/premiere_vue.json  jour d'apparition de chaque événement (nouvelles courses)
+data/archive/sources.json    derniers relevés de chaque source (surveillance)
 scripts/build_db.py          import des sources -> site/data/races.json, index.json et detail/
 scripts/site_data.py         format des fichiers lus par le site (index léger + détail par région)
 scripts/quality.py           tableau de bord qualité -> site/qualite/index.html (généré au déploiement)
@@ -146,6 +147,21 @@ recalculée à chaque déploiement par `scripts/quality.py` à partir de `races.
 Le même résumé s'affiche dans l'onglet *Actions*, à la fin de chaque exécution. La page n'est pas
 versionnée (`site/qualite/` est ignoré par git) ; pour la voir en local : `python3 scripts/quality.py`.
 
+### Surveillance des sources
+
+À chaque build, `scripts/surveillance.py` compare chaque source à son relevé précédent
+(`data/archive/sources.json` : nombre de lignes, colonnes renseignées, remplissage de la date, de la
+ville, de la distance, du D+, des coordonnées et du site). Une issue « surveillance » est ouverte
+(ou complétée si elle l'est déjà) quand :
+
+- une source perd plus de 20 % de ses lignes (et au moins 10), ou n'en renvoie plus aucune ;
+- son format change : une colonne n'est plus jamais renseignée, ou un champ perd au moins 30 points
+  de remplissage ;
+- la collecte échoue (DATAtourisme : jeu de données injoignable, fichier ou colonnes absents) et la
+  dernière version connue a été utilisée.
+
+Une même alerte n'est signalée qu'une fois, pas à chaque build. Fermez l'issue une fois vérifié.
+
 ### Compléter un D+
 
 Ouvrez une issue « Compléter ou corriger une course », ou ajoutez une ligne à
@@ -160,7 +176,8 @@ s'ils sont vides, la ville est géocodée automatiquement.
 
 Créez `scripts/sources/ma_source.py` avec `NAME` et une fonction `fetch()` qui
 renvoie des dictionnaires aux mêmes colonnes que le catalogue, puis ajoutez-la à
-`SOURCES`. N'utilisez que des sources dont les conditions d'utilisation autorisent
+`SOURCES`. Facultatif : une variable `ETAT` (« direct », ou la raison d'un échec) que la
+surveillance des sources signale. N'utilisez que des sources dont les conditions d'utilisation autorisent
 la réutilisation (open data, API publiques, flux fournis par les organisateurs).
 
 ## Tests

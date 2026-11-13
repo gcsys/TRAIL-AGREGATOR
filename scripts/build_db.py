@@ -24,6 +24,7 @@ from sources import SOURCES  # noqa: E402
 import enrich  # noqa: E402
 import historique  # noqa: E402
 import nouveautes  # noqa: E402
+import surveillance  # noqa: E402
 import site_data  # noqa: E402
 
 GEO = ROOT / "site" / "geo"
@@ -236,11 +237,14 @@ def departement_par_point(races, deps):
 
 
 def main():
-    raw = []
+    raw, par_source = [], {}
     for src in SOURCES:
         rows = src.fetch()
         print(f"source {src.NAME}: {len(rows)} courses")
         raw.extend(rows)
+        par_source[src.NAME] = rows
+    # baisse forte ou changement de format d'une source -> surveillance.md (issue ouverte par le workflow)
+    surveillance.verifier(par_source, {s.NAME: getattr(s, "ETAT", None) for s in SOURCES})
 
     races, seen = [], set()
     for r in raw:
