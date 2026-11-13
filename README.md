@@ -46,6 +46,9 @@ cercle), puis filtrez les courses dans un tableau.
   `/flux/region-<code>.xml` et `/flux/dep-<code>.xml`. Une nouveauté est datée du build où elle est
   relevée ; ce qui arrive d'un coup (premier build, nouvelle source : plus de 100 événements et plus de
   5 % de la base) n'est pas compté. Page et flux générés au déploiement (`scripts/nouveautes.py`, non versionnés).
+- Couverture : sous le compteur de l'accueil, « couverture complète en Occitanie, PACA et
+  Auvergne-Rhône-Alpes, partielle ailleurs » ; le lien ouvre le nombre de courses à venir par région,
+  avec le niveau de couverture et le lien vers /qualite (`site/couverture.js`).
 - Carte : points regroupés, fonds Plan (Plan IGN v2 de la Géoplateforme, sans clé), Relief (OpenTopoMap) et Satellite (Esri).
 - Filtres : mois, dates, distance, D+, profil (roulant, vallonné, montagne en m D+/km), km-effort,
   UTMB Index, World Series, ITRA, type, nocturne, D+ connu, date confirmée, site officiel.

@@ -136,6 +136,7 @@ button { font: inherit; color: inherit; cursor: pointer; }
 .hero-sub { margin: 14px 0 0; font-size: 1.05rem; color: rgba(255, 255, 255, .82); max-width: 56ch; }
 .hero-sub b { color: #fff; font-weight: 700; }
 .hero-sub a { color: #fff; font-weight: 600; text-underline-offset: 3px; white-space: nowrap; }
+.hero-sub .linkish { font: inherit; color: #fff; font-weight: 600; background: none; border: 0; padding: 0; text-decoration: underline; text-underline-offset: 3px; cursor: pointer; }
 body.list-view .hero { display: none; }
 
 /* ===== Barre de recherche ===== */
@@ -777,3 +778,10 @@ tr:has(.dispo-dot.busy) td:first-child { box-shadow: inset 3px 0 0 var(--dispo-b
 .dispo-bar-legend span { display: inline-flex; align-items: center; gap: 6px; }
 .dispo-bar-actions { display: flex; gap: 8px; flex-wrap: wrap; }
 .dispo-bar-actions .btn { min-height: 34px; font-size: .85rem; }
+
+/* Couverture par région (dialogue de l'accueil) */
+.couv { list-style: none; margin: 0; padding: 0; display: grid; }
+.couv li { display: grid; grid-template-columns: 1fr auto auto; align-items: center; gap: 4px 12px; padding: 8px 2px; border-bottom: 1px solid var(--border); font-size: .9rem; }
+.couv-n { font-variant-numeric: tabular-nums; font-weight: 700; }
+.couv-barre { grid-column: 1 / -1; display: block; height: 6px; width: var(--p); min-width: 3px; border-radius: 3px; background: var(--primary); opacity: .7; }
+#couv-table { max-height: 50vh; overflow: auto; }
