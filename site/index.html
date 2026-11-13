@@ -547,6 +547,22 @@
   </form>
 </dialog>
 
+<!-- ===== Dialogue : couverture par région ===== -->
+<dialog id="dlg-couv" class="dlg">
+  <form method="dialog" class="dlg-inner">
+    <header class="dlg-head">
+      <div>
+        <p class="dlg-kicker">Couverture</p>
+        <h3>Courses connues par région</h3>
+      </div>
+      <button class="dlg-x" value="close" aria-label="Fermer"><svg><use href="#i-x"/></svg></button>
+    </header>
+    <p class="dlg-sub">Occitanie, PACA et Auvergne-Rhône-Alpes sont couvertes par toutes les sources : calendriers publics, RunTrail, GoTrail et DATAtourisme. Ailleurs, seules DATAtourisme (données des offices de tourisme) et quelques ajouts manuels alimentent la base : beaucoup de courses y manquent encore.</p>
+    <div id="couv-table"></div>
+    <p class="dlg-note">Courses à venir, toutes distances. Le détail (D+, dates confirmées, doublons) est sur la page <a href="qualite/">Qualité des données</a>. Une course manque ? <a href="https://github.com/gcsys/TRAIL-AGREGATOR/issues/new?template=completer-course.yml" target="_blank" rel="noopener">Signalez-la</a>.</p>
+  </form>
+</dialog>
+
 <!-- ===== Dialogue : week-ends indisponibles (bêta) ===== -->
 <dialog id="dlg-dispo" class="dlg">
   <form method="dialog" class="dlg-inner" id="dispo-form">
@@ -596,6 +612,7 @@
 <script src="estimation.js?v=__BUILD__"></script>
 <script src="ical.js?v=__BUILD__"></script>
 <script src="historique.js?v=__BUILD__"></script>
+<script src="couverture.js?v=__BUILD__"></script>
 <script src="favoris.js?v=__BUILD__"></script>
 <script src="dispo.js?v=__BUILD__"></script>
 <script src="app.js?v=__BUILD__"></script>

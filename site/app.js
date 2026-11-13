@@ -167,8 +167,14 @@
     return [...m.values()].map((t) => ({ ...t, lat: t.lat / t.n, lon: t.lon / t.n }));
   })();
 
+  const couverture = Couverture.calculer(state.eventsAll.values(), regName);
   const updated = new Date(data.generated_at).toLocaleDateString("fr-FR", { day: "numeric", month: "long", year: "numeric" });
-  $("#meta").innerHTML = `<b>${state.eventsAll.size.toLocaleString("fr-FR")}</b> courses et <b>${state.base.length.toLocaleString("fr-FR")}</b> formats partout en France. Mis à jour le ${updated}. <a href="nouveautes/">Nouveautés</a>`;
+  $("#meta").innerHTML = `<b>${state.eventsAll.size.toLocaleString("fr-FR")}</b> courses et <b>${state.base.length.toLocaleString("fr-FR")}</b> formats en France. Mis à jour le ${updated}. <a href="nouveautes/">Nouveautés</a>` +
+    (couverture.length ? `<br>${esc(Couverture.resume(couverture))} · <button type="button" class="linkish" id="couv-open">couverture par région</button>` : "");
+  $("#couv-open")?.addEventListener("click", () => {
+    $("#couv-table").innerHTML = Couverture.html(couverture, esc);
+    openDlg("#dlg-couv");
+  });
   $("#foot-meta").textContent = `Données mises à jour le ${updated}`;
 
   // ---------- Contours administratifs ----------
