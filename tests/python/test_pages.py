@@ -62,5 +62,39 @@ class Page(unittest.TestCase):
         self.assertEqual(len(xml.dom.minidom.parseString(x.encode()).getElementsByTagName("loc")), 2)
 
 
+class Listes(unittest.TestCase):
+    def setUp(self):
+        evs = P.evenements([f(), f(nom="Trail du Gard", ville="Nîmes", date="2027-06", departement_code="30",
+                                  departement="Gard", source="runtrail", date_confirmee=False),
+                            f(nom="Trail du Lot", ville="Cahors", date="2027-03-01", departement_code="46",
+                              departement="Lot")])
+        self.regs = P.regrouper(evs, P.attribuer_slugs(evs))
+        self.out = P.pages_listes(self.regs, "2026-11-16")
+
+    def test_regroupement(self):
+        self.assertEqual(sorted(self.regs["76"]["deps"]), ["12", "30", "46"])
+        self.assertEqual(sorted(self.out), ["", "aveyron-12", "gard-30", "lot-46", "occitanie"])
+
+    def test_indexation_comme_les_fiches(self):
+        self.assertTrue(self.out["aveyron-12"][1])
+        self.assertFalse(self.out["gard-30"][1])
+        self.assertFalse(self.out["occitanie"][1])  # contient une course RunTrail
+        self.assertIn('<meta name="robots" content="noindex">', self.out["gard-30"][0])
+        self.assertTrue(self.out[""][1])
+
+    def test_contenu(self):
+        h = self.out["occitanie"][0]
+        self.assertLess(h.index("Mars 2027"), h.index("Mai 2027"))
+        self.assertLess(h.index("Mai 2027"), h.index("Juin 2027"))
+        self.assertIn('href="../../?reg=76"', h)
+        self.assertIn('href="../../course/trail-des-templiers-millau-2027/"', h)
+        self.assertIn("lun. 1er", h)
+        self.assertIn("jour à préciser", h)
+        self.assertIn("à confirmer", h)
+        self.assertIn('href="../../?dep=30"', self.out["gard-30"][0])
+        self.assertIn("1 course à venir dans le département Gard (30, Occitanie) en 2027", self.out["gard-30"][0])
+        self.assertIn('href="../../trails/aveyron-12/"', P.page([f()], "x", "2026-11-16"))
+
+
 if __name__ == "__main__":
     unittest.main()

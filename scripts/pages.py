@@ -10,7 +10,10 @@ Indexation (décision du 2026-11-12) : seules les pages dont tous les formats vi
 Générées au déploiement à partir de races.json (non versionnées) :
 - site/course/<slug>/index.html
 - site/sitemap.xml (accueil + pages indexables)
-- site/data/pages.json : {"nom|ville|AAAA-MM": slug}, lu par la fiche pour son lien « Page de la course ».
+- site/data/pages.json : {"nom|ville|AAAA-MM": slug}, lu par la fiche pour son lien « Page de la course » ;
+- site/trails/ : sommaire par région, puis une page par région (site/trails/<region>/) et par département
+  (site/trails/<departement>-<code>/), courses classées par mois avec un lien vers la carte filtrée.
+  Même règle d'indexation : une liste n'est indexable que si toutes ses courses le sont.
 
 Bibliothèque standard uniquement.
 
@@ -32,6 +35,7 @@ import enrich  # noqa: E402  (même clé d'événement que le site)
 ROOT = Path(__file__).resolve().parents[1]
 RACES = ROOT / "site" / "data" / "races.json"
 PAGES = ROOT / "site" / "course"
+LISTES = ROOT / "site" / "trails"
 SITEMAP = ROOT / "site" / "sitemap.xml"
 TABLE = ROOT / "site" / "data" / "pages.json"
 SITE = "https://gcsys.github.io/TRAIL-AGREGATOR/"
@@ -222,7 +226,7 @@ def page(rows, slug_, generated_at):
 <a href="../../">← Toutes les courses</a>
 <p class="quand" style="margin-top:1.2em">{E(quand)}</p>
 <h1>{E(r['nom'])}</h1>
-<p class="lieu">{E(r['ville'])}{E(' · ' + r['departement'] + ' (' + r['departement_code'] + ')') if r.get('departement') else ''}{E(' · ' + r['region']) if r.get('region') else ''}</p>
+<p class="lieu">{E(r['ville'])}{' · <a href="../../trails/' + slug_dep(r) + '/">' + E(r['departement'] + ' (' + r['departement_code'] + ')') + '</a>' if r.get('departement') and r.get('departement_code') else ''}{E(' · ' + r['region']) if r.get('region') else ''}</p>
 {f'<p class="warn">{E(avert[0].upper() + avert[1:])}.</p>' if avert else ''}
 <div class="liens">{''.join(liens)}</div>
 <h2>Formats</h2>
@@ -233,6 +237,140 @@ Vérifiez toujours les informations auprès de l'organisateur avant de vous insc
 <a href="https://github.com/gcsys/TRAIL-AGREGATOR/issues/new?template=completer-course.yml">Signaler une erreur</a>.</p>
 </main></body></html>
 """
+
+
+# ----- Listes par région et département -----
+
+def slug_dep(r):
+    return f"{slug(r['departement'])}-{r['departement_code'].lower()}"
+
+
+def slug_reg(r):
+    return slug(r["region"])
+
+
+def regrouper(evs, slugs):
+    """{region_code: {"nom", "slug", "evs": [(rows, slug)], "deps": {code: {"nom", "slug", "evs"}}}}."""
+    regs = {}
+    for rows, s in zip(evs, slugs):
+        r = rows[0]
+        if not r.get("region_code") or not r.get("departement_code"):
+            continue
+        g = regs.setdefault(r["region_code"], {"nom": r["region"], "slug": slug_reg(r), "evs": [], "deps": {}})
+        g["evs"].append((rows, s))
+        d = g["deps"].setdefault(r["departement_code"], {"nom": r["departement"], "slug": slug_dep(r), "evs": []})
+        d["evs"].append((rows, s))
+    return regs
+
+
+def liste_indexable(items):
+    return bool(items) and all(indexable(rows) for rows, _ in items)
+
+
+def annees(items):
+    a = sorted({rows[0]["date"][:4] for rows, _ in items if rows[0]["date"]})
+    return a[0] if len(a) == 1 else f"{a[0]}-{a[-1]}" if a else ""
+
+
+def jour_court(d):
+    if len(d) < 10:
+        return "jour à préciser"
+    j = date.fromisoformat(d[:10])
+    return f"{JOURS[j.weekday()][:3]}. {'1er' if j.day == 1 else j.day}"
+
+
+def par_mois(items):
+    """Courses classées par mois : <h2> par mois, une ligne par événement."""
+    blocs, mois = [], None
+    for rows, s in items:
+        r = rows[0]
+        m = r["date"][:7]
+        if m != mois:
+            if mois:
+                blocs.append("</ul>")
+            mois = m
+            blocs.append(f'<h2>{E(MOIS[int(m[5:7]) - 1].capitalize())} {E(m[:4])}</h2><ul class="evs">')
+        dists = sorted({x["distance_km"] for x in rows if x["distance_km"] is not None})
+        f = ", ".join(km(x) for x in dists) or "formats à venir"
+        conf = "" if all(x.get("date_confirmee") for x in rows) else ' <span class="tag">à confirmer</span>'
+        blocs.append(f'<li><span class="j">{E(jour_court(r["date"]))}</span><span><a href="../../course/{E(s)}/">'
+                     f'{E(r["nom"])}</a>{conf}<br><span class="lib">{E(r["ville"])} · {E(f)}</span></span></li>')
+    if mois:
+        blocs.append("</ul>")
+    return "".join(blocs)
+
+
+LISTE_CSS = """
+.evs{list-style:none;padding:0;margin:0;background:var(--card);border:1px solid var(--border);border-radius:12px}
+.evs li{display:flex;gap:12px;padding:10px 14px;border-bottom:1px solid var(--border)}.evs li:last-child{border-bottom:0}
+.evs .j{flex:0 0 4.6em;color:var(--muted);font-variant-numeric:tabular-nums;font-size:.92rem;padding-top:1px}
+.tag{font-size:.75rem;border:1px solid var(--border);border-radius:999px;padding:1px 7px;color:var(--warn)}
+.deps{display:flex;flex-wrap:wrap;gap:8px;padding:0;list-style:none}.deps .n{color:var(--muted)}
+.regs{list-style:none;padding:0}.regs>li{margin:0 0 18px}.regs h2{margin:0 0 6px}
+"""
+
+
+def page_liste(titre, h1, intro, corps, url, idx, retour, generated_at):
+    return f"""<!doctype html>
+<html lang="fr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>{E(titre)} · Agregatrail</title>
+<meta name="description" content="{E(intro)}">
+{'<link rel="canonical" href="' + E(url) + '">' if idx else '<meta name="robots" content="noindex">'}
+<meta property="og:title" content="{E(titre)}"><meta property="og:description" content="{E(intro)}">
+<meta property="og:type" content="website"><meta property="og:url" content="{E(url)}">
+<style>{CSS}{LISTE_CSS}</style></head><body><main class="wrap">
+{retour}
+<h1>{E(h1)}</h1>
+<p class="lieu">{E(intro)}</p>
+{corps}
+<p class="note">Données mises à jour chaque semaine (base du {E('/'.join(reversed(generated_at[:10].split('-'))))}),
+issues de RunTrail, GoTrail, Miles Republic et DATAtourisme. Vérifiez toujours les informations auprès de
+l'organisateur avant de vous inscrire.</p>
+</main></body></html>
+"""
+
+
+def pluriel(n, mot):
+    return f"{n} {mot}{'s' if n > 1 else ''}"
+
+
+def pages_listes(regs, generated_at):
+    """{chemin relatif à site/trails/: (html, indexable)} ; chemin "" = sommaire."""
+    out = {}
+    racine = '<a href="../../">← Toutes les courses</a> · <a href="../">Toutes les régions</a>'
+    for code, g in sorted(regs.items(), key=lambda kv: kv[1]["nom"]):
+        idx = liste_indexable(g["evs"])
+        deps = "".join(f'<li><a class="btn" href="../{E(d["slug"])}/">{E(d["nom"])} ({E(c)})</a></li>'
+                       for c, d in sorted(g["deps"].items(), key=lambda kv: kv[1]["nom"]))
+        an = annees(g["evs"])
+        corps = (f'<div class="liens"><a class="btn primaire" href="../../?reg={E(code)}">Voir sur la carte</a></div>'
+                 f'<ul class="deps">{deps}</ul>{par_mois(g["evs"])}')
+        out[g["slug"]] = (page_liste(f"Trails en {g['nom']} {an} : calendrier", f"Trails · {g['nom']}",
+                                     f"{pluriel(len(g['evs']), 'course')} à venir en {g['nom']} ({an}), classées par mois : "
+                                     "dates, lieux et distances.",
+                                     corps, f"{SITE}trails/{g['slug']}/", idx, racine, generated_at), idx)
+        for c, d in g["deps"].items():
+            idx_d = liste_indexable(d["evs"])
+            an = annees(d["evs"])
+            retour = racine + f' · <a href="../{E(g["slug"])}/">{E(g["nom"])}</a>'
+            corps = (f'<div class="liens"><a class="btn primaire" href="../../?dep={E(c)}">Voir sur la carte</a></div>'
+                     f'{par_mois(d["evs"])}')
+            out[d["slug"]] = (page_liste(f"Trails {d['nom']} ({c}) {an} : calendrier", f"Trails · {d['nom']} ({c})",
+                                         f"{pluriel(len(d['evs']), 'course')} à venir dans le département {d['nom']} ({c}, "
+                                         f"{g['nom']}) en {an}, classées par mois : dates, lieux et distances.",
+                                         corps, f"{SITE}trails/{d['slug']}/", idx_d, retour, generated_at), idx_d)
+    items = []
+    for code, g in sorted(regs.items(), key=lambda kv: -len(kv[1]["evs"])):
+        deps = "".join(f'<li><a href="{E(d["slug"])}/">{E(d["nom"])}</a> <span class="n">{len(d["evs"])}</span></li>'
+                       for c, d in sorted(g["deps"].items(), key=lambda kv: kv[1]["nom"]))
+        items.append(f'<li><h2><a href="{E(g["slug"])}/">{E(g["nom"])}</a> <span class="n">'
+                     f'{E(pluriel(len(g["evs"]), "course"))}</span></h2><ul class="deps">{deps}</ul></li>')
+    n = sum(len(g["evs"]) for g in regs.values())
+    out[""] = (page_liste("Trails par région et département", "Trails par région",
+                          f"{pluriel(n, 'course')} à venir, classées par région et par département.",
+                          f'<ul class="regs">{"".join(items)}</ul>', f"{SITE}trails/", True,
+                          '<a href="../">← Toutes les courses</a>', generated_at), True)
+    return out
 
 
 def sitemap(urls):
@@ -257,9 +395,20 @@ def main():
         if indexable(rows):
             urls.append(f"{SITE}course/{s}/")
             n_idx += 1
+    if LISTES.exists():
+        shutil.rmtree(LISTES)
+    listes, n_listes = pages_listes(regrouper(evs, slugs), payload.get("generated_at", "")), 0
+    for chemin, (contenu, idx) in listes.items():
+        d = LISTES / chemin
+        d.mkdir(parents=True, exist_ok=True)
+        (d / "index.html").write_text(contenu, encoding="utf-8")
+        if idx:
+            urls.append(f"{SITE}trails/{chemin + '/' if chemin else ''}")
+            n_listes += 1
     SITEMAP.write_text(sitemap(urls), encoding="utf-8")
     TABLE.write_text(json.dumps(table, ensure_ascii=False, separators=(",", ":")) + "\n", encoding="utf-8")
-    print(f"pages : {len(evs)} événements dans site/course/, dont {n_idx} indexables (sitemap.xml)")
+    print(f"pages : {len(evs)} événements dans site/course/, dont {n_idx} indexables ; "
+          f"{len(listes)} listes dans site/trails/, dont {n_listes} indexables (sitemap.xml)")
 
 
 if __name__ == "__main__":
