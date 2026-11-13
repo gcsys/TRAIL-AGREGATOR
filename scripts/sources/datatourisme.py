@@ -98,18 +98,36 @@ def fetch():
     return rows
 
 
+COLONNES = ["Nom_du_POI", "Description", "Periodes_regroupees", "Code_postal_et_commune", "Latitude", "Longitude",
+            "URI_ID_du_POI", "Contacts_du_POI"]
+ETAT = None  # dernier état de la collecte, lu par la surveillance des sources (scripts/surveillance.py)
+
+
 def _fetch():
+    global ETAT
     try:
         meta = json.loads(_get(DATASET_API, timeout=60))
-        url = next(r["url"] for r in meta["resources"] if r["title"] == RESOURCE_TITLE)
+        url = next((r["url"] for r in meta["resources"] if r["title"] == RESOURCE_TITLE), None)
+        if url is None:
+            ETAT = f"format : fichier « {RESOURCE_TITLE} » absent du jeu de données"
+            print(f"  DATAtourisme : {ETAT}", file=sys.stderr)
+            return []
         raw = _get(url).decode("utf-8", errors="replace")
     except Exception as e:  # pas de réseau : la source est simplement ignorée
+        ETAT = f"indisponible : {e}"
         print(f"  DATAtourisme indisponible : {e}", file=sys.stderr)
         return []
     csv.field_size_limit(10**9)
     today = date.today().isoformat()
     rows = []
-    for r in csv.DictReader(io.StringIO(raw)):
+    lecteur = csv.DictReader(io.StringIO(raw))
+    absentes = [c for c in COLONNES if c not in (lecteur.fieldnames or [])]
+    if absentes:
+        ETAT = "format : colonnes absentes (" + ", ".join(absentes) + ")"
+        print(f"  DATAtourisme : {ETAT}", file=sys.stderr)
+        return []
+    ETAT = "direct"
+    for r in lecteur:
         name = (r.get("Nom_du_POI") or "").strip()
         desc = r.get("Description") or ""
         if not TRAIL_WORDS.search(name) or EXCLUDE_WORDS.search(name):
