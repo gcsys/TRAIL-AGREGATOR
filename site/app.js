@@ -1363,6 +1363,7 @@
     renderCal();
     renderBanner(rows, curEvents);
     renderSaison(rows);
+    renderGroupe(rows);
     renderTokens();
     syncCmp();
     renderDispoBar(curEvents);
@@ -1870,6 +1871,40 @@
     refresh({ keep: true });
   });
 
+  // Sortie à plusieurs (site/groupe.js) : liste perso modifiable, liste partagée en lecture
+  function renderGroupe(rows) {
+    const v = state.view, box = $("#groupe");
+    let g = null, edition = false;
+    if (v?.kind === "list") {
+      const s = Favoris.groupe(v.id);
+      if (s?.on) (g = s), (edition = true);
+    } else if (v?.kind === "shared" && v.data.groupe) g = { membres: Favoris.remapGroupe(v.data.groupe.membres, v.resolved) };
+    box.hidden = !g;
+    if (!g) return (box.innerHTML = "");
+    const garde = box.querySelector(".gp-form input[name=nom]")?.value || "";
+    box.innerHTML = Groupe.html(rows, g, esc, { edition });
+    if (garde && box.querySelector(".gp-form")) box.querySelector(".gp-form input[name=nom]").value = garde;
+  }
+  const majGroupe = (fn) => {
+    const id = state.view.id, g = Favoris.groupe(id);
+    Favoris.setGroupe(id, { membres: fn({ membres: g.membres.map((m) => ({ ...m, c: { ...m.c } })) }).membres });
+    refresh({ keep: true });
+  };
+  $("#groupe").addEventListener("submit", (e) => {
+    e.preventDefault();
+    if (state.view?.kind !== "list") return;
+    const f = e.target, nom = f.nom.value.trim();
+    if (!nom) return;
+    majGroupe((g) => Groupe.choisir(g, nom, f.id.value, f.dossard.value));
+    $("#groupe .gp-form input[name=dossard]").value = "";
+    toast(`Choix de ${nom} enregistré. Partagez la liste pour le transmettre.`);
+  });
+  $("#groupe").addEventListener("click", (e) => {
+    const b = e.target.closest("[data-gp-retirer]");
+    if (!b || state.view?.kind !== "list") return;
+    majGroupe((g) => Groupe.retirer(g, b.dataset.gpRetirer, b.dataset.gpId));
+  });
+
   function renderBanner(rows, evs) {
     const v = state.view;
     $("#list-banner").hidden = !v;
@@ -1882,6 +1917,7 @@
       $("#lb-note").textContent = `${plural(evs.length, "course")} · ${plural(rows.length, "format")}`;
       $("#lb-actions").innerHTML = `
         <button class="btn${Favoris.saison(v.id)?.on ? " on" : ""}" data-lb="saison" aria-pressed="${!!Favoris.saison(v.id)?.on}" title="Course objectif, écarts entre les courses">${icon("mountain")}Saison</button>
+        <button class="btn${Favoris.groupe(v.id)?.on ? " on" : ""}" data-lb="groupe" aria-pressed="${!!Favoris.groupe(v.id)?.on}" title="Qui court quel format, avec quel dossard">${icon("users")}À plusieurs</button>
         <button class="btn" data-lb="ics" title="Fichier .ics à ouvrir avec l'agenda du téléphone">${icon("calendar")}Agenda</button>
         <button class="btn" data-lb="share">${icon("share")}Partager</button>
         <button class="btn" data-lb="rename">${icon("edit")}Renommer</button>
@@ -1891,7 +1927,11 @@
       $("#lb-kicker").textContent = "Liste partagée";
       $("#lb-name").textContent = v.data.name;
       $("#lb-note").textContent = plural(evs.length, "course") + (lost ? ` · ${plural(lost, "course")} introuvable${lost > 1 ? "s" : ""} dans la base` : "");
-      $("#lb-actions").innerHTML = `<button class="btn" data-lb="ics" title="Fichier .ics à ouvrir avec l'agenda du téléphone">${icon("calendar")}Agenda</button><button class="btn primary" data-lb="import">${icon("star")}Enregistrer dans mes listes</button>`;
+      const suivie = v.data.groupe && Favoris.listeDuGroupe(v.data.groupe.gid);
+      $("#lb-actions").innerHTML = `<button class="btn" data-lb="ics" title="Fichier .ics à ouvrir avec l'agenda du téléphone">${icon("calendar")}Agenda</button>` +
+        (suivie
+          ? `<button class="btn primary" data-lb="import" title="Ajoute les nouvelles courses et les choix du groupe à « ${esc(suivie.name)} »">${icon("users")}Mettre à jour ma liste</button>`
+          : `<button class="btn primary" data-lb="import">${icon("star")}Enregistrer dans mes listes</button>`);
     }
   }
 
@@ -1903,18 +1943,22 @@
     if (act === "saison") {
       Favoris.setSaison(v.id, { on: !Favoris.saison(v.id)?.on });
       refresh({ keep: true });
+    } else if (act === "groupe") {
+      Favoris.setGroupe(v.id, { on: !Favoris.groupe(v.id)?.on });
+      refresh({ keep: true });
     } else if (act === "ics") exportIcs();
     else if (act === "share") shareList(v.id);
     else if (act === "rename") renameList(v.id);
     else if (act === "delete") deleteList(v.id);
     else if (act === "import") {
+      const maj = !!(v.data.groupe && Favoris.listeDuGroupe(v.data.groupe.gid));
       const l = Favoris.importShared(v.data, v.resolved, state.byId);
       rebuild();
       syncFavUi();
       state.view = null;
       history.replaceState({ app: true, view: { kind: "list", id: l.id } }, "", `${location.pathname}?liste=${encodeURIComponent(l.id)}`);
       setView({ kind: "list", id: l.id }, { push: false });
-      toast(`Liste « ${l.name} » enregistrée`);
+      toast(maj ? `Liste « ${l.name} » mise à jour avec les choix du groupe` : `Liste « ${l.name} » enregistrée`);
     }
   });
 

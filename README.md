@@ -70,6 +70,11 @@ cercle), puis filtrez les courses dans un tableau.
   objectif choisie, les courses de préparation (J-…) et celles d'après, l'écart en semaines et jours entre deux
   courses et une alerte sous un seuil réglable (3 semaines par défaut). Réglages gardés avec la liste
   (`site/saison.js`, `favoris.js`).
+- Sortie à plusieurs : dans une liste, le bouton « À plusieurs » permet d'indiquer qui court quel format, avec
+  son dossard. Sans serveur, ces choix voyagent dans le lien de partage (prénoms et dossards compris, à n'envoyer
+  qu'au groupe). Chacun ouvre le lien reçu et choisit « Mettre à jour ma liste » : les courses s'ajoutent et,
+  pour chaque personne, la modification la plus récente l'emporte, retraits compris (`site/groupe.js`,
+  `favoris.js`). Les choix datent de l'horloge de chaque téléphone.
 - Comparateur : bouton « comparer » sur chaque format (fiches et tableau), 4 formats au plus, gardés dans le
   navigateur (`ta.cmp.v1`). Le bouton « Comparer » ouvre un tableau côte à côte : date, lieu, distance, D+,
   D+/km, km-effort, trajet (route ou vol d'oiseau depuis le centre choisi), prix et temps estimé, les valeurs
