@@ -1,0 +1,20 @@
+{
+  "name": "Agregatrail · Le calendrier des trails en France",
+  "short_name": "Agregatrail",
+  "description": "Toutes les courses de trail en France sur une carte : recherche autour d'une ville, filtres distance, dénivelé et date, listes de favoris.",
+  "lang": "fr",
+  "dir": "ltr",
+  "id": "./",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#f4f5f2",
+  "theme_color": "#0d2a20",
+  "categories": ["sports", "travel"],
+  "icons": [
+    { "src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "icons/maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}

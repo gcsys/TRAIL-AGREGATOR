@@ -71,7 +71,7 @@ jobs:
       - name: Pages par événement, par région et département, sitemap (/course/, /trails/, /sitemap.xml)
         run: python scripts/pages.py
       - name: Version des fichiers (évite l'ancien code en cache dans les navigateurs)
-        run: sed -i "s/__BUILD__/${GITHUB_SHA::8}/g" site/index.html
+        run: sed -i "s/__BUILD__/${GITHUB_SHA::8}/g" site/index.html site/sw.js
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3
         with:
