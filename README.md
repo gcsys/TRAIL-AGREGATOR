@@ -61,6 +61,10 @@ cercle), puis filtrez les courses dans un tableau.
   les pages des courses et bouton « Voir sur la carte » (carte filtrée sur la région ou le département).
   Même règle d'indexation que les pages de courses : une liste n'est indexable que si toutes ses courses
   viennent d'une source ouverte. Générées au déploiement par `scripts/pages.py`.
+- Vue calendrier : troisième affichage à côté des fiches et du tableau (aussi sur mobile). Les courses
+  filtrées, mois par mois, dans une grille du lundi au dimanche (24 mois au plus) ; sur mobile, le nombre de
+  courses par jour et la liste du jour au toucher. Avec « Week-ends dispo », les week-ends libres sont
+  bordés de vert et les autres hachurés (`site/calendrier.js`).
 - Infos pratiques sur la fiche : itinéraire (OpenStreetMap, Google Maps, depuis le centre de recherche
   s'il y en a un), hébergement (Booking pour la nuit de la veille quand le jour est connu, carte des
   hébergements autour du départ) et covoiturage (BlaBlaCar le jour de la course). Simples liens de

@@ -171,6 +171,7 @@
         <div class="seg view-seg" role="group" aria-label="Affichage">
           <button type="button" data-mode="cards" class="active" title="Fiches"><svg aria-hidden="true"><use href="#i-list"/></svg><span class="sr">Fiches</span></button>
           <button type="button" data-mode="table" title="Tableau"><svg aria-hidden="true" viewBox="0 0 24 24"><rect x="4" y="5" width="16" height="14" rx="1.5"/><path d="M4 10h16M4 14.5h16M10 5v14"/></svg><span class="sr">Tableau</span></button>
+          <button type="button" data-mode="cal" title="Calendrier"><svg aria-hidden="true" viewBox="0 0 24 24"><rect x="4" y="5.5" width="16" height="14" rx="1.5"/><path d="M4 10h16M8.5 3.5v4M15.5 3.5v4"/></svg><span class="sr">Calendrier</span></button>
         </div>
         <button id="export" class="btn icon-only" title="Exporter les résultats en CSV" aria-label="Exporter en CSV">
           <svg aria-hidden="true"><use href="#i-download"/></svg>
@@ -190,6 +191,7 @@
     <ul id="cards" class="cards" aria-live="polite">
       <li class="ev skel" aria-hidden="true"></li><li class="ev skel" aria-hidden="true"></li><li class="ev skel" aria-hidden="true"></li>
     </ul>
+    <div id="cal" class="cal-wrap" hidden></div>
     <div class="table-wrap" hidden>
       <table id="races">
         <thead><tr>
@@ -617,6 +619,7 @@
 <script src="historique.js?v=__BUILD__"></script>
 <script src="pratique.js?v=__BUILD__"></script>
 <script src="inscriptions.js?v=__BUILD__"></script>
+<script src="calendrier.js?v=__BUILD__"></script>
 <script src="couverture.js?v=__BUILD__"></script>
 <script src="favoris.js?v=__BUILD__"></script>
 <script src="dispo.js?v=__BUILD__"></script>
