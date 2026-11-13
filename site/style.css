@@ -859,3 +859,24 @@ table.cmp td { font-variant-numeric: tabular-nums; }
   .cmp-bar { left: 50%; right: auto; transform: translateX(-50%); bottom: calc(max(20px, calc(env(safe-area-inset-bottom) + 12px)) + 60px); }
   body.map-mode .cmp-bar { display: none; }
 }
+
+/* ---------- Planificateur de saison (site/saison.js) ---------- */
+.lb-actions .btn.on { background: #fff; color: var(--brand); border-color: #fff; }
+#saison { margin: 0 0 18px; }
+.saison { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius, 14px); padding: 14px 16px; }
+.sz-head { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px 16px; }
+.sz-head h3 { margin: 0; font-size: 1.05rem; }
+.sz-head label { display: inline-flex; align-items: center; gap: 8px; font-size: .86rem; color: var(--text-2); }
+.sz-head select { font: inherit; padding: 4px 8px; border: 1px solid var(--border); border-radius: 8px; background: var(--surface); color: var(--text); }
+.sz-resume { margin: 8px 0 12px; font-size: .9rem; }
+.sz-liste { list-style: none; margin: 0; padding: 0; }
+.sz-course { display: grid; grid-template-columns: 6.6em 1fr auto; gap: 4px 12px; align-items: baseline; padding: 8px 0; }
+.sz-course.obj { background: var(--primary-soft); border-radius: 10px; padding: 8px 10px; margin: 0 -10px; }
+.sz-date { font-size: .85rem; color: var(--text-2); font-variant-numeric: tabular-nums; }
+.sz-nom .link { font-weight: 700; text-align: left; }
+.sz-nom .dim { font-size: .84rem; margin-left: 4px; }
+.sz-obj { background: var(--primary); color: #fff; }
+.sz-set { min-height: 32px; font-size: .8rem; padding: 0 10px; }
+.sz-gap { margin-left: 3.2em; padding: 2px 0 2px 14px; border-left: 2px dashed var(--border-strong); font-size: .8rem; color: var(--muted); }
+.sz-gap.alerte { border-left-color: var(--danger); color: var(--danger); font-weight: 600; }
+@media (max-width: 560px) { .sz-course { grid-template-columns: 1fr auto; } .sz-date { grid-column: 1 / -1; } .sz-gap { margin-left: 1em; } }

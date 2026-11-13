@@ -96,6 +96,15 @@
       if (i >= 0) F.gcSnaps();
       return i < 0;
     },
+    // ----- Saison (planificateur, site/saison.js) : {on, objectif, seuil} gardés avec la liste -----
+    saison: (listId) => F.get(listId)?.saison || null,
+    setSaison(listId, patch) {
+      const l = F.get(listId);
+      if (!l) return null;
+      l.saison = { on: true, objectif: null, seuil: 3, ...(l.saison || {}), ...patch };
+      saveLists();
+      return l.saison;
+    },
     has: (listId, raceId) => !!F.get(listId)?.ids.includes(raceId),
     isFav: (raceId) => lists.some((l) => l.ids.includes(raceId)),
     favCount: () => new Set(lists.flatMap((l) => l.ids)).size,
