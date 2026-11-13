@@ -1362,6 +1362,7 @@
     renderMore(keep);
     renderCal();
     renderBanner(rows, curEvents);
+    renderSaison(rows);
     renderTokens();
     syncCmp();
     renderDispoBar(curEvents);
@@ -1848,6 +1849,27 @@
   }
 
   // Bandeau de la liste consultée
+  // Planificateur de saison d'une liste (site/saison.js)
+  function renderSaison(rows) {
+    const v = state.view;
+    const s = v?.kind === "list" ? Favoris.saison(v.id) : null;
+    $("#saison").hidden = !s?.on;
+    if (!s?.on) return ($("#saison").innerHTML = "");
+    const a = Saison.analyser(rows.map((r) => ({ ...r, _key: evKey(r) })), s);
+    $("#saison").innerHTML = Saison.html(a, esc) || `<p class="dlg-note">Ajoutez des courses à cette liste pour construire votre saison.</p>`;
+  }
+  $("#saison").addEventListener("click", (e) => {
+    const b = e.target.closest("[data-sz-obj]");
+    if (!b || state.view?.kind !== "list") return;
+    Favoris.setSaison(state.view.id, { objectif: b.dataset.szObj || null });
+    refresh({ keep: true });
+  });
+  $("#saison").addEventListener("change", (e) => {
+    if (e.target.id !== "sz-seuil" || state.view?.kind !== "list") return;
+    Favoris.setSaison(state.view.id, { seuil: Number(e.target.value) });
+    refresh({ keep: true });
+  });
+
   function renderBanner(rows, evs) {
     const v = state.view;
     $("#list-banner").hidden = !v;
@@ -1859,6 +1881,7 @@
       $("#lb-name").textContent = l.name;
       $("#lb-note").textContent = `${plural(evs.length, "course")} · ${plural(rows.length, "format")}`;
       $("#lb-actions").innerHTML = `
+        <button class="btn${Favoris.saison(v.id)?.on ? " on" : ""}" data-lb="saison" aria-pressed="${!!Favoris.saison(v.id)?.on}" title="Course objectif, écarts entre les courses">${icon("mountain")}Saison</button>
         <button class="btn" data-lb="ics" title="Fichier .ics à ouvrir avec l'agenda du téléphone">${icon("calendar")}Agenda</button>
         <button class="btn" data-lb="share">${icon("share")}Partager</button>
         <button class="btn" data-lb="rename">${icon("edit")}Renommer</button>
@@ -1877,7 +1900,10 @@
     if (!b) return;
     const v = state.view;
     const act = b.dataset.lb;
-    if (act === "ics") exportIcs();
+    if (act === "saison") {
+      Favoris.setSaison(v.id, { on: !Favoris.saison(v.id)?.on });
+      refresh({ keep: true });
+    } else if (act === "ics") exportIcs();
     else if (act === "share") shareList(v.id);
     else if (act === "rename") renameList(v.id);
     else if (act === "delete") deleteList(v.id);

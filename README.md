@@ -66,6 +66,10 @@ cercle), puis filtrez les courses dans un tableau.
   (Entrée), les critères reconnus (distance, D+, mois, saison, période, rayon ou temps de route autour d'une
   commune, profil, nuit) deviennent des filtres, affichés en pastilles qu'on peut retirer ; le reste du texte
   reste une recherche par nom. Simples règles, sans service externe (`site/langage.js`).
+- Planificateur de saison : dans une liste, le bouton « Saison » range les courses par date, avec la course
+  objectif choisie, les courses de préparation (J-…) et celles d'après, l'écart en semaines et jours entre deux
+  courses et une alerte sous un seuil réglable (3 semaines par défaut). Réglages gardés avec la liste
+  (`site/saison.js`, `favoris.js`).
 - Comparateur : bouton « comparer » sur chaque format (fiches et tableau), 4 formats au plus, gardés dans le
   navigateur (`ta.cmp.v1`). Le bouton « Comparer » ouvre un tableau côte à côte : date, lieu, distance, D+,
   D+/km, km-effort, trajet (route ou vol d'oiseau depuis le centre choisi), prix et temps estimé, les valeurs
