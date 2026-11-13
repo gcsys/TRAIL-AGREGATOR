@@ -61,6 +61,10 @@ cercle), puis filtrez les courses dans un tableau.
   les pages des courses et bouton « Voir sur la carte » (carte filtrée sur la région ou le département).
   Même règle d'indexation que les pages de courses : une liste n'est indexable que si toutes ses courses
   viennent d'une source ouverte. Générées au déploiement par `scripts/pages.py`.
+- Comparateur : bouton « comparer » sur chaque format (fiches et tableau), 4 formats au plus, gardés dans le
+  navigateur (`ta.cmp.v1`). Le bouton « Comparer » ouvre un tableau côte à côte : date, lieu, distance, D+,
+  D+/km, km-effort, trajet (route ou vol d'oiseau depuis le centre choisi), prix et temps estimé, les valeurs
+  calculées marquées « calcul » (`site/comparateur.js`).
 - Vue calendrier : troisième affichage à côté des fiches et du tableau (aussi sur mobile). Les courses
   filtrées, mois par mois, dans une grille du lundi au dimanche (24 mois au plus) ; sur mobile, le nombre de
   courses par jour et la liste du jour au toucher. Avec « Week-ends dispo », les week-ends libres sont
