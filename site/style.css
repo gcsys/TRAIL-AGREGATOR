@@ -670,7 +670,7 @@ input[type="range"]::-moz-range-thumb { width: 22px; height: 22px; border-radius
     border-radius: 0; border: 0;
   }
   body.map-mode .searchbar, body.map-mode .site-footer { visibility: hidden; }
-  .view-seg { display: none; }
+  .view-seg [data-mode="table"] { display: none; }
   body.table-mode .cards { display: grid; }
   body.table-mode .table-wrap { display: none; }
   .map-tools { display: none; }
@@ -794,3 +794,43 @@ tr:has(.dispo-dot.busy) td:first-child { box-shadow: inset 3px 0 0 var(--dispo-b
 .couv-n { font-variant-numeric: tabular-nums; font-weight: 700; }
 .couv-barre { grid-column: 1 / -1; display: block; height: 6px; width: var(--p); min-width: 3px; border-radius: 3px; background: var(--primary); opacity: .7; }
 #couv-table { max-height: 50vh; overflow: auto; }
+
+/* ---------- Vue calendrier (site/calendrier.js) ---------- */
+body.cal-mode #cards { display: none; }
+.cal-wrap { display: grid; gap: 22px; }
+.cal-mois h3 { font-size: 1.05rem; margin: 0 0 8px; text-transform: capitalize; }
+.cal-mois h3 .dim { font-size: .85rem; font-weight: 500; text-transform: none; margin-left: 6px; }
+table.cal { width: 100%; table-layout: fixed; border-collapse: separate; border-spacing: 3px; }
+table.cal th { font-size: .72rem; font-weight: 600; color: var(--muted); text-align: left; padding: 0 4px 2px; }
+table.cal td { vertical-align: top; background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 3px; height: 64px; }
+table.cal td.vide { background: transparent; border-color: transparent; }
+table.cal td.we { background: var(--surface-2); }
+table.cal td.we-ok { box-shadow: inset 0 0 0 2px var(--primary-soft); }
+table.cal td.we-busy { background: repeating-linear-gradient(135deg, var(--surface-2) 0 6px, var(--surface-3) 6px 12px); }
+table.cal td.auj .cal-num span { background: var(--primary); color: #fff; border-radius: 999px; padding: 0 6px; }
+.cal-num { display: flex; align-items: center; justify-content: space-between; width: 100%; border: 0; background: none; padding: 1px 3px; font: inherit; font-size: .78rem; color: var(--text-2); cursor: pointer; border-radius: 6px; }
+.cal-num:disabled { cursor: default; }
+.cal-num.sel { background: var(--primary-soft); }
+.cal-n { display: none; min-width: 1.5em; text-align: center; font-size: .72rem; background: var(--primary); color: #fff; border-radius: 999px; padding: 0 5px; }
+.cal-evs { display: grid; gap: 2px; margin-top: 2px; }
+.cal-ev { display: block; width: 100%; text-align: left; border: 0; border-left: 3px solid var(--c); background: var(--surface-2); color: var(--text); font: inherit; font-size: .72rem; line-height: 1.25; padding: 2px 4px; border-radius: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; cursor: pointer; }
+.cal-ev:hover { background: var(--primary-soft); }
+.cal-plus { border: 0; background: none; color: var(--primary); font: inherit; font-size: .72rem; font-weight: 600; text-align: left; padding: 0 4px; cursor: pointer; }
+.cal-flous { margin: 8px 0 0; font-size: .85rem; display: flex; flex-wrap: wrap; gap: 4px 6px; align-items: center; }
+.cal-flous .cal-ev { width: auto; max-width: 100%; }
+.cal-jour { margin-top: 8px; padding: 10px 12px; border: 1px solid var(--border); border-radius: 10px; background: var(--surface); }
+.cal-jour h4 { margin: 0 0 6px; font-size: .92rem; }
+.cal-jour ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
+.cal-jour li { font-size: .88rem; }
+.cal-legende { margin: 0; display: flex; flex-wrap: wrap; gap: 4px 16px; font-size: .82rem; color: var(--muted); }
+.cal-legende span { display: inline-flex; align-items: center; gap: 6px; }
+.cal-we { display: inline-block; width: 16px; height: 12px; border-radius: 3px; border: 1px solid var(--border); background: var(--surface-2); }
+.cal-we.we-ok { box-shadow: inset 0 0 0 2px var(--primary-soft); }
+.cal-we.we-busy { background: repeating-linear-gradient(135deg, var(--surface-2) 0 3px, var(--surface-3) 3px 6px); }
+.cal-dot { display: inline-block; width: 9px; height: 9px; border-radius: 50%; background: var(--c); margin-right: 6px; vertical-align: 1px; }
+@media (max-width: 760px) {
+  table.cal td { height: 46px; }
+  .cal-evs { display: none; }
+  .cal-n { display: inline-block; }
+  .cal-num { flex-direction: column; align-items: flex-start; gap: 2px; height: 100%; }
+}

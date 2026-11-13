@@ -1213,10 +1213,11 @@
 
   // Fiches / tableau
   function setMode(m) {
-    state.mode = m === "table" ? "table" : "cards";
+    state.mode = m === "table" || m === "cal" ? m : "cards";
     store.set("ta.mode", state.mode);
     $$(".view-seg [data-mode]").forEach((b) => b.classList.toggle("active", b.dataset.mode === state.mode));
     document.body.classList.toggle("table-mode", state.mode === "table");
+    document.body.classList.toggle("cal-mode", state.mode === "cal");
     $(".table-wrap").hidden = state.mode !== "table" || !desk.matches;
     setTimeout(() => map.invalidateSize(), 50);
   }
@@ -1234,7 +1235,34 @@
   let shown = 0;
   const tableOn = () => state.mode === "table" && desk.matches;
 
+  const calOn = () => state.mode === "cal";
+  // Vue calendrier : toutes les courses filtrées d'un coup, mois par mois (site/calendrier.js)
+  const calOpts = () => ({ esc, dc: distVar, semaine: (d) => (Dispo.active() ? (Dispo.blocked(d) ? "busy" : "ok") : null) });
+  function renderCal() {
+    const legende = Dispo.active()
+      ? `<p class="cal-legende"><span><i class="cal-we we-ok"></i>week-end disponible</span><span><i class="cal-we we-busy"></i>week-end indisponible</span></p>`
+      : "";
+    $("#cal").innerHTML = calOn() ? legende + Calendrier.html(curEvents, calOpts()) : "";
+    $("#cal").hidden = !calOn() || !curEvents.length;
+  }
+  $("#cal").addEventListener("click", (e) => {
+    const b = e.target.closest("[data-jour]");
+    if (!b) return;
+    const box = b.closest(".cal-mois").querySelector(".cal-jour");
+    const d = b.dataset.jour;
+    const open = !box.hidden && box.dataset.jour === d;
+    $$("#cal .cal-num.sel").forEach((x) => x.classList.remove("sel"));
+    box.hidden = open;
+    box.dataset.jour = open ? "" : d;
+    if (!open) {
+      box.innerHTML = Calendrier.jourHtml(curEvents, d, esc, distVar);
+      b.closest("td").querySelector(".cal-num").classList.add("sel");
+      box.scrollIntoView({ block: "nearest", behavior: "smooth" });
+    }
+  });
+
   function renderMore(n = PAGE) {
+    if (calOn()) return ($("#more").hidden = true);
     if (tableOn()) {
       const slice = curRows.slice(shown, shown + n * 2);
       $("#races tbody").insertAdjacentHTML("beforeend", slice.map(rowHtml).join(""));
@@ -1301,6 +1329,7 @@
     $(".table-wrap").hidden = !tableOn() || !nEv;
     shown = 0;
     renderMore(keep);
+    renderCal();
     renderBanner(rows, curEvents);
     renderTokens();
     renderDispoBar(curEvents);
