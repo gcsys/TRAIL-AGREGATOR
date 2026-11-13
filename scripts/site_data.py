@@ -4,6 +4,8 @@
   (une liste par champ) avec dictionnaires pour les textes répétés (noms,
   communes, sites…). Contient tout ce qu'il faut aux filtres, à la liste, à la
   carte et aux fiches.
+  La table creuse « inscriptions » ({id: {statut, ouverture, mode, releve_le, prix}}) donne l'état
+  des inscriptions des rares formats relevés.
 - site/data/detail/<code région>.json : champs secondaires (code postal,
   heure de départ, participants, prix, notes, source), chargés à la demande.
 
@@ -75,6 +77,9 @@ def build_index(races, generated_at):
         "detail_fields": DETAIL_FIELDS,
         "dicts": dicts,
         "cols": cols,
+        # état des inscriptions (data/sources/inscriptions.csv), rare : table creuse par id, prix compris
+        "inscriptions": {r["id"]: {**r["inscription"], **({"prix": _num(r["prix_eur"])} if r.get("prix_eur") is not None else {})}
+                         for r in races if r.get("inscription")},
     }
 
 
@@ -89,6 +94,8 @@ def decode_index(index):
             r[f] = dicts[f][v] if f in dicts else v
         for b, k in enumerate(index["flags"]):
             r[k] = bool(cols["flags"][i] >> b & 1)
+        if r["id"] in index.get("inscriptions", {}):
+            r["inscription"] = {k: v for k, v in index["inscriptions"][r["id"]].items() if k != "prix"}
         out.append(r)
     return out
 

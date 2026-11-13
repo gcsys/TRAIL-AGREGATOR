@@ -134,6 +134,8 @@
   // ---------- Données ----------
   // Index léger (data/index.json) : le détail secondaire se charge à la demande (Donnees.withDetails).
   state.base = Donnees.decode(data, depName, regName);
+  // filtre « Inscriptions ouvertes » : affiché seulement quand au moins un format a un état relevé
+  $("#f-insc").closest("label").hidden = !state.base.some((r) => r.inscription);
   const baseById = new Map(state.base.map((r) => [r.id, r]));
   const evKey = (r) => `${norm(r.nom)}|${norm(r.ville)}|${(r.date || "").slice(0, 7)}`;
   function rebuild() {
@@ -587,7 +589,7 @@
     const v = $(id).value;
     return v === "" ? null : Number(v);
   };
-  const filterIds = ["#f-from", "#f-to", "#f-km-min", "#f-km-max", "#f-d-min", "#f-d-max", "#f-ke-min", "#f-ke-max", "#f-utmb", "#f-ws", "#f-itra", "#f-type", "#f-night", "#f-dplus", "#f-confirmed", "#f-site"];
+  const filterIds = ["#f-from", "#f-to", "#f-km-min", "#f-km-max", "#f-d-min", "#f-d-max", "#f-ke-min", "#f-ke-max", "#f-utmb", "#f-ws", "#f-itra", "#f-type", "#f-night", "#f-dplus", "#f-confirmed", "#f-site", "#f-insc"];
   filterIds.forEach((id) => $(id).addEventListener("input", () => refresh()));
   let qTimer;
   $("#f-q").addEventListener("input", () => {
@@ -709,7 +711,7 @@
     if (isOn("#f-km-min") || isOn("#f-km-max")) n++;
     if (isOn("#f-d-min") || isOn("#f-d-max") || state.profils.size) n++;
     if (isOn("#f-ke-min") || isOn("#f-ke-max")) n++;
-    ["#f-utmb", "#f-ws", "#f-itra", "#f-type", "#f-night", "#f-dplus", "#f-confirmed", "#f-site"].forEach((id) => isOn(id) && n++);
+    ["#f-utmb", "#f-ws", "#f-itra", "#f-type", "#f-night", "#f-dplus", "#f-confirmed", "#f-site", "#f-insc"].forEach((id) => isOn(id) && n++);
     return n;
   }
 
@@ -725,7 +727,7 @@
       kmMin: num("#f-km-min"), kmMax: num("#f-km-max"), dMin: num("#f-d-min"), dMax: num("#f-d-max"),
       keMin: num("#f-ke-min"), keMax: num("#f-ke-max"),
       utmb: $("#f-utmb").value, ws: $("#f-ws").value, itra: num("#f-itra"), type: $("#f-type").value,
-      night: $("#f-night").checked, dplus: $("#f-dplus").checked, confirmed: $("#f-confirmed").checked, site: $("#f-site").checked,
+      night: $("#f-night").checked, dplus: $("#f-dplus").checked, confirmed: $("#f-confirmed").checked, site: $("#f-site").checked, inscr: $("#f-insc").checked,
     });
 
   let dispoHidden = new Set(); // courses retirées par « Week-ends dispo » au dernier rafraîchissement
@@ -1379,6 +1381,7 @@
     if (isOn("#f-dplus")) t.push(["D+ connu", "#f-dplus"]);
     if (isOn("#f-confirmed")) t.push(["Date confirmée", "#f-confirmed"]);
     if (isOn("#f-site")) t.push(["Site officiel", "#f-site"]);
+    if (isOn("#f-insc")) t.push(["Inscriptions ouvertes", "#f-insc"]);
     $("#active-filters").hidden = !t.length;
     $("#active-filters").innerHTML = t.map(([l, id]) => tokenHtml(l, id)).join("") + (t.length > 1 ? `<button type="button" class="clear-all" data-tok="all">Tout effacer</button>` : "");
   }
@@ -1412,7 +1415,7 @@
   );
 
   // ---------- Lien de la page = recherche en cours ----------
-  const URL_INPUTS = { q: "#f-q", du: "#f-from", au: "#f-to", kmin: "#f-km-min", kmax: "#f-km-max", dmin: "#f-d-min", dmax: "#f-d-max", kemin: "#f-ke-min", kemax: "#f-ke-max", type: "#f-type", utmb: "#f-utmb", ws: "#f-ws", itra: "#f-itra", nuit: "#f-night", dplus: "#f-dplus", conf: "#f-confirmed", site: "#f-site" };
+  const URL_INPUTS = { q: "#f-q", du: "#f-from", au: "#f-to", kmin: "#f-km-min", kmax: "#f-km-max", dmin: "#f-d-min", dmax: "#f-d-max", kemin: "#f-ke-min", kemax: "#f-ke-max", type: "#f-type", utmb: "#f-utmb", ws: "#f-ws", itra: "#f-itra", nuit: "#f-night", dplus: "#f-dplus", conf: "#f-confirmed", site: "#f-site", insc: "#f-insc" };
   function writeUrl() {
     const p = new URLSearchParams();
     Object.entries(URL_INPUTS).forEach(([k, id]) => {
@@ -2149,6 +2152,7 @@
       <ul class="fmts">${rows.map(fmtRow).join("")}</ul>
       <div class="ev-links">${linksHtml(ev.links)}<button type="button" class="link" data-act="fiche-map" data-key="${esc(key)}">Voir sur la carte</button></div>
       ${estimationHtml(rows)}
+      ${Inscriptions.html(rows, esc)}
       ${Pratique.html(ref, state.radius, esc)}
       <div id="fi-hist"></div>
       <section class="fi-sec">

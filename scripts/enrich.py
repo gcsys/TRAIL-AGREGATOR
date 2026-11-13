@@ -7,6 +7,8 @@
   de ces sources (RunTrail et GoTrail pour un même événement).
 - Le fichier data/sources/denivele.csv (relevés manuels sur les sites des
   organisateurs ou contributions) complète le D+ et le site web.
+- Le fichier data/sources/inscriptions.csv (relevés manuels ou contributions) donne l'état des
+  inscriptions : statut, date d'ouverture, mode d'attribution, lien, prix, date du relevé.
 """
 import csv
 import re
@@ -15,6 +17,10 @@ from collections import defaultdict
 from pathlib import Path
 
 DPLUS_CSV = Path(__file__).resolve().parents[1] / "data" / "sources" / "denivele.csv"
+INSCR_CSV = DPLUS_CSV.with_name("inscriptions.csv")
+STATUTS = ("a_venir", "ouvertes", "complet", "fermees")
+MODES = ("libre", "tirage", "qualification")
+DATE = re.compile(r"\d{4}-\d{2}-\d{2}$")
 STOP = {"trail", "trails", "de", "du", "des", "la", "le", "les", "l", "d", "en", "et", "by", "course", "edition", "eme", "e",
         "nature", "urban", "ultra", "grand", "raid", "the", "of", "a", "au", "aux"}
 
@@ -197,3 +203,46 @@ def apply_dplus_file(races):
                     if not r["site_web"] and p.get("site_web"):
                         r["site_web"] = p["site_web"]
     print(f"denivele.csv : {n} D+ complétés")
+
+
+def apply_inscriptions_file(races, path=INSCR_CSV):
+    """État des inscriptions relevé à la main : r["inscription"] = {statut, ouverture, mode, releve_le}
+    (champs renseignés seulement), plus lien_inscription et prix_eur. Sans distance, la ligne vaut pour
+    tous les formats de l'événement ; le prix n'est alors repris que s'il n'y a qu'un format."""
+    if not path.exists():
+        return 0
+    by_city = defaultdict(list)
+    for r in races:
+        by_city[norm(r["ville"])].append(r)
+    n, rejets = 0, 0
+    with path.open(encoding="utf-8") as f:
+        for i, p in enumerate(csv.DictReader(f), start=2):
+            p = {k: (v or "").strip() for k, v in p.items()}
+            statut, mode = p.get("statut", ""), p.get("mode", "")
+            dates = [p.get("ouverture", ""), p.get("releve_le", "")]
+            if statut not in STATUTS + ("",) or mode not in MODES + ("",) or not all(DATE.match(d) for d in dates if d) \
+                    or not p.get("releve_le"):
+                print(f"inscriptions.csv ligne {i} ignorée (statut, mode ou date invalide, ou date de relevé absente)")
+                rejets += 1
+                continue
+            try:
+                km = float(p["distance_km"]) if p.get("distance_km") else None
+                prix = float(p["prix_eur"].replace(",", ".")) if p.get("prix_eur") else None
+            except ValueError:
+                print(f"inscriptions.csv ligne {i} ignorée (distance ou prix invalide)")
+                rejets += 1
+                continue
+            ev = [r for r in by_city.get(norm(p.get("ville")), [])
+                  if tokens(r["nom"]) & tokens(p.get("nom")) or norm(r["nom"]) == norm(p.get("nom"))]
+            cible = [r for r in ev if km is None or close(r["distance_km"], km)]
+            info = {k: v for k, v in (("statut", statut), ("ouverture", p.get("ouverture", "")), ("mode", mode),
+                                      ("releve_le", p["releve_le"])) if v}
+            for r in cible:
+                r["inscription"] = dict(info)
+                if p.get("lien_inscription", "").startswith(("https://", "http://")):
+                    r["lien_inscription"] = p["lien_inscription"]
+                if prix is not None and (km is not None or len(cible) == 1):
+                    r["prix_eur"] = prix
+                n += 1
+    print(f"inscriptions.csv : {n} formats renseignés" + (f", {rejets} lignes ignorées" if rejets else ""))
+    return n

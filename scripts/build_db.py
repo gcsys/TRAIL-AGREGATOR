@@ -258,6 +258,7 @@ def main():
     departement_par_point(races, deps)
     races = enrich.merge(races)
     enrich.apply_dplus_file(races)
+    enrich.apply_inscriptions_file(races)
     for n in races:  # D+ éventuellement complété : on recalcule les champs dérivés
         km, dplus = n["distance_km"], n["denivele_pos_m"]
         n["km_effort"] = round(km + dplus / 100, 1) if km is not None and dplus is not None else None
