@@ -10,11 +10,24 @@ for r in res:
     print("RES", r["title"], r.get("filesize"), r.get("last_modified", "")[:10])
 fma = [r for r in res if r["title"] == D.RESOURCE_TITLE]
 print("FMA", [(r["url"]) for r in fma])
-for r in fma:
-    try: D._get(r["url"], 60); print("FMA OK")
-    except Exception as e: print("FMA ERR", e)
+import urllib.request
+def essai(u, ua="trail-agregator/1.0", n=300):
+    try:
+        req = urllib.request.Request(u, headers={"User-Agent": ua, "Range": f"bytes=0-{n}"})
+        with urllib.request.urlopen(req, timeout=60) as resp:
+            print("ESSAI OK", resp.status, resp.geturl()[:150], repr(resp.read(n)[:n])); return True
+    except Exception as e:
+        print("ESSAI ERR", u[:150], e); return False
 occ = next(r for r in res if r["title"] == "datatourisme-reg-occ.csv")
-raw = D._get(occ["url"]).decode("utf-8", "replace")
+for r in fma + [occ]:
+    print("ID", r["id"], r.get("latest"), r.get("filetype"), r.get("type"))
+    essai(r["url"]); essai(r["url"], "Mozilla/5.0"); essai("https://www.data.gouv.fr/fr/datasets/r/" + r["id"]); essai(r.get("latest") or "x")
+raw = None
+for u in [occ.get("latest"), "https://www.data.gouv.fr/fr/datasets/r/" + occ["id"], occ["url"]]:
+    try:
+        raw = D._get(u).decode("utf-8", "replace"); print("TELECHARGE", u); break
+    except Exception as e:
+        print("ECHEC", u, e)
 rd = csv.DictReader(io.StringIO(raw))
 print("COLONNES", rd.fieldnames)
 rows = list(rd); print("LIGNES OCC", len(rows))
