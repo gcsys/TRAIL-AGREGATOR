@@ -102,7 +102,7 @@
         <div class="search" id="search-wrap">
           <svg aria-hidden="true"><use href="#i-search"/></svg>
           <label class="sr" for="f-q">Rechercher une course, une ville, un département</label>
-          <input type="search" id="f-q" placeholder="Course, ville, département…" autocomplete="off" enterkeyhint="search"
+          <input type="search" id="f-q" placeholder="Course, ville… ou « 20 km en mai près de Lyon »" title="Recherche par nom ou commune, ou en langage simple : distance, mois, temps de route, profil" autocomplete="off" enterkeyhint="search"
                  role="combobox" aria-autocomplete="list" aria-expanded="false" aria-controls="suggest">
           <button type="button" class="search-clear" id="q-clear" aria-label="Effacer la recherche" hidden><svg><use href="#i-x"/></svg></button>
           <ul id="suggest" class="suggest" role="listbox" hidden></ul>
@@ -634,6 +634,7 @@
 <script src="inscriptions.js?v=__BUILD__"></script>
 <script src="calendrier.js?v=__BUILD__"></script>
 <script src="comparateur.js?v=__BUILD__"></script>
+<script src="langage.js?v=__BUILD__"></script>
 <script src="couverture.js?v=__BUILD__"></script>
 <script src="favoris.js?v=__BUILD__"></script>
 <script src="dispo.js?v=__BUILD__"></script>
