@@ -52,7 +52,7 @@ jobs:
           fi
       - name: Tableau de bord qualité (page /qualite et résumé de l'exécution)
         run: python scripts/quality.py --summary "$GITHUB_STEP_SUMMARY"
-      - name: Nouvelles courses (page /nouveautes et flux Atom /flux/nouveautes.xml)
+      - name: Nouveautés (page /nouveautes et flux Atom /flux/)
         run: python scripts/nouveautes.py
       - name: Version des fichiers (évite l'ancien code en cache dans les navigateurs)
         run: sed -i "s/__BUILD__/${GITHUB_SHA::8}/g" site/index.html

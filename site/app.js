@@ -168,7 +168,7 @@
   })();
 
   const updated = new Date(data.generated_at).toLocaleDateString("fr-FR", { day: "numeric", month: "long", year: "numeric" });
-  $("#meta").innerHTML = `<b>${state.eventsAll.size.toLocaleString("fr-FR")}</b> courses et <b>${state.base.length.toLocaleString("fr-FR")}</b> formats partout en France. Mis à jour le ${updated}. <a href="nouveautes/">Nouvelles courses</a>`;
+  $("#meta").innerHTML = `<b>${state.eventsAll.size.toLocaleString("fr-FR")}</b> courses et <b>${state.base.length.toLocaleString("fr-FR")}</b> formats partout en France. Mis à jour le ${updated}. <a href="nouveautes/">Nouveautés</a>`;
   $("#foot-meta").textContent = `Données mises à jour le ${updated}`;
 
   // ---------- Contours administratifs ----------
