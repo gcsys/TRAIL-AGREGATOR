@@ -1,0 +1,144 @@
+{
+ "_alertes": {},
+ "catalogue": [
+  {
+   "le": "2026-11-13",
+   "releve": {
+    "colonnes": [
+     "code_postal",
+     "course",
+     "date",
+     "date_confirmee",
+     "denivele_pos_m",
+     "departement",
+     "distance_km",
+     "id",
+     "lat",
+     "lon",
+     "nocturne",
+     "nom",
+     "notes",
+     "organisateur",
+     "source",
+     "source_url",
+     "type",
+     "utmb_world_series",
+     "ville"
+    ],
+    "lignes": 3986,
+    "remplissage": {
+     "date": 1.0,
+     "denivele_pos_m": 0.002,
+     "distance_km": 0.999,
+     "lat": 0.002,
+     "ville": 1.0
+    }
+   }
+  }
+ ],
+ "datatourisme": [
+  {
+   "le": "2026-11-13",
+   "releve": {
+    "colonnes": [
+     "code_postal",
+     "course",
+     "date",
+     "date_confirmee",
+     "denivele_pos_m",
+     "departement",
+     "distance_km",
+     "id",
+     "lat",
+     "lon",
+     "nocturne",
+     "nom",
+     "site_web",
+     "source",
+     "source_url",
+     "type",
+     "utmb_world_series",
+     "ville"
+    ],
+    "etat": "direct",
+    "lignes": 211,
+    "remplissage": {
+     "date": 1.0,
+     "denivele_pos_m": 0.085,
+     "distance_km": 0.355,
+     "lat": 1.0,
+     "site_web": 0.815,
+     "ville": 1.0
+    }
+   }
+  }
+ ],
+ "gotrail": [
+  {
+   "le": "2026-11-13",
+   "releve": {
+    "colonnes": [
+     "course",
+     "date",
+     "date_confirmee",
+     "denivele_pos_m",
+     "detail",
+     "distance_km",
+     "id",
+     "lat",
+     "lon",
+     "nocturne",
+     "nom",
+     "site_web",
+     "source",
+     "source_url",
+     "type",
+     "utmb_world_series",
+     "ville"
+    ],
+    "lignes": 1038,
+    "remplissage": {
+     "date": 1.0,
+     "denivele_pos_m": 0.079,
+     "distance_km": 0.751,
+     "lat": 1.0,
+     "site_web": 0.998,
+     "ville": 1.0
+    }
+   }
+  }
+ ],
+ "runtrail": [
+  {
+   "le": "2026-11-13",
+   "releve": {
+    "colonnes": [
+     "course",
+     "date",
+     "date_confirmee",
+     "denivele_pos_m",
+     "departement",
+     "distance_km",
+     "heure_depart",
+     "id",
+     "nocturne",
+     "nom",
+     "organisateur",
+     "participants_max",
+     "source",
+     "source_url",
+     "type",
+     "utmb_world_series",
+     "ville"
+    ],
+    "lignes": 2547,
+    "remplissage": {
+     "date": 1.0,
+     "denivele_pos_m": 0.929,
+     "distance_km": 0.982,
+     "ville": 1.0
+    }
+   }
+  }
+ ]
+}
