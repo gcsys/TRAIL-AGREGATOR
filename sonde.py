@@ -8,11 +8,11 @@ for u in [D.DATASET_API, "https://www.data.gouv.fr/api/1/datasets/?q=datatourism
         j = json.loads(D._get(u, 60)); print("OK", u)
         for d in j.get("data", [j]):
             print("DS", d.get("id"), d.get("slug"), d.get("title"), d.get("organization", {}) and d["organization"].get("name"), d.get("last_update"), d.get("archived"), d.get("deleted"))
-            for r in d.get("resources", [])[:15]:
+            for r in [r for r in d.get("resources", []) if not r.get("title","").endswith(".nt.zip")][:12]:
                 print("   RES", r.get("title"), r.get("filesize"), r.get("format"), r.get("last_modified"), r.get("url"))
     except Exception as e:
         print("ERR", u, e)
-meta = json.loads(D._get("https://www.data.gouv.fr/api/1/datasets/datatourisme-2/", 60))
+print("FIN RECHERCHE"); sys.exit(0)
 for r in meta["resources"]:
     print("RES", r["title"], r.get("filesize"), r.get("format"), r["url"])
 url = next(r["url"] for r in meta["resources"] if r["title"] == D.RESOURCE_TITLE)
