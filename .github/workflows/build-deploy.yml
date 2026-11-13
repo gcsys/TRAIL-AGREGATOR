@@ -68,7 +68,7 @@ jobs:
         run: python scripts/quality.py --summary "$GITHUB_STEP_SUMMARY"
       - name: Nouveautés (page /nouveautes et flux Atom /flux/)
         run: python scripts/nouveautes.py
-      - name: Pages par événement et sitemap (/course/<slug>/, /sitemap.xml)
+      - name: Pages par événement, par région et département, sitemap (/course/, /trails/, /sitemap.xml)
         run: python scripts/pages.py
       - name: Version des fichiers (évite l'ancien code en cache dans les navigateurs)
         run: sed -i "s/__BUILD__/${GITHUB_SHA::8}/g" site/index.html

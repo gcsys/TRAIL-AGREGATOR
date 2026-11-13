@@ -56,6 +56,11 @@ cercle), puis filtrez les courses dans un tableau.
   `sitemap.xml` ; les autres portent `noindex`. Générées au déploiement (`scripts/pages.py`, non versionnées).
   Le site étant servi sous `/TRAIL-AGREGATOR/`, un `robots.txt` n'y serait pas lu : le sitemap se déclare
   dans Google Search Console.
+- Trails par région et département : `/trails/` (lien en pied de page) puis `/trails/<region>/` et
+  `/trails/<departement>-<code>/` (ex. `/trails/gard-30/`) : courses à venir classées par mois, liens vers
+  les pages des courses et bouton « Voir sur la carte » (carte filtrée sur la région ou le département).
+  Même règle d'indexation que les pages de courses : une liste n'est indexable que si toutes ses courses
+  viennent d'une source ouverte. Générées au déploiement par `scripts/pages.py`.
 - Carte : points regroupés, fonds Plan (Plan IGN v2 de la Géoplateforme, sans clé), Relief (OpenTopoMap) et Satellite (Esri).
 - Filtres : mois, dates, distance, D+, profil (roulant, vallonné, montagne en m D+/km), km-effort,
   UTMB Index, World Series, ITRA, type, nocturne, D+ connu, date confirmée, site officiel.
@@ -89,7 +94,8 @@ scripts/build_db.py          import des sources -> site/data/races.json, index.j
 scripts/site_data.py         format des fichiers lus par le site (index léger + détail par région)
 scripts/quality.py           tableau de bord qualité -> site/qualite/index.html (généré au déploiement)
 scripts/nouveautes.py        nouveautés -> site/nouveautes/ et site/flux/*.xml (au déploiement)
-scripts/pages.py             pages par événement -> site/course/, sitemap.xml, data/pages.json (au déploiement)
+scripts/pages.py             pages par événement et par région/département -> site/course/, site/trails/,
+                             sitemap.xml, data/pages.json (au déploiement)
 scripts/sources/             une source = un module avec fetch()
 site/                        le site publié (HTML/JS/CSS, données, contours)
 .github/workflows/           routine hebdomadaire + déploiement Pages
