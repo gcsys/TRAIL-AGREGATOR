@@ -3,7 +3,16 @@ from datetime import date
 sys.path.insert(0, "main/scripts")
 from sources import datatourisme as D
 csv.field_size_limit(10**9)
-meta = json.loads(D._get(D.DATASET_API, 60))
+for u in [D.DATASET_API, "https://www.data.gouv.fr/api/1/datasets/?q=datatourisme&page_size=20", "https://www.data.gouv.fr/api/1/datasets/datatourisme-2/"]:
+    try:
+        j = json.loads(D._get(u, 60)); print("OK", u)
+        for d in j.get("data", [j]):
+            print("DS", d.get("id"), d.get("slug"), d.get("title"), d.get("organization", {}) and d["organization"].get("name"), d.get("last_update"), d.get("archived"), d.get("deleted"))
+            for r in d.get("resources", [])[:15]:
+                print("   RES", r.get("title"), r.get("filesize"), r.get("format"), r.get("last_modified"), r.get("url"))
+    except Exception as e:
+        print("ERR", u, e)
+meta = json.loads(D._get("https://www.data.gouv.fr/api/1/datasets/datatourisme-2/", 60))
 for r in meta["resources"]:
     print("RES", r["title"], r.get("filesize"), r.get("format"), r["url"])
 url = next(r["url"] for r in meta["resources"] if r["title"] == D.RESOURCE_TITLE)
