@@ -192,10 +192,27 @@ ville, de la distance, du D+, des coordonnées et du site). Une issue « surveil
 
 Une même alerte n'est signalée qu'une fois, pas à chaque build. Fermez l'issue une fois vérifié.
 
-### Compléter un D+
+### Compléter un D+ ou une course : contributions
 
-Ouvrez une issue « Compléter ou corriger une course », ou ajoutez une ligne à
-`data/sources/denivele.csv` (nom, ville, distance, D+, site).
+Ouvrez une issue « Compléter ou corriger une course » (bouton « Ajouter une course » du site, ou
+« Proposer à la base » après une correction : le formulaire est prérempli avec l'identifiant de la course,
+la date, la distance, le D+, le site et le lien d'inscription). Le formulaire couvre aussi l'état des
+inscriptions (statut, ouverture, mode, prix).
+
+Quand la proposition est vérifiée, posez l'étiquette **« validé »** : le workflow
+`.github/workflows/contribution.yml` lance `scripts/contribution.py`, qui ajoute les lignes au bon fichier et
+ouvre une pull request liée à l'issue :
+
+- course déjà dans la base : D+ -> `data/sources/denivele.csv`, inscriptions -> `data/sources/inscriptions.csv` ;
+  une date différente, ou un D+ différent de celui déjà connu, est signalé dans la PR (à corriger à la main) ;
+- course inconnue : une ligne par format dans `data/sources/catalogue.csv` (date non confirmée).
+
+Le texte de l'issue est traité comme une donnée non fiable (longueurs, nombres bornés, dates, liens https
+seulement, pas de formule de tableur). Prérequis, une fois : créer l'étiquette « validé » et cocher
+*Settings > Actions > General > Allow GitHub Actions to create and approve pull requests*. Les PR ouvertes par
+le workflow ne relancent pas les tests automatiquement (limite de GitHub) : relancez-les depuis la PR si besoin.
+
+On peut aussi ajouter une ligne directement à `data/sources/denivele.csv` (nom, ville, distance, D+, site).
 
 ### Renseigner les inscriptions
 
