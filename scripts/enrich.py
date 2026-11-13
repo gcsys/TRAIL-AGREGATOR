@@ -238,7 +238,8 @@ def apply_inscriptions_file(races, path=INSCR_CSV):
             info = {k: v for k, v in (("statut", statut), ("ouverture", p.get("ouverture", "")), ("mode", mode),
                                       ("releve_le", p["releve_le"])) if v}
             for r in cible:
-                r["inscription"] = dict(info)
+                if len(info) > 1:  # au moins un statut, une ouverture ou un mode, en plus de la date du relevé
+                    r["inscription"] = dict(info)
                 if p.get("lien_inscription", "").startswith(("https://", "http://")):
                     r["lien_inscription"] = p["lien_inscription"]
                 if prix is not None and (km is not None or len(cible) == 1):

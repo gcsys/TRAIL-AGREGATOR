@@ -2042,9 +2042,11 @@
       nom: o.nom,
       ville: o.ville,
       date: v("#e-date") || (o.date && o.date.length === 10 ? o.date : ""),
+      departement: o.departement_code || "",
       formats: `${km} ; ${dplus}`,
-      site: v("#e-inscription") || v("#e-site") || o.site_web || "",
-      source: `Correction depuis Agregatrail (id ${o.id}). Source : `,
+      site: v("#e-site") || o.site_web || "",
+      inscription: v("#e-inscription") || o.lien_inscription || "",
+      ref: o.id,
     });
     window.open(`https://github.com/gcsys/TRAIL-AGREGATOR/issues/new?${p}`, "_blank", "noopener");
   });

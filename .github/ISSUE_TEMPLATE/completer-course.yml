@@ -1,8 +1,13 @@
 name: Compléter ou corriger une course
-description: Ajouter un D+, une date exacte, un lien d'inscription… ou signaler une course manquante.
+description: Ajouter un D+, une date exacte, l'état des inscriptions… ou signaler une course manquante.
 title: "[Course] "
 labels: ["données"]
 body:
+  - type: markdown
+    attributes:
+      value: |
+        Merci ! Une fois vérifiée, la proposition est transformée automatiquement en modification des
+        données (étiquette « validé »). Indiquez de préférence une information publiée par l'organisateur.
   - type: input
     id: nom
     attributes:
@@ -18,6 +23,12 @@ body:
     validations:
       required: true
   - type: input
+    id: departement
+    attributes:
+      label: Département (numéro)
+      description: Utile surtout pour une course qui manque.
+      placeholder: "83"
+  - type: input
     id: date
     attributes:
       label: Date (AAAA-MM-JJ)
@@ -26,7 +37,7 @@ body:
     id: formats
     attributes:
       label: Distances et D+
-      description: Une ligne par format, « km ; D+ en mètres ».
+      description: Une ligne par format, « km ; D+ en mètres ». Le D+ peut rester vide s'il n'est pas connu.
       placeholder: |
         166 ; 7500
         60 ; 3000
@@ -35,10 +46,49 @@ body:
   - type: input
     id: site
     attributes:
-      label: Site officiel ou lien d'inscription
+      label: Site officiel
       placeholder: https://…
+  - type: input
+    id: inscription
+    attributes:
+      label: Lien d'inscription
+      placeholder: https://…
+  - type: dropdown
+    id: statut
+    attributes:
+      label: Inscriptions
+      options:
+        - Je ne sais pas
+        - Pas encore ouvertes
+        - Ouvertes
+        - Complet
+        - Closes
+  - type: input
+    id: ouverture
+    attributes:
+      label: Date d'ouverture des inscriptions (AAAA-MM-JJ)
+      placeholder: 2027-01-10
+  - type: dropdown
+    id: mode
+    attributes:
+      label: Mode d'attribution des dossards
+      options:
+        - Je ne sais pas
+        - Inscription libre
+        - Tirage au sort
+        - Sur qualification
+  - type: input
+    id: prix
+    attributes:
+      label: Prix (si un seul format, ou celui du format principal)
+      placeholder: "45"
   - type: input
     id: source
     attributes:
       label: Où avez-vous trouvé l'information ?
       description: De préférence le site de l'organisateur.
+  - type: input
+    id: ref
+    attributes:
+      label: Identifiant Agregatrail
+      description: Rempli automatiquement depuis le site ; laissez vide sinon.

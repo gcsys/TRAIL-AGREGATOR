@@ -1,0 +1,69 @@
+name: Contribution validée
+
+# Une issue « Compléter ou corriger une course » étiquetée « validé » (étiquette que seuls les
+# mainteneurs peuvent poser) devient une pull request sur les fichiers de data/sources/.
+# Le texte de l'issue n'est jamais interprété par le shell : il passe par un fichier lu par Python.
+# Prérequis (une fois) : Settings > Actions > General > « Allow GitHub Actions to create and approve
+# pull requests ».
+
+on:
+  issues:
+    types: [labeled]
+
+permissions:
+  contents: write
+  pull-requests: write
+  issues: write
+
+concurrency:
+  group: contribution-${{ github.event.issue.number }}
+
+jobs:
+  pr:
+    if: github.event.label.name == 'validé'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Lignes de données depuis l'issue
+        id: lignes
+        env:
+          CORPS: ${{ github.event.issue.body }}
+          NUMERO: ${{ github.event.issue.number }}
+        run: |
+          printf '%s' "$CORPS" > "$RUNNER_TEMP/issue.md"
+          : > "$RUNNER_TEMP/resume.md"
+          set +e
+          python scripts/contribution.py "$RUNNER_TEMP/issue.md" "$NUMERO" "$RUNNER_TEMP/resume.md"
+          echo "code=$?" >> "$GITHUB_OUTPUT"
+      - name: Pull request
+        if: steps.lignes.outputs.code == '0'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          NUMERO: ${{ github.event.issue.number }}
+          TITRE: ${{ github.event.issue.title }}
+        run: |
+          branche="contribution/issue-$NUMERO"
+          if git ls-remote --exit-code --heads origin "$branche" >/dev/null; then
+            gh issue comment "$NUMERO" --body "Une pull request existe déjà pour cette contribution (branche \`$branche\`)."
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git checkout -b "$branche"
+          git add data/sources
+          git commit -m "Contribution de l'issue #$NUMERO"
+          git push origin "$branche"
+          printf '\n\nCloses #%s\n' "$NUMERO" >> "$RUNNER_TEMP/resume.md"
+          url=$(gh pr create --base main --head "$branche" --title "Contribution : ${TITRE#\[Course\] }" --body-file "$RUNNER_TEMP/resume.md")
+          gh issue comment "$NUMERO" --body "Merci ! Modification proposée : $url"
+      - name: Rien à ajouter
+        if: steps.lignes.outputs.code != '0'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          NUMERO: ${{ github.event.issue.number }}
+        run: |
+          { echo "Cette proposition n'a pas pu être transformée automatiquement :"; echo; cat "$RUNNER_TEMP/resume.md"; } > "$RUNNER_TEMP/commentaire.md"
+          gh issue comment "$NUMERO" --body-file "$RUNNER_TEMP/commentaire.md"
