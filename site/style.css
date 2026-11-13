@@ -647,7 +647,7 @@ input[type="range"]::-moz-range-thumb { width: 22px; height: 22px; border-radius
 
 .toast {
   position: fixed; z-index: 2000; left: 50%; bottom: max(84px, calc(env(safe-area-inset-bottom) + 76px)); transform: translateX(-50%);
-  background: var(--text); color: var(--surface); padding: 12px 18px; border-radius: 999px; font-size: .9rem; font-weight: 600;
+  background: var(--text); color: var(--surface); padding: 12px 18px; border-radius: 16px; text-align: center; line-height: 1.35; font-size: .9rem; font-weight: 600;
   box-shadow: var(--shadow-lg); max-width: calc(100vw - 32px);
 }
 

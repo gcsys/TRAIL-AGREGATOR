@@ -114,6 +114,20 @@ cercle), puis filtrez les courses dans un tableau.
   confirmer). Un bandeau résume l'effet ; le rythme se règle via « Régler l'alternance » (week-end de référence, période, garder
   ou non les rouges) ; réglage stocké dans le navigateur (`site/dispo.js`).
 
+## Application installable et hors ligne
+
+- Le site s'installe sur l'écran d'accueil (Android, iPhone via « Sur l'écran d'accueil », ordinateur) :
+  `site/manifest.webmanifest`, icônes dans `site/icons/` (dont une version « maskable »).
+- `site/sw.js` (service worker) : pages et données en « réseau d'abord » (la dernière version reçue sert
+  hors ligne), code et styles en « cache d'abord » (adresses versionnées `?v=…`). La liste à mettre en
+  cache est lue dans `index.html`. Chaque déploiement remplace `__BUILD__` dans `sw.js` comme dans
+  `index.html` : le nouveau service worker supprime l'ancien cache. Les autres sites (fonds de carte,
+  géocodage, temps de route) ne sont ni interceptés ni mis en cache.
+- Hors ligne : la liste des courses, les filtres, les listes de favoris, la saison, le calendrier et les
+  pages course déjà visitées restent disponibles ; un message le signale. Le fond de carte, la recherche de
+  commune et les temps de route demandent le réseau.
+- Environ 3 Mo gardés dans le navigateur (code, bibliothèques, données de base, contours).
+
 ## Accessibilité
 
 - Score Lighthouse accessibilité : 100 sur mobile (accueil, liste, calendrier, À propos, pages course et

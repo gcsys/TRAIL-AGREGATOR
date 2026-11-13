@@ -2426,6 +2426,17 @@
     }
   });
 
+  // ---------- Application installable et hors ligne (site/sw.js) ----------
+  const horsLigne = () =>
+    toast("Hors ligne : courses et listes de votre dernière visite. Fond de carte et trajets reviendront avec le réseau.");
+  window.addEventListener("offline", horsLigne);
+  window.addEventListener("online", () => toast("De nouveau en ligne."));
+  if (!navigator.onLine) setTimeout(horsLigne, 800);
+  if ("serviceWorker" in navigator && /^https?:$/.test(location.protocol)) {
+    const inscrire = () => navigator.serviceWorker.register("sw.js").catch((e) => console.warn("service worker", e));
+    document.readyState === "complete" ? inscrire() : window.addEventListener("load", inscrire);
+  }
+
   // ---------- Démarrage ----------
   setMode(desk.matches ? store.get("ta.mode", "cards") : "cards");
   syncFavUi();
