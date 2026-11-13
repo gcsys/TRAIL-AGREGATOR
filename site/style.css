@@ -570,6 +570,11 @@ input[type="range"]::-moz-range-thumb { width: 22px; height: 22px; border-radius
 .hist { list-style: none; margin: 0; padding: 0; display: grid; gap: 4px; }
 .hist li { display: flex; justify-content: space-between; gap: 12px; padding: 6px 12px; border-radius: var(--radius-sm); background: var(--surface-2); font-size: .88rem; }
 .hist-chg { padding: 8px 12px; border-radius: var(--radius-sm); background: var(--ws-bg); color: var(--ws-fg); }
+.pratique { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
+.pratique li { display: grid; grid-template-columns: 7.5em 1fr; align-items: baseline; gap: 12px; font-size: .9rem; }
+.pratique .pr-l { display: flex; flex-wrap: wrap; gap: 4px 14px; }
+.pratique a { font-weight: 600; text-decoration: none; }
+.pratique a:hover { text-decoration: underline; }
 .fi-fmts { display: flex; flex-wrap: wrap; gap: 6px; }
 .fi-fmts button { border: 1px solid var(--border-strong); background: var(--surface); border-radius: 999px; min-height: 32px; padding: 0 12px; font-size: .8rem; font-weight: 600; }
 .fi-fmts button.active { border-color: var(--primary); color: var(--primary); background: var(--primary-soft); }

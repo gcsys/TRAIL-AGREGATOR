@@ -2149,6 +2149,7 @@
       <ul class="fmts">${rows.map(fmtRow).join("")}</ul>
       <div class="ev-links">${linksHtml(ev.links)}<button type="button" class="link" data-act="fiche-map" data-key="${esc(key)}">Voir sur la carte</button></div>
       ${estimationHtml(rows)}
+      ${Pratique.html(ref, state.radius, esc)}
       <div id="fi-hist"></div>
       <section class="fi-sec">
         <h4>Courses qui ressemblent</h4>
