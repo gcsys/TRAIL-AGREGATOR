@@ -880,3 +880,31 @@ table.cmp td { font-variant-numeric: tabular-nums; }
 .sz-gap { margin-left: 3.2em; padding: 2px 0 2px 14px; border-left: 2px dashed var(--border-strong); font-size: .8rem; color: var(--muted); }
 .sz-gap.alerte { border-left-color: var(--danger); color: var(--danger); font-weight: 600; }
 @media (max-width: 560px) { .sz-course { grid-template-columns: 1fr auto; } .sz-date { grid-column: 1 / -1; } .sz-gap { margin-left: 1em; } }
+
+/* ---------- Sortie à plusieurs (site/groupe.js) ---------- */
+#groupe { margin: 0 0 18px; }
+.groupe { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius, 14px); padding: 14px 16px; }
+.gp-form { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 8px 10px; margin: 10px 0 6px; }
+.gp-form label { display: flex; flex-direction: column; gap: 3px; font-size: .78rem; color: var(--text-2); }
+.gp-form input, .gp-form select { font: inherit; font-size: .9rem; min-height: 36px; padding: 4px 8px; border: 1px solid var(--border); border-radius: 8px; background: var(--surface); color: var(--text); }
+.gp-form input[name=nom] { width: 9em; }
+.gp-form input[name=dossard] { width: 7em; }
+.gp-form select { max-width: 18em; }
+.gp-form .btn { min-height: 36px; }
+.gp-liste { list-style: none; margin: 8px 0 0; padding: 0; }
+.gp-format { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.3fr); gap: 4px 12px; padding: 8px 0; border-top: 1px solid var(--border); }
+.gp-nom { font-weight: 700; font-size: .92rem; }
+.gp-nom .dim { font-weight: 400; font-size: .82rem; }
+.gp-qui { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+.gp-puce { display: inline-flex; align-items: center; gap: 4px; background: var(--primary-soft); border-radius: 999px; padding: 2px 4px 2px 10px; font-size: .84rem; font-weight: 600; }
+.gp-puce:not(:has(.gp-x)) { padding-right: 10px; }
+.gp-dos { font-weight: 400; color: var(--text-2); font-variant-numeric: tabular-nums; }
+.gp-x { border: 0; background: none; color: var(--muted); font-size: 1rem; line-height: 1; width: 24px; height: 24px; border-radius: 50%; cursor: pointer; }
+.gp-x:hover { background: var(--surface); color: var(--danger); }
+.gp-format.vide .gp-nom { color: var(--text-2); }
+@media (max-width: 560px) {
+  .gp-format { grid-template-columns: 1fr; }
+  .gp-form label { flex: 1 1 40%; }
+  .gp-form input[name=nom], .gp-form input[name=dossard], .gp-form select { width: 100%; max-width: none; }
+  .gp-form label:has(select) { flex-basis: 100%; }
+}

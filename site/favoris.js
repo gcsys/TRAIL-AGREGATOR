@@ -105,6 +105,17 @@
       saveLists();
       return l.saison;
     },
+    // ----- Sortie à plusieurs (site/groupe.js) : {on, gid, membres} gardés avec la liste et transmis par le lien -----
+    groupe: (listId) => F.get(listId)?.groupe || null,
+    setGroupe(listId, patch) {
+      const l = F.get(listId);
+      if (!l) return null;
+      l.groupe = { on: true, gid: uid() + uid(), membres: [], ...(l.groupe || {}), ...patch };
+      saveLists();
+      return l.groupe;
+    },
+    // La liste locale qui suit ce groupe (même identifiant de groupe), pour la mettre à jour plutôt que la dupliquer.
+    listeDuGroupe: (gid) => (gid ? lists.find((l) => l.groupe?.gid === gid) : null) || null,
     has: (listId, raceId) => !!F.get(listId)?.ids.includes(raceId),
     isFav: (raceId) => lists.some((l) => l.ids.includes(raceId)),
     favCount: () => new Set(lists.flatMap((l) => l.ids)).size,
@@ -211,6 +222,11 @@
       const payload = { n: list.name, i: list.ids };
       if (Object.keys(e).length) payload.e = e;
       payload.s = s;
+      const g = list.groupe;
+      if (g && g.gid && (g.on || g.membres?.length)) {
+        const m = root.Groupe ? root.Groupe.compacter(g).membres : g.membres;
+        payload.g = { u: g.gid, m: m.map((x) => [x.n, x.c, x.t]) };
+      }
       const bytes = new TextEncoder().encode(JSON.stringify(payload));
       if (root.CompressionStream) {
         try {
@@ -236,7 +252,18 @@
         EDITABLE.forEach((k) => v && v[k] != null && (clean[k] = v[k]));
         e[id] = clean;
       });
-      return { name: String(p.n || "Liste partagée").slice(0, 60), ids: p.i.map(String), edits: e, hints: p.s || {} };
+      let groupe = null;
+      if (p.g && typeof p.g === "object" && Array.isArray(p.g.m)) {
+        const membres = p.g.m.map((x) => (Array.isArray(x) ? { n: x[0], c: x[1], t: x[2] } : x));
+        groupe = { gid: String(p.g.u || "").slice(0, 40), ...(root.Groupe ? root.Groupe.normaliser({ membres }) : { membres: [] }) };
+      }
+      return { name: String(p.n || "Liste partagée").slice(0, 60), ids: p.i.map(String), edits: e, hints: p.s || {}, groupe };
+    },
+
+    /* Les choix du groupe portent les identifiants de l'auteur du lien : on les traduit vers la base locale. */
+    remapGroupe(membres, resolved) {
+      const to = new Map(resolved.filter((x) => x.to).map((x) => [x.from, x.to]));
+      return (membres || []).map((m) => ({ ...m, c: Object.fromEntries(Object.entries(m.c).map(([id, d]) => [to.get(id) || id, d])) }));
     },
 
     /* Résout les identifiants d'une liste partagée contre la base locale. */
@@ -253,10 +280,24 @@
         .map((to, k) => ({ from: shared.ids[k], to }));
     },
 
-    /* Enregistre une liste partagée chez soi. Les corrections locales existantes gardent la priorité. */
+    /* Enregistre une liste partagée chez soi. Les corrections locales existantes gardent la priorité.
+     * Si la liste suit déjà ce groupe (sortie à plusieurs), elle est mise à jour au lieu d'être dupliquée :
+     * courses ajoutées, choix du groupe fusionnés personne par personne. */
     importShared(shared, resolved, byId) {
       const ids = resolved.filter((x) => x.to).map((x) => x.to);
-      const l = F.create(shared.name, ids);
+      const g = shared.groupe && { ...shared.groupe, membres: F.remapGroupe(shared.groupe.membres, resolved) };
+      let l = g && F.listeDuGroupe(g.gid);
+      if (l) {
+        l.ids = [...new Set([...l.ids, ...ids])];
+        l.groupe = { ...l.groupe, on: true, membres: root.Groupe ? root.Groupe.fusionner(l.groupe, g).membres : g.membres };
+        saveLists();
+      } else {
+        l = F.create(shared.name, ids);
+        if (g && g.gid) {
+          l.groupe = { on: true, gid: g.gid, membres: g.membres };
+          saveLists();
+        }
+      }
       resolved.forEach(({ from, to }) => {
         if (!to) return;
         const r = byId.get(to);
