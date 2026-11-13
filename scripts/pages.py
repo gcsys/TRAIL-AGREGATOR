@@ -385,7 +385,7 @@ def main():
     slugs = attribuer_slugs(evs)
     if PAGES.exists():
         shutil.rmtree(PAGES)
-    table, urls, n_idx = {}, [SITE], 0
+    table, urls, n_idx = {}, [SITE, f"{SITE}a-propos/"], 0
     for rows, s in zip(evs, slugs):
         d = PAGES / s
         d.mkdir(parents=True, exist_ok=True)

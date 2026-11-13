@@ -61,6 +61,9 @@ cercle), puis filtrez les courses dans un tableau.
   les pages des courses et bouton « Voir sur la carte » (carte filtrée sur la région ou le département).
   Même règle d'indexation que les pages de courses : une liste n'est indexable que si toutes ses courses
   viennent d'une source ouverte. Générées au déploiement par `scripts/pages.py`.
+- À propos : `/a-propos/` (lien en pied de page), page écrite à la main (`site/a-propos/index.html`) :
+  engagements (rien n'est vendu, pas de compte ni de mesure d'audience), sources et licences, méthode,
+  valeurs estimées, limites, comment contribuer. À tenir à jour quand une source ou une estimation change.
 - Carte : points regroupés, fonds Plan (Plan IGN v2 de la Géoplateforme, sans clé), Relief (OpenTopoMap) et Satellite (Esri).
 - Filtres : mois, dates, distance, D+, profil (roulant, vallonné, montagne en m D+/km), km-effort,
   UTMB Index, World Series, ITRA, type, nocturne, D+ connu, date confirmée, site officiel.
