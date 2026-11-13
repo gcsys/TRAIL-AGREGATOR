@@ -49,6 +49,13 @@ cercle), puis filtrez les courses dans un tableau.
 - Couverture : sous le compteur de l'accueil, « couverture complète en Occitanie, PACA et
   Auvergne-Rhône-Alpes, partielle ailleurs » ; le lien ouvre le nombre de courses à venir par région,
   avec le niveau de couverture et le lien vers /qualite (`site/couverture.js`).
+- Pages par événement : `/course/<nom>-<ville>-<année>/`, une page statique par course à venir (date,
+  lieu, formats, liens officiels, données structurées schema.org `SportsEvent`, lien « Voir sur la carte »).
+  La fiche de l'application y renvoie (« Page de la course »). Seules les pages dont toutes les données
+  viennent d'une source ouverte (DATAtourisme, Licence Ouverte) sont indexables et listées dans
+  `sitemap.xml` ; les autres portent `noindex`. Générées au déploiement (`scripts/pages.py`, non versionnées).
+  Le site étant servi sous `/TRAIL-AGREGATOR/`, un `robots.txt` n'y serait pas lu : le sitemap se déclare
+  dans Google Search Console.
 - Carte : points regroupés, fonds Plan (Plan IGN v2 de la Géoplateforme, sans clé), Relief (OpenTopoMap) et Satellite (Esri).
 - Filtres : mois, dates, distance, D+, profil (roulant, vallonné, montagne en m D+/km), km-effort,
   UTMB Index, World Series, ITRA, type, nocturne, D+ connu, date confirmée, site officiel.
@@ -82,6 +89,7 @@ scripts/build_db.py          import des sources -> site/data/races.json, index.j
 scripts/site_data.py         format des fichiers lus par le site (index léger + détail par région)
 scripts/quality.py           tableau de bord qualité -> site/qualite/index.html (généré au déploiement)
 scripts/nouveautes.py        nouveautés -> site/nouveautes/ et site/flux/*.xml (au déploiement)
+scripts/pages.py             pages par événement -> site/course/, sitemap.xml, data/pages.json (au déploiement)
 scripts/sources/             une source = un module avec fetch()
 site/                        le site publié (HTML/JS/CSS, données, contours)
 .github/workflows/           routine hebdomadaire + déploiement Pages
