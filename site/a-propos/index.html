@@ -1,0 +1,113 @@
+<!doctype html>
+<html lang="fr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>À propos et sources · Agregatrail</title>
+<meta name="description" content="Comment Agregatrail rassemble le calendrier des trails en France : sources et licences, méthode, estimations, limites, comment contribuer. Gratuit, sans publicité ni compte.">
+<link rel="canonical" href="https://gcsys.github.io/TRAIL-AGREGATOR/a-propos/">
+<meta property="og:title" content="À propos et sources · Agregatrail">
+<meta property="og:description" content="Sources, méthode, limites et contributions. Gratuit, sans publicité ni compte.">
+<meta property="og:type" content="website"><meta property="og:url" content="https://gcsys.github.io/TRAIL-AGREGATOR/a-propos/">
+<style>
+:root{--bg:#f6f5f1;--card:#fff;--fg:#17201b;--muted:#5d675f;--border:#e2e0d8;--accent:#177a4c}
+@media (prefers-color-scheme:dark){:root{--bg:#101512;--card:#18201b;--fg:#e8ece8;--muted:#9aa59d;--border:#2a342e;--accent:#4cc38a}}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--fg);font:16px/1.6 system-ui,-apple-system,"Segoe UI",sans-serif}
+.wrap{max-width:760px;margin:0 auto;padding:20px 16px 56px}a{color:var(--accent)}
+h1{font-size:1.9rem;line-height:1.2;margin:1em 0 .3em}h2{font-size:1.15rem;margin:2em 0 .5em}
+.intro{color:var(--muted);margin:0 0 1em}ul{padding-left:1.2em}li{margin:.3em 0}
+.card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:4px 16px;overflow-x:auto}
+table{width:100%;border-collapse:collapse}th,td{text-align:left;padding:10px 8px;border-bottom:1px solid var(--border);vertical-align:top}
+tr:last-child td{border-bottom:0}th{font-size:.8rem;color:var(--muted);font-weight:600}
+.engage{background:var(--card);border:1px solid var(--border);border-left:4px solid var(--accent);border-radius:12px;padding:12px 16px}
+.engage ul{margin:.4em 0}.note{color:var(--muted);font-size:.9rem}
+@media (max-width:560px){.card thead{display:none}.card tr{display:block;padding:10px 0;border-bottom:1px solid var(--border)}
+.card tr:last-child{border-bottom:0}.card td{display:block;border:0;padding:2px 0}.card td:first-child{font-weight:600}
+.card td:last-child{color:var(--muted);font-size:.9rem}}
+nav.sommaire{display:flex;flex-wrap:wrap;gap:6px 14px;font-size:.95rem}
+</style></head><body><main class="wrap">
+<a href="../">← Toutes les courses</a>
+<h1>À propos d'Agregatrail</h1>
+<p class="intro">Agregatrail rassemble sur une carte le calendrier des trails en France, pour trouver une course
+par zone, par date, par distance et par dénivelé. C'est un projet personnel et bénévole, dont le code est
+ouvert.</p>
+<nav class="sommaire" aria-label="Sur cette page">
+  <a href="#engagements">Engagements</a><a href="#sources">Sources et licences</a><a href="#methode">Méthode</a>
+  <a href="#estimations">Estimations</a><a href="#limites">Limites</a><a href="#contribuer">Contribuer</a>
+</nav>
+
+<h2 id="engagements">Engagements</h2>
+<div class="engage"><ul>
+  <li><b>Rien n'est vendu</b> : pas de publicité, pas d'inscription payante, pas de lien affilié, pas de revente de données.</li>
+  <li><b>Pas de compte et pas de mesure d'audience</b> : vos listes de courses, vos week-ends disponibles et vos
+    corrections restent dans votre navigateur (stockage local). Une liste ne quitte votre appareil que si vous
+    partagez son lien.</li>
+  <li><b>Services tiers limités au nécessaire</b> : les fonds de carte (IGN, OpenTopoMap, Esri), la recherche
+    d'adresse (Base Adresse Nationale) et le calcul du temps de route (Géoplateforme IGN) reçoivent votre adresse
+    IP quand vous les utilisez, comme pour toute carte en ligne. Aucune clé ni aucun serveur propre au site.</li>
+  <li><b>L'organisateur fait foi</b> : chaque course renvoie vers son site officiel. Vérifiez toujours la date,
+    le parcours et les conditions d'inscription auprès de lui.</li>
+</ul></div>
+
+<h2 id="sources">Sources et licences</h2>
+<p>La collecte automatique ne vise que des sources dont les conditions et le fichier robots.txt autorisent la
+réutilisation. Elle respecte au moins 3 secondes entre deux requêtes et ne contourne aucune protection.</p>
+<div class="card"><table>
+<thead><tr><th>Source</th><th>Ce qu'elle apporte</th><th>Conditions</th></tr></thead>
+<tbody>
+<tr><td><a href="https://www.data.gouv.fr/fr/datasets/datatourisme-2/">DATAtourisme</a></td><td>Événements trail saisis par les offices de tourisme, dans toute la France : dates, site officiel, parfois le D+</td><td>Licence Ouverte 2.0</td></tr>
+<tr><td><a href="https://www.runtrail.run">RunTrail</a></td><td>Trails d'Occitanie, de PACA et d'Auvergne-Rhône-Alpes : D+ par format</td><td>robots.txt ouvert, usage personnel</td></tr>
+<tr><td><a href="https://gotrail.run">GoTrail</a></td><td>Calendriers régionaux : dates, coordonnées, distances</td><td>robots.txt ouvert, usage personnel</td></tr>
+<tr><td>Miles Republic</td><td>Une partie du catalogue initial d'Occitanie et de PACA, relevée sur ses listes publiques</td><td>Relevé sur des pages publiques ; conditions d'utilisation en cours de vérification</td></tr>
+<tr><td>Organisateurs et visiteurs</td><td>Corrections et dénivelés relevés sur les sites officiels ou proposés via le formulaire</td><td>Contributions</td></tr>
+</tbody></table></div>
+<p class="note">Seules les pages de courses issues entièrement d'une source ouverte (DATAtourisme) sont proposées aux
+moteurs de recherche ; les autres restent consultables mais ne sont pas indexées.</p>
+<p>Sources écartées, parce que leurs conditions ou leur robots.txt ne le permettent pas : Finishers, ATS Sport,
+Ultra Race Calendar, ITRA, UTMB World, Betrail, Kikourou et Ahotu.</p>
+<p class="note">Fonds de carte © <a href="https://www.ign.fr/">IGN</a>, © contributeurs
+<a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>, OpenTopoMap (CC-BY-SA), Esri.
+Contours administratifs : <a href="https://github.com/gregoiredavid/france-geojson">france-geojson</a>
+(Licence Ouverte, IGN/INSEE). Code sous licence MIT ; bibliothèques Leaflet (BSD-2), Leaflet.draw et Turf (MIT).</p>
+
+<h2 id="methode">Méthode</h2>
+<ul>
+  <li>Chaque semaine, une tâche automatique relit les sources, rassemble les formats d'une même course
+    (même nom, même ville, même mois) et place chaque course sur la carte, dans son département et sa région.</li>
+  <li>Quand plusieurs sources décrivent la même course, elles se complètent : l'une apporte le jour exact,
+    l'autre le D+ ou le site officiel.</li>
+  <li>La page <a href="../qualite/">Qualité des données</a> montre, à chaque mise à jour, ce qui manque par région
+    et par source, ainsi que les incohérences repérées. Une alerte est levée si une source baisse fortement ou
+    change de format.</li>
+  <li>Les <a href="../nouveautes/">Nouveautés</a> listent les courses ajoutées, les dates confirmées et les D+
+    trouvés depuis la semaine précédente, avec un flux Atom.</li>
+</ul>
+
+<h2 id="estimations">Ce qui est estimé</h2>
+<p>Toute valeur calculée par le site est signalée comme une estimation, jamais comme une donnée officielle :</p>
+<ul>
+  <li>le km-effort (distance + D+/100), la catégorie UTMB Index et les points ITRA ;</li>
+  <li>le temps de course, calculé d'après un chrono que vous donnez ;</li>
+  <li>le temps de route, en voiture et sans trafic ;</li>
+  <li>l'habitude de calendrier (« 3e week-end de mai ») et la date probable d'une édition pas encore annoncée ;</li>
+  <li>les dates marquées « à confirmer », reprises d'une édition passée ou d'une source incomplète.</li>
+</ul>
+
+<h2 id="limites">Limites</h2>
+<ul>
+  <li><b>Couverture inégale</b> : complète en Occitanie, en PACA et en Auvergne-Rhône-Alpes, partielle ailleurs,
+    où seules les courses déclarées aux offices de tourisme apparaissent.</li>
+  <li><b>D+ manquant</b> pour une partie des formats, quand ni la source ni l'organisateur ne le publient.</li>
+  <li><b>Décalage</b> : la base est mise à jour une fois par semaine ; une annulation ou un report récent peut ne
+    pas encore y figurer.</li>
+  <li><b>Erreurs possibles</b> dans les distances, les lieux ou le regroupement des formats, malgré les contrôles.</li>
+</ul>
+
+<h2 id="contribuer">Contribuer</h2>
+<ul>
+  <li><b>Une course manque, une info est fausse</b> : le bouton « Ajouter une course » de l'accueil, ou le formulaire
+    <a href="https://github.com/gcsys/TRAIL-AGREGATOR/issues/new?template=completer-course.yml">Compléter ou corriger une course</a>.</li>
+  <li><b>Vous organisez une course</b> : le même formulaire permet de corriger la date, les formats ou le D+, ou de
+    demander le retrait de la course.</li>
+  <li><b>Une source ouverte à proposer, une idée, un bug</b> : ouvrez une
+    <a href="https://github.com/gcsys/TRAIL-AGREGATOR/issues">issue sur GitHub</a>. Le code et les données
+    sont dans le <a href="https://github.com/gcsys/TRAIL-AGREGATOR">dépôt du projet</a>.</li>
+</ul>
+</main></body></html>
