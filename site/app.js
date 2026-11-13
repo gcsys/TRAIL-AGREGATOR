@@ -2166,7 +2166,17 @@
       const el = $("#fi-hist");
       if (el && fiche.key === key) el.outerHTML = Historique.html(info, esc);
     });
+    // Page de la course (site/course/<slug>/, générée au déploiement) : table chargée à la première fiche
+    chargerPages().then((t) => {
+      const slug = rows.map((r) => t[`${r.nom}|${r.ville}|${(r.date || "").slice(0, 7)}`]).find(Boolean);
+      const links = $("#fi-body .ev-links");
+      if (slug && links && fiche.key === key && !links.querySelector(".fi-page"))
+        links.insertAdjacentHTML("afterbegin", `<a class="fi-page" href="course/${encodeURIComponent(slug)}/">Page de la course</a>`);
+    });
   }
+  let pagesP = null;
+  const chargerPages = () =>
+    pagesP || (pagesP = fetch("data/pages.json").then((r) => (r.ok ? r.json() : {})).catch(() => ({})));
   $("#fi-back").addEventListener("click", () => {
     const prev = fiche.stack.pop();
     if (prev) openFiche(prev.key, { rid: prev.rid, push: false, keepStack: true });
