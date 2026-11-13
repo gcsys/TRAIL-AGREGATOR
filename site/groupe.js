@@ -104,7 +104,7 @@
           <button class="btn primary" type="submit">Ajouter</button></form>`
       : "";
     const perdus = orphelins.length ? `<p class="dlg-note">${orphelins.length} choix sur des formats qui ne sont plus dans la liste : ${esc(orphelins.map((o) => o.n).join(", "))}.</p>` : "";
-    return `<section class="groupe"><div class="sz-head"><h3>Sortie à plusieurs</h3>
+    return `<section class="groupe"><div class="sz-head"><h2>Sortie à plusieurs</h2>
       <span class="dim">${n ? `${n} personne${n > 1 ? "s" : ""}` : "Personne encore"}</span></div>
       ${form}<ul class="gp-liste">${lignes.join("")}</ul>${perdus}
       <p class="dlg-note">${edition ? "Les choix sont enregistrés dans ce navigateur. Pour les transmettre, partagez la liste : prénoms et dossards sont dans le lien, envoyez-le seulement au groupe. Quand quelqu'un vous renvoie son lien, ouvrez-le et choisissez « Mettre à jour ma liste » : pour chaque personne, la modification la plus récente l'emporte." : "Enregistrez la liste pour ajouter votre format et votre dossard, puis renvoyez le lien au groupe."}</p></section>`;

@@ -114,6 +114,21 @@ cercle), puis filtrez les courses dans un tableau.
   confirmer). Un bandeau résume l'effet ; le rythme se règle via « Régler l'alternance » (week-end de référence, période, garder
   ou non les rouges) ; réglage stocké dans le navigateur (`site/dispo.js`).
 
+## Accessibilité
+
+- Score Lighthouse accessibilité : 100 sur mobile (accueil, liste, calendrier, À propos, pages course et
+  région), 96 sur ordinateur à l'accueil. Le point restant : deux groupes de la carte peuvent se chevaucher
+  à faible zoom ; la liste des résultats donne les mêmes courses (exception « équivalent » de WCAG 2.5.8).
+- Contrastes AA (4,5:1) en clair et en sombre : gris secondaire foncé, orange des boutons et du mois
+  assombri (l'orange vif reste pour la sélection sur la carte), texte foncé sur le vert en mode sombre.
+- Clavier : lien d'évitement en tête de page et avant la carte, anneau de focus sur les marqueurs et la
+  carte, panneaux Filtres et Zone modaux (focus dedans, Tab qui boucle, Échap, retour au bouton d'origine),
+  fiches et dialogues natifs (`<dialog>`).
+- Lecteurs d'écran : titres hiérarchisés (un `h1` par vue), zones nommées (recherche, carte, résultats),
+  libellés lus même quand ils sont masqués sur mobile, état des boutons de vue (`aria-pressed`).
+- Vérifié avec Lighthouse et axe-core (accueil, fiche, tableau, calendrier, liste, comparateur ; clair et
+  sombre ; mobile et ordinateur).
+
 ## Architecture
 
 Site 100 % statique, hébergé sur GitHub Pages, sans serveur ni base à administrer.
