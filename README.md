@@ -61,6 +61,11 @@ cercle), puis filtrez les courses dans un tableau.
   les pages des courses et bouton « Voir sur la carte » (carte filtrée sur la région ou le département).
   Même règle d'indexation que les pages de courses : une liste n'est indexable que si toutes ses courses
   viennent d'une source ouverte. Générées au déploiement par `scripts/pages.py`.
+- Recherche en langage simple : dans la barre de recherche, « trail de 20 à 30 km en mai à moins d'1 h de Lyon »,
+  « vallonné moins de 1000 m de D+ cet été », « ultra près de Gap », « ce week-end de nuit »… À la validation
+  (Entrée), les critères reconnus (distance, D+, mois, saison, période, rayon ou temps de route autour d'une
+  commune, profil, nuit) deviennent des filtres, affichés en pastilles qu'on peut retirer ; le reste du texte
+  reste une recherche par nom. Simples règles, sans service externe (`site/langage.js`).
 - Comparateur : bouton « comparer » sur chaque format (fiches et tableau), 4 formats au plus, gardés dans le
   navigateur (`ta.cmp.v1`). Le bouton « Comparer » ouvre un tableau côte à côte : date, lieu, distance, D+,
   D+/km, km-effort, trajet (route ou vol d'oiseau depuis le centre choisi), prix et temps estimé, les valeurs

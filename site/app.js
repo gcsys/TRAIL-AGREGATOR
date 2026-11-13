@@ -919,7 +919,7 @@
         } else {
           closeSuggest(ul);
           input.blur();
-          if (input.id === "f-q") scrollToResults();
+          if (input.id === "f-q") comprendre().then(scrollToResults);
         }
         closeSuggest(ul);
       } else if (e.key === "Escape") closeSuggest(ul);
@@ -943,6 +943,32 @@
       after && after();
     },
   });
+  /* Recherche en langage simple (site/langage.js) : à la validation, les critères reconnus deviennent
+   * des filtres (pastilles modifiables) et le reste du texte sert de recherche par nom. */
+  async function comprendre() {
+    const a = Langage.analyser($("#f-q").value);
+    if (!a.pastilles.length) return;
+    const set = (id, v) => v != null && ($(id).value = v);
+    set("#f-km-min", a.kmMin), set("#f-km-max", a.kmMax), set("#f-d-min", a.dMin), set("#f-d-max", a.dMax);
+    set("#f-from", a.du), set("#f-to", a.au);
+    if (a.mois) (state.months = new Set(a.mois));
+    if (a.profils) (state.profils = new Set(a.profils));
+    if (a.nuit) $("#f-night").checked = true;
+    $("#f-q").value = a.reste;
+    $("#q-clear").hidden = !a.reste;
+    let compris = a.pastilles;
+    if (a.autour) {
+      const t = towns_search(a.autour.lieu, 1)[0] || (await remoteTowns(a.autour.lieu))[0];
+      if (t) {
+        setRmode(a.autour.minutes ? "route" : "km", { apply: false });
+        syncRadiusInputs(a.autour.minutes ? Math.min(180, Math.max(15, Math.round(a.autour.minutes / 15) * 15)) : Math.min(200, Math.max(5, a.autour.km)));
+        setRadius({ lat: t.lat, lon: t.lon, label: t.name });
+        compris = compris.map((p) => p.replace(` autour de ${a.autour.lieu}`, ` autour de ${t.name}`));
+      } else compris = compris.filter((p) => !p.includes(" autour de "));
+    }
+    refresh();
+    toast(`Compris : ${compris.join(" · ")}${a.autour && compris.length < a.pastilles.length ? ` (lieu « ${a.autour.lieu} » introuvable)` : ""}`);
+  }
   const qDone = () => {
     $("#f-q").value = "";
     $("#q-clear").hidden = true;
