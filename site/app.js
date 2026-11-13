@@ -739,22 +739,45 @@
 
   // ---------- Panneaux (filtres, zone) ----------
   let openPanelEl = null;
+  /* Panneaux Filtres et Zone : fenêtres modales. Le focus entre dans le panneau, y reste (Tab boucle)
+   * et revient au bouton d'origine à la fermeture. */
+  let panelOpener = null;
+  const focusables = (el) => [...el.querySelectorAll('button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])')].filter((x) => !x.disabled && x.offsetParent !== null);
   function openPanel(sel) {
-    closePanel();
+    const opener = document.activeElement;
+    closePanel(false);
+    panelOpener = opener;
     openPanelEl = $(sel);
     openPanelEl.hidden = false;
     $("#scrim").hidden = false;
     document.body.classList.add("panel-open");
     $("#toggle-more").setAttribute("aria-expanded", sel === "#more-filters");
+    $("#open-zone").setAttribute("aria-expanded", sel === "#zone-panel");
+    // Le panneau lui-même reçoit le focus (annoncé par son titre), sans ouvrir le clavier du téléphone.
+    openPanelEl.tabIndex = -1;
+    openPanelEl.focus({ preventScroll: true });
   }
-  function closePanel() {
+  function closePanel(restore = true) {
     if (!openPanelEl) return;
     openPanelEl.hidden = true;
     openPanelEl = null;
     $("#scrim").hidden = true;
     document.body.classList.remove("panel-open");
     $("#toggle-more").setAttribute("aria-expanded", false);
+    $("#open-zone").setAttribute("aria-expanded", false);
+    if (restore && panelOpener?.isConnected && panelOpener.offsetParent !== null) panelOpener.focus({ preventScroll: true });
+    panelOpener = null;
   }
+  document.addEventListener("keydown", (e) => {
+    if (e.key !== "Tab" || !openPanelEl || $("dialog[open]")) return;
+    const f = focusables(openPanelEl);
+    if (!f.length) return;
+    const i = f.indexOf(document.activeElement);
+    if (i === -1 || (e.shiftKey && i === 0) || (!e.shiftKey && i === f.length - 1)) {
+      e.preventDefault();
+      (e.shiftKey ? f[f.length - 1] : f[0]).focus();
+    }
+  });
   $("#toggle-more").addEventListener("click", () => openPanel("#more-filters"));
   $("#open-zone").addEventListener("click", () => openPanel("#zone-panel"));
   $("#map-zone-btn").addEventListener("click", () => openPanel("#zone-panel"));
@@ -1246,7 +1269,7 @@
   function setMode(m) {
     state.mode = m === "table" || m === "cal" ? m : "cards";
     store.set("ta.mode", state.mode);
-    $$(".view-seg [data-mode]").forEach((b) => b.classList.toggle("active", b.dataset.mode === state.mode));
+    $$(".view-seg [data-mode]").forEach((b) => (b.classList.toggle("active", b.dataset.mode === state.mode), b.setAttribute("aria-pressed", String(b.dataset.mode === state.mode))));
     document.body.classList.toggle("table-mode", state.mode === "table");
     document.body.classList.toggle("cal-mode", state.mode === "cal");
     $(".table-wrap").hidden = state.mode !== "table" || !desk.matches;

@@ -75,7 +75,7 @@
 </header>
 
 <!-- ===== Bandeau d'accueil ===== -->
-<section class="hero" id="hero">
+<section class="hero" id="hero" aria-labelledby="hero-title">
   <svg class="hero-art" viewBox="0 0 1440 360" preserveAspectRatio="xMidYMax slice" aria-hidden="true">
     <defs>
       <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#081d16"/><stop offset=".62" stop-color="#11402f"/><stop offset="1" stop-color="#1c5a40"/></linearGradient>
@@ -90,13 +90,13 @@
   </svg>
   <div class="wrap hero-inner">
     <p class="eyebrow">Le calendrier des trails en France</p>
-    <h1>Trouvez votre prochain trail</h1>
+    <h1 id="hero-title">Trouvez votre prochain trail</h1>
     <p class="hero-sub" id="meta">Chargement des courses…</p>
   </div>
 </section>
 
 <!-- ===== Barre de recherche (collante) ===== -->
-<div class="searchbar" id="searchbar">
+<div class="searchbar" id="searchbar" role="search" aria-label="Rechercher et filtrer les courses">
   <div class="wrap">
     <div class="sb-card">
       <div class="sb-row">
@@ -108,7 +108,7 @@
           <button type="button" class="search-clear" id="q-clear" aria-label="Effacer la recherche" hidden><svg><use href="#i-x"/></svg></button>
           <ul id="suggest" class="suggest" role="listbox" hidden></ul>
         </div>
-        <button type="button" id="open-zone" class="btn sb-btn" aria-haspopup="dialog">
+        <button type="button" id="open-zone" class="btn sb-btn" aria-haspopup="dialog" aria-expanded="false" aria-controls="zone-panel">
           <svg aria-hidden="true"><use href="#i-pin"/></svg><span class="sb-lbl" id="zone-btn-lbl">Zone</span><span id="zone-badge" class="badge" hidden>0</span>
         </button>
         <button type="button" id="toggle-more" class="btn sb-btn" aria-haspopup="dialog" aria-expanded="false" aria-controls="more-filters">
@@ -143,7 +143,7 @@
       <div class="lb-row">
         <div class="lb-main">
           <span class="lb-kicker" id="lb-kicker">Ma liste</span>
-          <h2 id="lb-name"></h2>
+          <h1 id="lb-name"></h1>
           <span class="lb-note" id="lb-note"></span>
         </div>
         <div class="lb-actions" id="lb-actions"></div>
@@ -170,9 +170,9 @@
           </select>
         </label>
         <div class="seg view-seg" role="group" aria-label="Affichage">
-          <button type="button" data-mode="cards" class="active" title="Fiches"><svg aria-hidden="true"><use href="#i-list"/></svg><span class="sr">Fiches</span></button>
-          <button type="button" data-mode="table" title="Tableau"><svg aria-hidden="true" viewBox="0 0 24 24"><rect x="4" y="5" width="16" height="14" rx="1.5"/><path d="M4 10h16M4 14.5h16M10 5v14"/></svg><span class="sr">Tableau</span></button>
-          <button type="button" data-mode="cal" title="Calendrier"><svg aria-hidden="true" viewBox="0 0 24 24"><rect x="4" y="5.5" width="16" height="14" rx="1.5"/><path d="M4 10h16M8.5 3.5v4M15.5 3.5v4"/></svg><span class="sr">Calendrier</span></button>
+          <button type="button" data-mode="cards" class="active" aria-pressed="true" title="Fiches"><svg aria-hidden="true"><use href="#i-list"/></svg><span class="sr">Fiches</span></button>
+          <button type="button" data-mode="table" aria-pressed="false" title="Tableau"><svg aria-hidden="true" viewBox="0 0 24 24"><rect x="4" y="5" width="16" height="14" rx="1.5"/><path d="M4 10h16M4 14.5h16M10 5v14"/></svg><span class="sr">Tableau</span></button>
+          <button type="button" data-mode="cal" aria-pressed="false" title="Calendrier"><svg aria-hidden="true" viewBox="0 0 24 24"><rect x="4" y="5.5" width="16" height="14" rx="1.5"/><path d="M4 10h16M8.5 3.5v4M15.5 3.5v4"/></svg><span class="sr">Calendrier</span></button>
         </div>
         <button id="export" class="btn icon-only" title="Exporter les résultats en CSV" aria-label="Exporter en CSV">
           <svg aria-hidden="true"><use href="#i-download"/></svg>
@@ -223,7 +223,8 @@
   </section>
 
   <aside class="map-pane" id="map-pane" aria-label="Carte">
-    <div id="map"></div>
+    <a class="skip" href="#results">Passer la carte : les mêmes courses sont dans la liste</a>
+    <div id="map" role="region" aria-label="Carte des courses (la liste des résultats donne les mêmes informations)"></div>
 
     <div class="map-tools" id="map-tools">
       <div class="seg" role="group" aria-label="Sélection au clic">
@@ -292,13 +293,13 @@
       <p>Toutes les courses de trail en France réunies sur une carte, mises à jour chaque semaine à partir de sources ouvertes et de calendriers publics.</p>
     </div>
     <div class="foot-col">
-      <h4>Participer</h4>
+      <h2>Participer</h2>
       <a href="https://github.com/gcsys/TRAIL-AGREGATOR/issues/new?template=completer-course.yml" target="_blank" rel="noopener">Ajouter ou corriger une course</a>
       <a href="https://github.com/gcsys/TRAIL-AGREGATOR/blob/main/data/sources/denivele.csv" target="_blank" rel="noopener">Compléter un dénivelé</a>
       <a href="https://github.com/gcsys/TRAIL-AGREGATOR" target="_blank" rel="noopener">Code source</a>
     </div>
     <div class="foot-col">
-      <h4>Données</h4>
+      <h2>Données</h2>
       <span>RunTrail, GoTrail, DATAtourisme, organisateurs</span>
       <span>Fonds de carte © <a href="https://www.ign.fr/">IGN</a>, <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>, OpenTopoMap, Esri</span>
       <span>Contours : <a href="https://github.com/gregoiredavid/france-geojson">france-geojson</a></span>
@@ -317,9 +318,9 @@
 <div class="scrim" id="scrim" hidden></div>
 
 <!-- ===== Panneau : filtres ===== -->
-<aside id="more-filters" class="panel" aria-label="Filtres" hidden>
+<aside id="more-filters" class="panel" role="dialog" aria-modal="true" aria-labelledby="mf-title" hidden>
   <header class="panel-head">
-    <h3>Filtres</h3>
+    <h3 id="mf-title">Filtres</h3>
     <button type="button" class="dlg-x" data-close aria-label="Fermer"><svg><use href="#i-x"/></svg></button>
   </header>
   <div class="panel-body">
@@ -392,9 +393,9 @@
 </aside>
 
 <!-- ===== Panneau : zone ===== -->
-<aside id="zone-panel" class="panel" aria-label="Zone de recherche" hidden>
+<aside id="zone-panel" class="panel" role="dialog" aria-modal="true" aria-labelledby="zp-title" hidden>
   <header class="panel-head">
-    <h3>Où courir ?</h3>
+    <h3 id="zp-title">Où courir ?</h3>
     <button type="button" class="dlg-x" data-close aria-label="Fermer"><svg><use href="#i-x"/></svg></button>
   </header>
   <div class="panel-body">

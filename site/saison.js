@@ -74,7 +74,7 @@
     resume.push(a.nAlertes ? `<b>${a.nAlertes} écart${a.nAlertes > 1 ? "s" : ""} trop court${a.nAlertes > 1 ? "s" : ""}</b>.` : "Aucun écart sous le seuil.");
     if (a.sansDate) resume.push(`${a.sansDate} course${a.sansDate > 1 ? "s" : ""} sans date.`);
     const options = [1, 2, 3, 4, 5, 6, 8].map((w) => `<option value="${w}"${w === a.seuil ? " selected" : ""}>${w} semaine${w > 1 ? "s" : ""}</option>`).join("");
-    return `<section class="saison"><div class="sz-head"><h3>Ma saison</h3>
+    return `<section class="saison"><div class="sz-head"><h2>Ma saison</h2>
       <label>Écart minimum <select id="sz-seuil">${options}</select></label></div>
       <p class="sz-resume">${resume.join(" ")}</p><ol class="sz-liste">${lignes.join("")}</ol>
       <p class="dlg-note">Écart entre les dates de course, en semaines. Le seuil est un repère personnel, pas une règle médicale.</p></section>`;

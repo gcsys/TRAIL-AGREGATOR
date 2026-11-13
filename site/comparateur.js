@@ -63,7 +63,7 @@
     if (!lignes(rows, opts).some((l) => l.libelle === "Temps estimé"))
       notes.push("Indiquez un chrono de référence sur une fiche pour comparer les temps estimés.");
     else if (opts.chrono) notes.push(`Temps estimés d'après votre référence : ${opts.chrono}.`);
-    return `<div class="cmp-wrap"><table class="cmp"><thead><tr><th></th>${tete}</tr></thead><tbody>${corps}</tbody></table></div>` +
+    return `<div class="cmp-wrap"><table class="cmp"><thead><tr><th scope="col"><span class="sr">Critère</span></th>${tete}</tr></thead><tbody>${corps}</tbody></table></div>` +
       (notes.length ? `<p class="dlg-note">${notes.map(esc).join(" ")}</p>` : "");
   }
 
