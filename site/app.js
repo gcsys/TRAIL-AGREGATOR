@@ -2143,6 +2143,7 @@
       <ul class="fmts">${rows.map(fmtRow).join("")}</ul>
       <div class="ev-links">${linksHtml(ev.links)}<button type="button" class="link" data-act="fiche-map" data-key="${esc(key)}">Voir sur la carte</button></div>
       ${estimationHtml(rows)}
+      <div id="fi-hist"></div>
       <section class="fi-sec">
         <h4>Courses qui ressemblent</h4>
         ${fmtPick}${sansDplus}
@@ -2153,6 +2154,12 @@
     $("#fi-body").scrollTop = 0;
     $("#dlg-fiche .dlg-inner").scrollTop = 0;
     openDlg("#dlg-fiche");
+    // Éditions précédentes et changements de date : fichier chargé à la première fiche ouverte
+    Historique.charger().then((h) => {
+      const info = rows.map((r) => h[`${r.nom}|${r.ville}`]).find(Boolean);
+      const el = $("#fi-hist");
+      if (el && fiche.key === key) el.outerHTML = Historique.html(info, esc);
+    });
   }
   $("#fi-back").addEventListener("click", () => {
     const prev = fiche.stack.pop();

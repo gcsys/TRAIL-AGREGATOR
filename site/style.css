@@ -564,6 +564,10 @@ input[type="range"]::-moz-range-thumb { width: 22px; height: 22px; border-radius
 .fi-body { display: grid; gap: 14px; }
 .fi-sec { display: grid; gap: 8px; border-top: 1px solid var(--border); padding-top: 14px; }
 .fi-sec h4 { margin: 0; font-size: 1rem; }
+.fi-sec p { margin: 0; font-size: .9rem; line-height: 1.5; }
+.hist { list-style: none; margin: 0; padding: 0; display: grid; gap: 4px; }
+.hist li { display: flex; justify-content: space-between; gap: 12px; padding: 6px 12px; border-radius: var(--radius-sm); background: var(--surface-2); font-size: .88rem; }
+.hist-chg { padding: 8px 12px; border-radius: var(--radius-sm); background: var(--ws-bg); color: var(--ws-fg); }
 .fi-fmts { display: flex; flex-wrap: wrap; gap: 6px; }
 .fi-fmts button { border: 1px solid var(--border-strong); background: var(--surface); border-radius: 999px; min-height: 32px; padding: 0 12px; font-size: .8rem; font-weight: 600; }
 .fi-fmts button.active { border-color: var(--primary); color: var(--primary); background: var(--primary-soft); }

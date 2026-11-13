@@ -22,6 +22,7 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "scripts"))
 from sources import SOURCES  # noqa: E402
 import enrich  # noqa: E402
+import historique  # noqa: E402
 import site_data  # noqa: E402
 
 GEO = ROOT / "site" / "geo"
@@ -282,6 +283,7 @@ def main():
         del n["departement_saisi"]
 
     today = date.today().isoformat()
+    historique.ecrire(races, today)  # archive des éditions (passées comprises) + historique.json du site
     # courses à venir (une date peut n'être connue qu'au mois près : AAAA-MM)
     races = [n for n in races if not n["date"] or n["date"] >= today[: len(n["date"])]]
     races.sort(key=lambda n: (n["date"] or "9999", n["nom"]))

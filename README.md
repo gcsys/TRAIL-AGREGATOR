@@ -35,6 +35,11 @@ cercle), puis filtrez les courses dans un tableau.
   lieu, coordonnées, distance, D+, heure de départ si connue et lien ; « (date à confirmer) » quand
   l'organisateur ne l'a pas confirmée. Les courses datées au mois près ne sont pas exportées (le
   message de confirmation en donne le nombre). Fichier construit dans le navigateur (`site/ical.js`).
+- Historique des éditions (section « Éditions » de la fiche) : éditions précédentes avec leurs
+  distances, habitude de calendrier (« 3e week-end de mai », marquée « estimation »), date probable
+  quand la course n'est annoncée qu'au mois (« à confirmer par l'organisateur »), et changements de
+  date relevés d'une semaine à l'autre. Calculé au build (`scripts/historique.py`), affiché par
+  `site/historique.js` à partir de `site/data/historique.json` (environ 15 Ko, 3 Ko compressé).
 - Carte : points regroupés, fonds Plan (Plan IGN v2 de la Géoplateforme, sans clé), Relief (OpenTopoMap) et Satellite (Esri).
 - Filtres : mois, dates, distance, D+, profil (roulant, vallonné, montagne en m D+/km), km-effort,
   UTMB Index, World Series, ITRA, type, nocturne, D+ connu, date confirmée, site officiel.
@@ -61,6 +66,7 @@ Site 100 % statique, hébergé sur GitHub Pages, sans serveur ni base à adminis
 ```
 data/sources/catalogue.csv   catalogue des courses, éditable à la main ou par PR
 data/geocode_cache.json      cache du géocodage des villes
+data/archive/editions.json   archive des éditions (dates, formats, changements), jamais vidée
 scripts/build_db.py          import des sources -> site/data/races.json, index.json et detail/
 scripts/site_data.py         format des fichiers lus par le site (index léger + détail par région)
 scripts/quality.py           tableau de bord qualité -> site/qualite/index.html (généré au déploiement)
@@ -77,8 +83,9 @@ site/                        le site publié (HTML/JS/CSS, données, contours)
 2. géocode les villes sans coordonnées via l'[API Adresse](https://adresse.data.gouv.fr/api-doc/adresse) (avec cache) ;
 3. rattache chaque course à son département et sa région (point dans polygone) ;
 4. calcule le km-effort (km + D+/100), une catégorie UTMB Index et des points ITRA **estimés** ;
-5. ne garde que les courses à venir ;
-6. écrit les fichiers lus par le site (`scripts/site_data.py`).
+5. met à jour l'archive des éditions et `site/data/historique.json` (`scripts/historique.py`) ;
+6. ne garde que les courses à venir ;
+7. écrit les fichiers lus par le site (`scripts/site_data.py`).
 
 ### Fichiers de données du site
 
