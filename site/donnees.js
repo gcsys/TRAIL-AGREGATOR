@@ -27,6 +27,7 @@
    * (hors champs secondaires). depName / regName : Map code -> nom. */
   function decode(index, depName = new Map(), regName = new Map()) {
     const { cols, dicts, flags, count } = index;
+    const inscr = index.inscriptions || {};
     const fields = Object.keys(cols).filter((f) => f !== "flags");
     const out = new Array(count);
     for (let i = 0; i < count; i++) {
@@ -44,6 +45,7 @@
       r.itra_points_estimes = itraPoints(r.km_effort);
       r.departement = depName.get(r.departement_code) || null;
       r.region = regName.get(r.region_code) || null;
+      r.inscription = inscr[r.id] || null; // état des inscriptions relevé (rare), prix compris
       out[i] = r;
     }
     return out;

@@ -65,6 +65,11 @@ cercle), puis filtrez les courses dans un tableau.
   s'il y en a un), hébergement (Booking pour la nuit de la veille quand le jour est connu, carte des
   hébergements autour du départ) et covoiturage (BlaBlaCar le jour de la course). Simples liens de
   recherche, sans API ni lien affilié (`site/pratique.js`).
+- Inscriptions : état relevé dans `data/sources/inscriptions.csv` (statut : `a_venir`, `ouvertes`,
+  `complet`, `fermees` ; date d'ouverture ; mode : `libre`, `tirage`, `qualification` ; lien ; prix ;
+  date du relevé, obligatoire). Section « Inscriptions » sur la fiche (relevé daté, « à vérifier » après
+  30 jours ou si l'ouverture annoncée est passée) et filtre « Inscriptions ouvertes », affiché dès qu'un
+  format a un relevé (`site/inscriptions.js`). Sans distance, une ligne vaut pour tout l'événement.
 - À propos : `/a-propos/` (lien en pied de page), page écrite à la main (`site/a-propos/index.html`) :
   engagements (rien n'est vendu, pas de compte ni de mesure d'audience), sources et licences, méthode,
   valeurs estimées, limites, comment contribuer. À tenir à jour quand une source ou une estimation change.
@@ -191,6 +196,13 @@ Une même alerte n'est signalée qu'une fois, pas à chaque build. Fermez l'issu
 
 Ouvrez une issue « Compléter ou corriger une course », ou ajoutez une ligne à
 `data/sources/denivele.csv` (nom, ville, distance, D+, site).
+
+### Renseigner les inscriptions
+
+Ajoutez une ligne à `data/sources/inscriptions.csv` :
+`nom,ville,distance_km,statut,ouverture,mode,lien_inscription,prix_eur,releve_le,source_url`
+(dates au format AAAA-MM-JJ, `distance_km` vide pour tout l'événement). Les lignes invalides sont
+signalées dans le journal du build et ignorées.
 
 ### Ajouter une course
 

@@ -33,7 +33,7 @@
   const criteres = (c = {}) => ({
     q: "", from: "", to: "", months: new Set(), profils: new Set(),
     kmMin: null, kmMax: null, dMin: null, dMax: null, keMin: null, keMax: null,
-    utmb: "", ws: "", itra: null, type: "", night: false, dplus: false, confirmed: false, site: false,
+    utmb: "", ws: "", itra: null, type: "", night: false, dplus: false, confirmed: false, site: false, inscr: false,
     ...c,
   });
 
@@ -57,6 +57,7 @@
     if (c.dplus && r.denivele_pos_m == null) return false;
     if (c.confirmed && !(r.date && r.date.length === 10 && r.date_confirmee)) return false;
     if (c.site && !(safeUrl(r.site_web) || safeUrl(r.lien_inscription))) return false;
+    if (c.inscr && !(r.inscription && r.inscription.statut === "ouvertes")) return false;
     return true;
   }
 

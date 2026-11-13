@@ -575,6 +575,10 @@ input[type="range"]::-moz-range-thumb { width: 22px; height: 22px; border-radius
 .pratique .pr-l { display: flex; flex-wrap: wrap; gap: 4px 14px; }
 .pratique a { font-weight: 600; text-decoration: none; }
 .pratique a:hover { text-decoration: underline; }
+.insc { display: inline-block; padding: 2px 10px; border-radius: 999px; font-weight: 600; font-size: .85rem; background: var(--surface-2); }
+.insc-ouvertes { background: var(--primary-soft); color: var(--primary); }
+.insc-complet, .insc-fermees { color: var(--muted); }
+.nw { white-space: nowrap; }
 .fi-fmts { display: flex; flex-wrap: wrap; gap: 6px; }
 .fi-fmts button { border: 1px solid var(--border-strong); background: var(--surface); border-radius: 999px; min-height: 32px; padding: 0 12px; font-size: .8rem; font-weight: 600; }
 .fi-fmts button.active { border-color: var(--primary); color: var(--primary); background: var(--primary-soft); }
