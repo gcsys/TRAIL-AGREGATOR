@@ -81,8 +81,8 @@ cercle), puis filtrez les courses dans un tableau.
   calculées marquées « calcul » (`site/comparateur.js`).
 - Vue calendrier : troisième affichage à côté des fiches et du tableau (aussi sur mobile). Les courses
   filtrées, mois par mois, dans une grille du lundi au dimanche (24 mois au plus) ; sur mobile, le nombre de
-  courses par jour et la liste du jour au toucher. Avec « Week-ends dispo », les week-ends libres sont
-  bordés de vert et les autres hachurés (`site/calendrier.js`).
+  courses par jour et la liste du jour au toucher. Avec « Semaines libres », les jours des semaines libres
+  sont bordés de vert et ceux des semaines prises hachurés (`site/calendrier.js`).
 - Infos pratiques sur la fiche : itinéraire (OpenStreetMap, Google Maps, depuis le centre de recherche
   s'il y en a un), hébergement (Booking pour la nuit de la veille quand le jour est connu, carte des
   hébergements autour du départ) et covoiturage (BlaBlaCar le jour de la course). Simples liens de
@@ -111,7 +111,7 @@ cercle), puis filtrez les courses dans un tableau.
 - Sauvegarde des listes : dans « Mes listes », « Sauvegarder dans un fichier » télécharge
   `agregatrail-sauvegarde-AAAA-MM-JJ.json` (sur téléphone, la feuille de partage propose « Enregistrer
   dans Fichiers », Drive…). Le fichier contient toutes les clés `ta.*` du navigateur : listes, corrections,
-  instantanés, réglages (week-ends dispo, estimation de temps, comparateur, fond de carte). « Restaurer »
+  instantanés, réglages (semaines libres, estimation de temps, comparateur, fond de carte). « Restaurer »
   fusionne sans rien effacer : même liste complétée, autre liste ajoutée (renommée si le nom est pris),
   corrections locales prioritaires, réglages restaurés seulement s'ils manquent. Le dialogue affiche la date
   de la dernière sauvegarde et signale les changements faits depuis.
@@ -121,15 +121,15 @@ cercle), puis filtrez les courses dans un tableau.
   aussi au navigateur un stockage persistant (`navigator.storage.persist()`) au premier ajout aux favoris,
   et un onglet resté ouvert sur une ancienne version relit les listes au lieu de les écraser (événement `storage`).
   Une adresse `?liste=…` absente de ce navigateur renvoie à l'accueil avec un message vers « Restaurer ».
-- Disponibilités (bêta) : puce « Week-ends dispo » (première des filtres rapides). Un clic retire
-  les courses qui tombent un week-end (ou une semaine) où l'on est pris et affiche une pastille
-  verte (date confirmée, libre) ou orange (date à confirmer). Le réglage « Mes week-ends » est un
-  calendrier à toucher : chaque week-end passe de libre (vert) à pris (rouge), le bouton « sem. »
-  bloque une semaine entière (vacances), et le nombre de courses du week-end s'affiche dans la case.
-  Raccourci facultatif : un rythme « 1 week-end sur 2, 3 ou 4 » dont on choisit le premier week-end
-  pris ; une coche peut libérer un week-end du rythme (↻). Bilan sur 3 mois, glisser pour changer
-  de mois. Réglage stocké dans le navigateur (`site/dispo.js`) ; l'ancien réglage (samedi de
-  référence + période) est repris tel quel comme rythme.
+- Disponibilités (bêta) : puce « Semaines libres » (première des filtres rapides). L'unité est la
+  semaine entière, du lundi au dimanche : un clic retire les courses qui tombent une semaine prise,
+  quel que soit le jour (mardi, vendredi, dimanche…), et affiche une pastille verte (date confirmée,
+  semaine libre) ou orange (date à confirmer). Le réglage « Mes semaines » est un calendrier à
+  toucher : chaque ligne (une semaine) passe de libre (vert) à prise (rouge), avec le nombre de
+  courses de la semaine. Raccourci facultatif : un rythme « 1 semaine sur 2, 3 ou 4 » dont on choisit
+  la première semaine prise ; une coche peut libérer une semaine du rythme (↻). Bilan sur 3 mois,
+  glisser pour changer de mois. Réglage stocké dans le navigateur (`site/dispo.js`) ; les anciens
+  réglages (samedi de référence, coches de week-ends) sont repris sur la semaine qui les contient.
 
 ## Application installable et hors ligne
 

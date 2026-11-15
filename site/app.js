@@ -730,7 +730,7 @@
       night: $("#f-night").checked, dplus: $("#f-dplus").checked, confirmed: $("#f-confirmed").checked, site: $("#f-site").checked, inscr: $("#f-insc").checked,
     });
 
-  let dispoHidden = new Set(); // courses retirées par « Week-ends dispo » au dernier rafraîchissement
+  let dispoHidden = new Set(); // courses retirées par « Semaines libres » au dernier rafraîchissement
   function passes(r, c, z) {
     if (!Filtres.dansZone(r, z, pip) || !Filtres.passe(r, c)) return false;
     if (Dispo.hiding() && Dispo.status(r) === "busy") return dispoHidden.add(evKey(r)), false;
@@ -1294,7 +1294,7 @@
   const calOpts = () => ({ esc, dc: distVar, semaine: (d) => (Dispo.active() ? (Dispo.blocked(d) ? "busy" : "ok") : null) });
   function renderCal() {
     const legende = Dispo.active()
-      ? `<p class="cal-legende"><span><i class="cal-we we-ok"></i>week-end disponible</span><span><i class="cal-we we-busy"></i>week-end indisponible</span></p>`
+      ? `<p class="cal-legende"><span><i class="cal-we we-ok"></i>semaine libre</span><span><i class="cal-we we-busy"></i>semaine prise</span></p>`
       : "";
     $("#cal").innerHTML = calOn() ? legende + Calendrier.html(curEvents, calOpts()) : "";
     $("#cal").hidden = !calOn() || !curEvents.length;
@@ -1640,8 +1640,8 @@
     const c = Dispo.config();
     const kept = evs.filter((ev) => evStatus(ev) === "ok").length;
     $("#dispo-bar-text").innerHTML = c.hide
-      ? `<strong>Week-ends dispo activé.</strong> ${n ? `${plural(n, "course")} retirée${n > 1 ? "s" : ""} car vous êtes pris ce jour-là` : "Aucune course retirée"}. ${plural(kept, "course")} en vert.`
-      : `<strong>Week-ends dispo activé.</strong> Les courses où vous êtes pris restent affichées en rouge.`;
+      ? `<strong>Semaines libres activé.</strong> ${n ? `${plural(n, "course")} retirée${n > 1 ? "s" : ""} car vous êtes pris cette semaine-là` : "Aucune course retirée"}. ${plural(kept, "course")} en vert.`
+      : `<strong>Semaines libres activé.</strong> Les courses où vous êtes pris restent affichées en rouge.`;
   }
   $("#dispo-off").addEventListener("click", () => {
     Dispo.set({ on: false });
@@ -1654,24 +1654,22 @@
     $("#dispo-toggle").setAttribute("aria-pressed", on);
     document.body.classList.toggle("dispo-on", on);
   }
-  const fmtWe = (iso) => Dispo.weLabel(iso);
+  const fmtWk = (iso) => Dispo.weekLabel(iso);
 
-  /* Réglage « Mes week-ends » : on travaille sur un brouillon, enregistré seulement à la validation. */
+  /* Réglage « Mes semaines » : on travaille sur un brouillon, enregistré seulement à la validation. */
   let draft = null, dcYm = null, dcCounts = new Map();
   const ymOf = (iso) => iso.slice(0, 7);
   const ymAdd = (ym, n) => {
     const [y, m] = ym.split("-").map(Number);
     return new Date(Date.UTC(y, m - 1 + n, 1)).toISOString().slice(0, 7);
   };
-  // Courses des filtres en cours (sans tenir compte des disponibilités), par week-end.
-  function weekendCounts() {
+  // Courses des filtres en cours (sans tenir compte des disponibilités), par semaine.
+  function weekCounts() {
     const c = readCriteria(), z = zone(), seen = new Map();
     for (const r of state.races) {
-      if (!r.date || r.date.length !== 10) continue;
-      const dow = new Date(r.date + "T12:00").getDay();
-      if ((dow !== 6 && dow !== 0) || !Filtres.dansZone(r, z, pip) || !Filtres.passe(r, c)) continue;
-      const sat = Dispo.saturdayOf(r.date);
-      (seen.get(sat) || seen.set(sat, new Set()).get(sat)).add(evKey(r));
+      if (!r.date || r.date.length !== 10 || !Filtres.dansZone(r, z, pip) || !Filtres.passe(r, c)) continue;
+      const mon = Dispo.mondayOf(r.date);
+      (seen.get(mon) || seen.set(mon, new Set()).get(mon)).add(evKey(r));
     }
     return new Map([...seen].map(([k, v]) => [k, v.size]));
   }
@@ -1686,23 +1684,23 @@
       b.classList.toggle("active", on);
       b.setAttribute("aria-checked", on);
     });
-    // Choix du premier week-end pris parmi les N prochains (N = rythme).
+    // Choix de la première semaine prise parmi les N prochaines (N = rythme).
     $("#dc-phase").hidden = !draft.every;
     if (draft.every) {
-      let t = Date.parse(Dispo.saturdayOf(today) + "T00:00Z");
+      let t = Date.parse(Dispo.mondayOf(today) + "T00:00Z");
       const opts = [];
       for (let i = 0; i < draft.every; i++, t += 7 * 864e5) {
-        const sat = new Date(t).toISOString().slice(0, 10);
-        const on = Dispo.rhythmBusy(draft, sat);
-        opts.push(`<button type="button" class="dc-pick${on ? " active" : ""}" role="radio" aria-checked="${on}" data-ref="${sat}">${i === 0 ? "ce week-end, " : i === 1 ? "le suivant, " : ""}${esc(fmtWe(sat))}</button>`);
+        const mon = new Date(t).toISOString().slice(0, 10);
+        const on = Dispo.rhythmBusy(draft, mon);
+        opts.push(`<button type="button" class="dc-pick${on ? " active" : ""}" role="radio" aria-checked="${on}" data-ref="${mon}">${i === 0 ? "cette semaine, " : i === 1 ? "la suivante, " : ""}${esc(fmtWk(mon))}</button>`);
       }
       $("#dc-phase-opts").innerHTML = opts.join("");
     }
     const nx = Dispo.nextIn(draft, 4), tl = Dispo.tally(draft, 13);
     $("#dispo-preview").innerHTML = Dispo.usable(draft)
-      ? `D'ici 3 mois : <b class="dc-tag free">${plural(tl.free, "week-end")} libre${tl.free > 1 ? "s" : ""}</b> et <b class="dc-tag busy">${tl.busy} pris</b>.` +
-        (nx.length ? ` Prochains pris : ${nx.map((s) => esc(fmtWe(s))).join(", ").replace(/\.?$/, ".")}` : "")
-      : "Aucun week-end pris pour l'instant : touchez ceux où vous n'êtes pas libre, ou choisissez un rythme.";
+      ? `D'ici 3 mois : <b class="dc-tag free">${plural(tl.free, "semaine")} libre${tl.free > 1 ? "s" : ""}</b> et <b class="dc-tag busy">${tl.busy} prise${tl.busy > 1 ? "s" : ""}</b>.` +
+        (nx.length ? ` Prochaines prises : ${nx.map((s) => esc(fmtWk(s))).join(", ").replace(/\.?$/, ".")}` : "")
+      : "Aucune semaine prise pour l'instant : touchez celles où vous n'êtes pas libre, ou choisissez un rythme.";
     $("#dc-clear").hidden = !Object.keys(draft.marks).length;
     if (focusSel) {
       const el = $(focusSel);
@@ -1710,24 +1708,18 @@
     }
   }
   $("#dc-grid").addEventListener("click", (e) => {
-    const we = e.target.closest("[data-we]"), wk = e.target.closest("[data-week]");
-    if (we && !we.disabled) {
-      const sel = `#dc-grid [data-we="${we.dataset.we}"]`;
-      draft = Dispo.toggleWeekend(draft, we.dataset.we);
-      renderDc(sel);
-      $(sel).classList.add("pop");
-    } else if (wk && !wk.disabled) {
-      const sel = `#dc-grid [data-week="${wk.dataset.week}"]`;
-      draft = Dispo.toggleWeek(draft, wk.dataset.week);
-      renderDc(sel);
-      $(sel).closest(".dc-row").classList.add("pop");
-    }
+    const wk = e.target.closest("[data-week]");
+    if (!wk || wk.disabled) return;
+    const sel = `#dc-grid [data-week="${wk.dataset.week}"]`;
+    draft = Dispo.toggleWeek(draft, wk.dataset.week);
+    renderDc(sel);
+    $(sel).classList.add("pop");
   });
   $("#dc-every").addEventListener("click", (e) => {
     const b = e.target.closest("[data-every]");
     if (!b) return;
-    // Nouveau rythme : il démarre ce week-end, sauf si un point de départ existait déjà.
-    const ref = draft.ref && draft.every ? draft.ref : Dispo.saturdayOf(Dispo.todayIso());
+    // Nouveau rythme : il démarre cette semaine, sauf si un point de départ existait déjà.
+    const ref = draft.ref && draft.every ? draft.ref : Dispo.mondayOf(Dispo.todayIso());
     draft = Dispo.clean({ ...draft, every: Number(b.dataset.every), ref });
     renderDc();
   });
@@ -1758,7 +1750,7 @@
   function openDispo() {
     draft = Dispo.config();
     dcYm = ymOf(Dispo.todayIso());
-    dcCounts = weekendCounts();
+    dcCounts = weekCounts();
     $("#dispo-hide").checked = !!draft.hide;
     renderDc();
     $("#dlg-dispo").returnValue = "";
@@ -1770,7 +1762,7 @@
     Dispo.set({ ...draft, hide: $("#dispo-hide").checked, on: ok });
     syncDispoUi();
     refresh({ keep: true });
-    toast(ok ? "Week-ends dispo activé" : "Aucun week-end pris : indicateur désactivé");
+    toast(ok ? "Semaines libres activé" : "Aucune semaine prise : indicateur désactivé");
   });
   $("#dispo-toggle").addEventListener("click", () => {
     if (!Dispo.ready()) return openDispo(); // réglage effacé : on le redemande

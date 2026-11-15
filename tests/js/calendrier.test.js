@@ -20,15 +20,16 @@ test("regroupement par jour, mois flous et mois vides intercalés", () => {
   assert.equal(C.regrouper([ev("a", "2027-01-01"), ev("b", "2030-01-01")]).tronque, true);
 });
 
-test("html : courses du jour, week-ends dispo, jour à préciser, échappement", () => {
+test("html : courses du jour, semaines libres, jour à préciser, échappement", () => {
   const h = C.html([ev("a<b", "2027-05-01"), ev("x", "2027-05")], {
     esc: (s) => String(s).replace(/</g, "&lt;"),
-    semaine: (d) => (d === "2027-05-01" ? "busy" : "ok"),
+    semaine: (d) => (d <= "2027-05-02" ? "busy" : "ok"),
     aujourdhui: "2027-05-02",
   });
   assert.match(h, /<h3>mai 2027 <span class="dim">2 courses<\/span>/);
   assert.match(h, /class="j we we-busy a"/);
-  assert.match(h, /class="j we we-ok auj"/);
+  assert.match(h, /class="j we we-busy auj"/);
+  assert.match(h, /class="j we-ok"[^>]*><button[^>]*data-jour="2027-05-04"/); // un mardi aussi
   assert.match(h, /data-act="fiche" data-key="a&lt;b"/);
   assert.match(h, /Jour à préciser :/);
   assert.equal(C.html([]), "");

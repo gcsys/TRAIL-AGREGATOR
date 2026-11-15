@@ -118,7 +118,7 @@
         </button>
       </div>
       <div class="chips" role="group" aria-label="Filtres rapides">
-        <button class="chip dispo" id="dispo-toggle" aria-pressed="false" title="Garder les courses des week-ends où je suis libre (bêta)"><i class="dot-trio" aria-hidden="true"></i>Week-ends dispo</button>
+        <button class="chip dispo" id="dispo-toggle" aria-pressed="false" title="Garder les courses des semaines où je suis libre (bêta)"><i class="dot-trio" aria-hidden="true"></i>Semaines libres</button>
         <span class="chips-sep"></span>
         <button class="chip" data-km="0-20"><i class="dot" style="--dc:var(--d1)"></i>&lt; 20 km</button>
         <button class="chip" data-km="20-42"><i class="dot" style="--dc:var(--d2)"></i>20–42 km</button>
@@ -184,9 +184,9 @@
     <div class="active-filters" id="active-filters" hidden></div>
     <div class="dispo-bar" id="dispo-bar" hidden>
       <p id="dispo-bar-text"></p>
-      <p class="dispo-bar-legend"><span><i class="dispo-dot ok"></i>date confirmée, week-end libre</span><span><i class="dispo-dot unsure"></i>date à confirmer</span></p>
+      <p class="dispo-bar-legend"><span><i class="dispo-dot ok"></i>date confirmée, semaine libre</span><span><i class="dispo-dot unsure"></i>date à confirmer</span></p>
       <div class="dispo-bar-actions">
-        <button type="button" class="btn ghost" id="dispo-settings">Mes week-ends</button>
+        <button type="button" class="btn ghost" id="dispo-settings">Mes semaines</button>
         <button type="button" class="btn ghost" id="dispo-off">Désactiver</button>
       </div>
     </div>
@@ -600,14 +600,14 @@
   </form>
 </dialog>
 
-<!-- ===== Dialogue : mes week-ends (bêta) ===== -->
+<!-- ===== Dialogue : mes semaines (bêta) ===== -->
 <dialog id="dlg-dispo" class="dlg dlg-wide" aria-labelledby="dispo-title">
   <form method="dialog" class="dlg-inner" id="dispo-form">
     <header class="dlg-head">
       <div>
         <p class="dlg-kicker">Disponibilités · bêta</p>
-        <h3 id="dispo-title">Mes week-ends</h3>
-        <p class="dlg-sub">Touchez un week-end pour le passer de <b class="dc-tag free">libre</b> à <b class="dc-tag busy">pris</b>. Pour une semaine entière (vacances, déplacement), touchez « sem. » au début de la ligne.</p>
+        <h3 id="dispo-title">Mes semaines</h3>
+        <p class="dlg-sub">Touchez une semaine pour la passer de <b class="dc-tag free">libre</b> à <b class="dc-tag busy">prise</b>. Une semaine compte en entier, du lundi au dimanche : une course un mardi ou un vendredi d'une semaine prise est indisponible.</p>
       </div>
       <button class="dlg-x" value="cancel" formnovalidate aria-label="Fermer"><svg><use href="#i-x"/></svg></button>
     </header>
@@ -616,13 +616,13 @@
       <h4 id="dc-rythme-t">Raccourci : un rythme qui se répète</h4>
       <div class="seg" role="radiogroup" aria-label="Rythme" id="dc-every">
         <button type="button" role="radio" data-every="0">Aucun</button>
-        <button type="button" role="radio" data-every="2">1 week-end sur 2</button>
+        <button type="button" role="radio" data-every="2">1 semaine sur 2</button>
         <button type="button" role="radio" data-every="3">1 sur 3</button>
         <button type="button" role="radio" data-every="4">1 sur 4</button>
       </div>
       <div class="dc-phase" id="dc-phase" hidden>
-        <span>Premier week-end pris :</span>
-        <div class="dc-phase-opts" id="dc-phase-opts" role="radiogroup" aria-label="Premier week-end pris"></div>
+        <span>Première semaine prise :</span>
+        <div class="dc-phase-opts" id="dc-phase-opts" role="radiogroup" aria-label="Première semaine prise"></div>
       </div>
     </section>
 
@@ -633,12 +633,12 @@
         <button type="button" class="dlg-x" id="dc-next" aria-label="Mois suivant">›</button>
       </div>
       <div id="dc-grid" class="dc-grid"></div>
-      <p class="dc-legend"><span><i class="dc-sw free"></i>libre</span><span><i class="dc-sw busy"></i>pris</span><span><i class="dc-sw wk"></i>semaine prise</span><span><b class="dc-rep">↻</b> vient du rythme</span><button type="button" class="dc-clear" id="dc-clear">Effacer mes coches</button></p>
+      <p class="dc-legend"><span><i class="dc-sw free"></i>libre</span><span><i class="dc-sw busy"></i>prise</span><span><b class="dc-rep">↻</b> vient du rythme</span><button type="button" class="dc-clear" id="dc-clear">Effacer mes coches</button></p>
     </section>
 
     <p class="dc-bilan" id="dispo-preview" aria-live="polite"></p>
 
-    <label class="check"><input type="checkbox" id="dispo-hide"> Masquer les courses où je suis pris (sinon elles restent affichées en rouge)</label>
+    <label class="check"><input type="checkbox" id="dispo-hide"> Masquer les courses des semaines prises (sinon elles restent affichées en rouge)</label>
     <p class="dlg-note">Réglage enregistré dans ce navigateur uniquement. Une date que vous avez complétée et cochée « confirmée » compte comme confirmée.</p>
     <footer class="dlg-foot dc-foot">
       <button class="btn ghost" value="cancel" formnovalidate>Annuler</button>

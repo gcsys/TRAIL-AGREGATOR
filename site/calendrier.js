@@ -3,7 +3,7 @@
  *   (24 au plus). Chaque jour liste ses courses (bouton « fiche ») ; sur petit écran, la grille montre
  *   le nombre de courses et un toucher sur le jour ouvre la liste du jour sous le mois.
  *   Les courses dont seul le mois est connu sont listées sous la grille (« jour à préciser »).
- * - opts.semaine(iso) : "busy" | "ok" | null pour un samedi ou un dimanche (week-ends dispo, dispo.js).
+ * - opts.semaine(iso) : "busy" | "ok" | null pour un jour (semaine prise ou libre, dispo.js).
  * events : [{key, first: {nom, date, ville}, maxKm}] comme dans app.js. Aucune dépendance au DOM. */
 (function (root) {
   const MOIS = ["janvier", "février", "mars", "avril", "mai", "juin", "juillet", "août", "septembre", "octobre", "novembre", "décembre"];
@@ -59,9 +59,9 @@
         if (!d) return `<td class="vide"></td>`;
         const evs = jours.get(d) || [];
         n += evs.length;
-        const we = i >= 5 ? semaine(d) : null;
+        const we = semaine(d);
         const cls = ["j", i >= 5 ? "we" : "", we ? `we-${we}` : "", d === aujourdhui ? "auj" : "", evs.length ? "a" : ""].filter(Boolean).join(" ");
-        const titre = we === "busy" ? ' title="Week-end indisponible"' : we === "ok" ? ' title="Week-end disponible"' : "";
+        const titre = we === "busy" ? ' title="Semaine prise"' : we === "ok" ? ' title="Semaine libre"' : "";
         return `<td class="${cls}"${titre}><button type="button" class="cal-num" data-jour="${d}"${evs.length ? "" : " disabled"} aria-label="${Number(d.slice(8))} ${MOIS[m - 1]}${evs.length ? ` : ${evs.length} course${evs.length > 1 ? "s" : ""}` : ""}">` +
           `<span>${Number(d.slice(8))}</span>${evs.length ? `<b class="cal-n">${evs.length}</b>` : ""}</button>` +
           `<div class="cal-evs">${evs.slice(0, 4).map(btn).join("")}${evs.length > 4 ? `<button type="button" class="cal-plus" data-jour="${d}">+${evs.length - 4}</button>` : ""}</div></td>`;

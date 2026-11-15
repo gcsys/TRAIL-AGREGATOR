@@ -215,7 +215,7 @@
     // ----- Sauvegarde dans un fichier -----
     /* Le navigateur peut effacer les données d'un site (manque de place, Safari après 7 jours sans visite,
      * navigateur intégré d'une autre application…). Le fichier de sauvegarde contient tout ce que le site
-     * garde dans ce navigateur : listes, corrections, réglages (week-ends dispo, estimation de temps…). */
+     * garde dans ce navigateur : listes, corrections, réglages (semaines libres, estimation de temps…). */
     exportAll() {
       const donnees = {};
       siteKeys()
