@@ -5,6 +5,10 @@
   const K_LISTS = "ta.lists.v1";
   const K_EDITS = "ta.edits.v1";
   const K_SNAPS = "ta.snaps.v1";
+  const K_MOD = "ta.favmod.v1"; // date de la dernière modification des listes ou corrections
+  const K_BACKUP = "ta.backup.v1"; // date de la dernière sauvegarde dans un fichier
+  const PREFIX = "ta."; // toutes les préférences du site commencent ainsi
+  const FORMAT = "agregatrail-sauvegarde";
 
   // Champs qu'un utilisateur peut corriger.
   const EDITABLE = ["date", "date_confirmee", "distance_km", "denivele_pos_m", "lien_inscription", "site_web", "notes_perso"];
@@ -32,8 +36,53 @@
   let lists = store.get(K_LISTS, []);
   let edits = store.get(K_EDITS, {});
   let snaps = store.get(K_SNAPS, {});
-  const saveLists = () => store.set(K_LISTS, lists);
-  const saveEdits = () => store.set(K_EDITS, edits);
+  const touch = () => store.set(K_MOD, new Date().toISOString());
+  const saveLists = () => (store.set(K_LISTS, lists), touch());
+  const saveEdits = () => (store.set(K_EDITS, edits), touch());
+  const reload = () => {
+    lists = store.get(K_LISTS, []);
+    edits = store.get(K_EDITS, {});
+    snaps = store.get(K_SNAPS, {});
+  };
+  /* Un autre onglet (par exemple une ancienne version du site restée ouverte) a modifié les listes :
+   * on relit le stockage, sinon sa prochaine écriture écraserait ce que l'autre onglet vient d'enregistrer. */
+  if (root.addEventListener) {
+    root.addEventListener("storage", (e) => {
+      if (e.key !== null && ![K_LISTS, K_EDITS, K_SNAPS].includes(e.key)) return;
+      reload();
+      if (root.dispatchEvent && root.CustomEvent) root.dispatchEvent(new root.CustomEvent("favoris:change"));
+    });
+  }
+  // Valeurs brutes (texte), telles que chaque module du site les écrit.
+  const rawGet = (k) => {
+    try {
+      const v = root.localStorage.getItem(k);
+      if (v != null) return v;
+    } catch (e) {
+      /* stockage indisponible */
+    }
+    return k in mem ? JSON.stringify(mem[k]) : null;
+  };
+  const rawSet = (k, v) => {
+    try {
+      root.localStorage.setItem(k, v);
+    } catch (e) {
+      /* stockage indisponible */
+    }
+  };
+  // Toutes les clés du site présentes dans ce navigateur (ou en mémoire si le stockage est indisponible).
+  const siteKeys = () => {
+    const out = new Set(Object.keys(mem).filter((k) => k.startsWith(PREFIX)));
+    try {
+      for (let i = 0; i < root.localStorage.length; i++) {
+        const k = root.localStorage.key(i);
+        if (k && k.startsWith(PREFIX)) out.add(k);
+      }
+    } catch (e) {
+      /* stockage indisponible */
+    }
+    return [...out].sort();
+  };
   const saveSnaps = () => store.set(K_SNAPS, snaps);
 
   const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
@@ -61,6 +110,7 @@
   const F = {
     EDITABLE,
     matchKey,
+    reload,
 
     // ----- Listes -----
     lists: () => lists,
@@ -161,6 +211,90 @@
       if (snaps[race.id]) snaps[race.id] = snapshot(race);
     },
     saveSnapsNow: saveSnaps,
+
+    // ----- Sauvegarde dans un fichier -----
+    /* Le navigateur peut effacer les données d'un site (manque de place, Safari après 7 jours sans visite,
+     * navigateur intégré d'une autre application…). Le fichier de sauvegarde contient tout ce que le site
+     * garde dans ce navigateur : listes, corrections, réglages (week-ends dispo, estimation de temps…). */
+    exportAll() {
+      const donnees = {};
+      siteKeys()
+        .filter((k) => k !== K_BACKUP)
+        .forEach((k) => {
+          const v = rawGet(k);
+          if (v !== null) donnees[k] = v;
+        });
+      // Chaque valeur est copiée telle quelle (texte), pour être restituée à l'identique.
+      return { format: FORMAT, version: 1, exporte_le: new Date().toISOString(), donnees };
+    },
+    markBackup() {
+      store.set(K_BACKUP, new Date().toISOString());
+    },
+    /* État de la sauvegarde : date du dernier fichier, et s'il y a eu des changements depuis. */
+    backupStatus() {
+      const at = store.get(K_BACKUP, null);
+      const mod = store.get(K_MOD, null);
+      const contenu = lists.length > 0 || Object.keys(edits).length > 0;
+      return { at, changed: contenu && (!at || (mod && mod > at)) };
+    },
+    /* Restaure un fichier de sauvegarde sans rien perdre de ce qui existe déjà ici :
+     * listes fusionnées (même liste : courses ajoutées ; autre liste : ajoutée, renommée si le nom est pris),
+     * corrections locales prioritaires, autres réglages restaurés seulement s'ils manquent ici. */
+    importAll(obj) {
+      if (!obj || obj.format !== FORMAT || typeof obj.donnees !== "object" || !obj.donnees) throw new Error("fichier de sauvegarde invalide");
+      const d = {};
+      Object.entries(obj.donnees).forEach(([k, v]) => typeof v === "string" && (d[k] = v));
+      const parse = (k, def) => {
+        try {
+          return k in d ? JSON.parse(d[k]) : def;
+        } catch (e) {
+          return def;
+        }
+      };
+      const vide = !lists.length && !Object.keys(edits).length;
+      const res = { ajoutees: 0, completees: 0, reglages: 0 };
+      [].concat(parse(K_LISTS, [])).forEach((b) => {
+        if (!b || typeof b.id !== "string" || !Array.isArray(b.ids)) return;
+        const ids = b.ids.map(String);
+        const l = F.get(b.id);
+        if (l) {
+          const avant = l.ids.length;
+          l.ids = [...new Set([...l.ids, ...ids])];
+          if (l.ids.length > avant) res.completees++;
+          if (!l.saison && b.saison) l.saison = b.saison;
+          if (!l.groupe && b.groupe) l.groupe = b.groupe;
+        } else {
+          lists.push({ ...b, name: uniqueName(String(b.name || "Ma liste").slice(0, 60)), ids: [...new Set(ids)] });
+          res.ajoutees++;
+        }
+      });
+      const fill = (dst, src) => src && typeof src === "object" && Object.entries(src).forEach(([k, v]) => !(k in dst) && (dst[k] = v));
+      fill(edits, parse(K_EDITS, {}));
+      fill(snaps, parse(K_SNAPS, {}));
+      saveLists();
+      saveEdits();
+      saveSnaps();
+      const present = new Set(siteKeys());
+      Object.entries(d).forEach(([k, v]) => {
+        if (!k.startsWith(PREFIX) || [K_LISTS, K_EDITS, K_SNAPS, K_MOD, K_BACKUP].includes(k) || present.has(k)) return;
+        rawSet(k, v);
+        res.reglages++;
+      });
+      // Restauré dans un navigateur vide : le contenu est celui du fichier, donc déjà sauvegardé.
+      if (vide) F.markBackup();
+      return res;
+    },
+    /* Demande au navigateur de ne pas effacer les données du site quand il manque de place.
+     * Sans fenêtre de confirmation dans Chrome, Edge et Safari ; Firefox peut demander l'accord. */
+    async protect() {
+      const s = root.navigator && root.navigator.storage;
+      if (!s || !s.persist) return null;
+      try {
+        return (await s.persisted()) || (await s.persist());
+      } catch (e) {
+        return null;
+      }
+    },
 
     // ----- Corrections -----
     edits: () => edits,
