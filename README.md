@@ -108,6 +108,19 @@ cercle), puis filtrez les courses dans un tableau.
   UTMB Index et ITRA ; bouton « Proposer à la base » vers le formulaire d'issue.
   Listes et corrections sont stockées dans le navigateur (`localStorage`,
   logique dans `site/favoris.js`) ; les notes perso ne sont pas partagées.
+- Sauvegarde des listes : dans « Mes listes », « Sauvegarder dans un fichier » télécharge
+  `agregatrail-sauvegarde-AAAA-MM-JJ.json` (sur téléphone, la feuille de partage propose « Enregistrer
+  dans Fichiers », Drive…). Le fichier contient toutes les clés `ta.*` du navigateur : listes, corrections,
+  instantanés, réglages (week-ends dispo, estimation de temps, comparateur, fond de carte). « Restaurer »
+  fusionne sans rien effacer : même liste complétée, autre liste ajoutée (renommée si le nom est pris),
+  corrections locales prioritaires, réglages restaurés seulement s'ils manquent. Le dialogue affiche la date
+  de la dernière sauvegarde et signale les changements faits depuis.
+  Les mises à jour du site n'effacent jamais ces données (clé `ta.lists.v1` inchangée depuis le début), mais
+  elles ne vivent que dans un navigateur : un autre navigateur, l'icône installée sur l'écran d'accueil
+  (stockage séparé sur iPhone) ou le navigateur intégré d'une application ne les voient pas. Le site demande
+  aussi au navigateur un stockage persistant (`navigator.storage.persist()`) au premier ajout aux favoris,
+  et un onglet resté ouvert sur une ancienne version relit les listes au lieu de les écraser (événement `storage`).
+  Une adresse `?liste=…` absente de ce navigateur renvoie à l'accueil avec un message vers « Restaurer ».
 - Disponibilités (bêta) : puce « Week-ends dispo » (première des filtres rapides). Un clic retire
   les courses qui tombent un week-end (ou une semaine) où l'on est pris et affiche une pastille
   verte (date confirmée, libre) ou orange (date à confirmer). Le réglage « Mes week-ends » est un

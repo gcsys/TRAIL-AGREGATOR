@@ -514,12 +514,25 @@
       <button class="dlg-x" value="close" aria-label="Fermer"><svg><use href="#i-x"/></svg></button>
     </header>
     <ul id="lists-list" class="lists-list"></ul>
-    <p id="lists-empty" class="dlg-sub" hidden>Aucune liste pour l'instant. Touchez l'étoile d'une course pour commencer.</p>
+    <p id="lists-empty" class="dlg-sub" hidden>Aucune liste pour l'instant. Touchez l'étoile d'une course pour commencer.
+      Vous aviez déjà des listes ? Utilisez « Restaurer » ci-dessous avec votre fichier de sauvegarde.</p>
     <div class="new-list">
       <input id="lists-new" type="text" placeholder="Nouvelle liste (ex. 20 km)" maxlength="60" autocomplete="off">
       <button type="button" id="lists-new-btn" class="btn">Créer</button>
     </div>
-    <p class="dlg-note">Vos listes et vos corrections sont enregistrées dans ce navigateur. Pour les retrouver ailleurs, partagez la liste par lien.</p>
+    <section class="backup" aria-labelledby="backup-h">
+      <h4 id="backup-h">Sauvegarde</h4>
+      <p id="backup-status" class="backup-status" role="status"></p>
+      <div class="backup-actions">
+        <button type="button" id="backup-save" class="btn primary"><svg aria-hidden="true"><use href="#i-download"/></svg>Sauvegarder dans un fichier</button>
+        <button type="button" id="backup-load" class="btn">Restaurer</button>
+        <input id="backup-file" type="file" accept=".json,application/json" hidden>
+      </div>
+      <p class="dlg-note">Vos listes, corrections et réglages restent dans ce navigateur seulement. Un autre navigateur,
+        l'icône du site installée sur l'écran d'accueil ou le navigateur intégré d'une application (lien ouvert depuis
+        un mail, GitHub…) ne les voient pas, et un navigateur peut effacer les données d'un site. Le fichier de
+        sauvegarde contient tout : gardez-le, et « Restaurer » ajoute son contenu sans rien effacer.</p>
+    </section>
   </form>
 </dialog>
 

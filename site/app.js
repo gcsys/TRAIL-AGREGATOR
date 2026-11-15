@@ -29,7 +29,7 @@
   };
 
   // ---------- Outils ----------
-  const { safeUrl, norm, dateStart, haversine } = Filtres;
+  const { safeUrl, norm, dateStart, dateEnd, haversine } = Filtres;
   const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
   const toDate = (d) => new Date((d.length === 7 ? d + "-01" : d) + "T00:00");
   const iso = (d) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
@@ -1949,6 +1949,11 @@
       if (state.view?.kind !== "list" || state.view.id !== id) setView({ kind: "list", id }, { push: false });
       return true;
     }
+    if (id && !location.hash) {
+      // Adresse d'une liste qui n'est pas dans ce navigateur (autre navigateur, données effacées…).
+      history.replaceState(null, "", location.pathname);
+      toast("Cette liste n'est pas enregistrée dans ce navigateur. « Mes listes » › « Restaurer » pour la récupérer depuis votre sauvegarde.");
+    }
     if (/^#liste=/.test(location.hash)) return openSharedFromHash({ push: false });
     if (state.view) {
       state.view = null;
@@ -2122,6 +2127,7 @@
   function openFav(id) {
     favRace = state.byId.get(id);
     if (!favRace) return;
+    Favoris.protect(); // demande au navigateur de ne pas effacer les listes faute de place
     if (!Favoris.lists().length) {
       const l = Favoris.create("Favoris");
       Favoris.toggle(l.id, favRace);
@@ -2183,6 +2189,7 @@
         </li>`;
       })
       .join("");
+    renderBackup();
   }
   $("#open-lists").addEventListener("click", () => {
     renderListsDlg();
@@ -2202,6 +2209,69 @@
   });
   $("#lists-new-btn").addEventListener("click", () => createFrom("#lists-new", renderListsDlg));
   $("#lists-new").addEventListener("keydown", (e) => e.key === "Enter" && (e.preventDefault(), $("#lists-new-btn").click()));
+
+  // ----- Sauvegarde des listes dans un fichier (Favoris.exportAll / importAll) -----
+  const fmtJour = (isoStr) => new Date(isoStr).toLocaleDateString("fr-FR", { day: "numeric", month: "long", year: "numeric" });
+  function renderBackup() {
+    const { at, changed } = Favoris.backupStatus();
+    const el = $("#backup-status");
+    el.textContent = !at
+      ? changed
+        ? "Aucune sauvegarde pour l'instant : un fichier vous permettra de tout retrouver si ce navigateur perd vos listes."
+        : "Aucune sauvegarde pour l'instant."
+      : `Dernière sauvegarde le ${fmtJour(at)}` + (changed ? " · des changements ont été faits depuis." : " · à jour.");
+    el.classList.toggle("warn", changed);
+  }
+  function afterFavChange() {
+    rebuild();
+    syncFavUi();
+    if ($("#dlg-lists").open) renderListsDlg();
+    if (state.view?.kind === "list") Favoris.get(state.view.id) ? refresh({ keep: true }) : goHome();
+  }
+  // Un autre onglet a modifié les listes (favoris.js relit le stockage, on met l'affichage à jour).
+  window.addEventListener("favoris:change", afterFavChange);
+  $("#backup-save").addEventListener("click", async () => {
+    const texte = JSON.stringify(Favoris.exportAll(), null, 1);
+    const nom = `agregatrail-sauvegarde-${iso(new Date())}.json`;
+    // Sur téléphone, la feuille de partage propose « Enregistrer dans Fichiers », Drive, un mail à soi-même…
+    const fichier = typeof File === "function" ? new File([texte], nom, { type: "application/json" }) : null;
+    if (phone.matches && fichier && navigator.canShare?.({ files: [fichier] })) {
+      try {
+        await navigator.share({ files: [fichier], title: "Sauvegarde Agregatrail" });
+        Favoris.markBackup();
+        renderBackup();
+        return toast("Sauvegarde prête : gardez bien ce fichier.");
+      } catch (e) {
+        if (e.name === "AbortError") return;
+      }
+    }
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(new Blob([texte], { type: "application/json" }));
+    a.download = nom;
+    a.click();
+    setTimeout(() => URL.revokeObjectURL(a.href), 2000);
+    Favoris.markBackup();
+    renderBackup();
+    toast(`Fichier ${nom} téléchargé.`);
+  });
+  $("#backup-load").addEventListener("click", () => $("#backup-file").click());
+  $("#backup-file").addEventListener("change", async (e) => {
+    const f = e.target.files[0];
+    e.target.value = "";
+    if (!f) return;
+    try {
+      const res = Favoris.importAll(JSON.parse(await f.text()));
+      afterFavChange();
+      const parts = [];
+      if (res.ajoutees) parts.push(`${plural(res.ajoutees, "liste")} ajoutée${res.ajoutees > 1 ? "s" : ""}`);
+      if (res.completees) parts.push(`${plural(res.completees, "liste")} complétée${res.completees > 1 ? "s" : ""}`);
+      if (res.reglages) parts.push(`${plural(res.reglages, "réglage")} restauré${res.reglages > 1 ? "s" : ""}`);
+      toast(parts.length ? `Sauvegarde restaurée : ${parts.join(", ")}.` : "Tout était déjà là : rien à ajouter.");
+    } catch (err) {
+      console.warn(err);
+      toast("Ce fichier n'est pas une sauvegarde Agregatrail.");
+    }
+  });
 
   // ----- Partage -----
   async function shareList(id) {
