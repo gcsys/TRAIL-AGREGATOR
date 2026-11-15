@@ -930,3 +930,80 @@ table.cmp td { font-variant-numeric: tabular-nums; }
   .gp-form input[name=nom], .gp-form input[name=dossard], .gp-form select { width: 100%; max-width: none; }
   .gp-form label:has(select) { flex-basis: 100%; }
 }
+
+/* ----- Réglage « Mes week-ends » : calendrier à toucher ----- */
+#dlg-dispo .dlg-inner { gap: 16px; }
+.dc-tag { display: inline-block; padding: 0 7px; border-radius: 999px; font-weight: 700; color: #fff; }
+.dc-tag.free { background: var(--dispo-ok); }
+.dc-tag.busy { background: var(--dispo-busy); }
+.dc-rythme, .dc-cal { display: grid; gap: 10px; }
+.dc-rythme h4 { margin: 0; font-size: .82rem; color: var(--muted); font-weight: 600; }
+.dc-rythme .seg { flex-wrap: wrap; width: fit-content; max-width: 100%; }
+.dc-phase { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 8px; font-size: .88rem; color: var(--text-2); }
+.dc-phase-opts { display: flex; flex-wrap: wrap; gap: 6px; }
+.dc-pick { border: 1px solid var(--border-strong); background: var(--surface); border-radius: 999px; padding: 0 12px; min-height: 36px; font: inherit; font-size: .84rem; font-weight: 600; color: var(--text-2); cursor: pointer; }
+.dc-pick.active { background: var(--dispo-busy); border-color: var(--dispo-busy); color: #fff; }
+.dc-nav { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.dc-nav h4 { margin: 0; font-size: 1.1rem; text-transform: capitalize; font-family: var(--font-display); letter-spacing: .3px; }
+.dc-nav .dlg-x { font-size: 1.4rem; line-height: 1; color: var(--text); }
+.dc-nav .dlg-x:disabled { opacity: .35; cursor: default; }
+.dc-grid { touch-action: pan-y; }
+.dc-head, .dc-row { display: grid; grid-template-columns: 46px repeat(5, minmax(0, 1fr)) minmax(96px, 2.4fr); gap: 4px; align-items: center; }
+.dc-head { font-size: .72rem; font-weight: 600; color: var(--muted); text-align: center; padding-bottom: 4px; }
+.dc-head span:last-child { color: var(--text-2); }
+.dc-rows { display: grid; gap: 6px; }
+.dc-row { border-radius: 12px; padding: 2px; transition: background .2s; }
+.dc-day { text-align: center; font-size: .82rem; color: var(--text-2); font-variant-numeric: tabular-nums; }
+.dc-day.out { color: var(--muted); opacity: .45; }
+.dc-day.auj { font-weight: 800; color: var(--primary); }
+.dc-wk {
+  height: 44px; border: 1px dashed var(--border-strong); border-radius: 10px; background: transparent; color: var(--muted);
+  font: inherit; font-size: .72rem; font-weight: 600; cursor: pointer;
+}
+.dc-wk:hover:not(:disabled) { border-color: var(--dispo-busy); color: var(--dispo-busy); }
+.dc-row.wk-on { background: repeating-linear-gradient(135deg, color-mix(in srgb, var(--dispo-busy) 14%, transparent) 0 6px, transparent 6px 12px); }
+.dc-row.wk-on .dc-wk { background: var(--dispo-busy); border: 0; color: #fff; font-size: .95rem; }
+.dc-row.wk-on .dc-day { color: var(--dispo-busy); text-decoration: line-through; }
+.dc-we {
+  position: relative; display: grid; grid-template-columns: auto 1fr; align-items: center; gap: 0 8px; min-height: 52px; padding: 4px 10px;
+  border-radius: 12px; border: 2px solid var(--st); background: color-mix(in srgb, var(--st) 14%, var(--surface)); color: var(--text);
+  font: inherit; text-align: left; cursor: pointer; transition: transform .12s, background .2s, border-color .2s;
+}
+.dc-we.free { --st: var(--dispo-ok); }
+.dc-we.busy { --st: var(--dispo-busy); background: var(--dispo-busy); color: #fff; }
+.dc-we:hover:not(:disabled) { transform: translateY(-1px); box-shadow: var(--shadow-sm); }
+.dc-we:active:not(:disabled) { transform: scale(.96); }
+.dc-we:disabled { cursor: default; }
+.dc-row.past { opacity: .45; }
+.dc-row.wk-on .dc-we { --st: var(--dispo-busy); background: transparent; color: var(--dispo-busy); border-style: dashed; }
+.dc-we-d { grid-row: span 2; font-family: var(--font-display); font-size: 1.25rem; font-weight: 700; font-variant-numeric: tabular-nums; }
+.dc-we-d i { font-style: normal; opacity: .6; margin: 0 1px; }
+.dc-we-s { display: inline-flex; align-items: center; gap: 4px; font-size: .78rem; font-weight: 700; text-transform: uppercase; letter-spacing: .4px; }
+.dc-ico { width: 16px; height: 16px; border-radius: 50%; display: inline-grid; place-items: center; font: normal 800 10px/1 system-ui, sans-serif; background: var(--st); color: #fff; }
+.dc-we.free .dc-ico::before { content: "✓"; }
+.dc-we.busy .dc-ico { background: #fff; color: var(--dispo-busy); }
+.dc-we.busy .dc-ico::before { content: "✕"; }
+.dc-row.wk-on .dc-ico { background: var(--dispo-busy); color: #fff; }
+.dc-n { font-size: .7rem; opacity: .8; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.dc-rep { font-style: normal; font-weight: 800; opacity: .85; }
+.dc-we.pop, .dc-row.pop { animation: dc-pop .28s ease-out; }
+@keyframes dc-pop { 40% { transform: scale(1.06); } }
+.dc-legend { margin: 0; display: flex; flex-wrap: wrap; gap: 4px 14px; font-size: .8rem; color: var(--muted); }
+.dc-legend span { display: inline-flex; align-items: center; gap: 6px; }
+.dc-sw { display: inline-block; width: 18px; height: 12px; border-radius: 4px; }
+.dc-sw.free { border: 2px solid var(--dispo-ok); background: color-mix(in srgb, var(--dispo-ok) 14%, var(--surface)); }
+.dc-sw.busy { background: var(--dispo-busy); }
+.dc-sw.wk { background: repeating-linear-gradient(135deg, color-mix(in srgb, var(--dispo-busy) 40%, transparent) 0 3px, transparent 3px 6px); border: 1px solid var(--dispo-busy); }
+.dc-bilan { margin: 0; padding: 10px 12px; border-radius: 10px; background: var(--surface-2); font-size: .88rem; line-height: 1.6; }
+#dlg-dispo label.check { display: flex; align-items: center; gap: 8px; font-size: .9rem; min-height: 44px; }
+.dc-foot { position: sticky; bottom: 0; background: var(--surface); padding: 10px 0 4px; box-shadow: 0 -8px 12px -8px rgba(0,0,0,.12); }
+.dc-clear { border: 0; background: none; padding: 0; margin-left: auto; font: inherit; font-size: .8rem; font-weight: 600; color: var(--primary); text-decoration: underline; cursor: pointer; }
+@media (max-width: 760px) {
+  .dc-head, .dc-row { grid-template-columns: 38px repeat(5, minmax(0, 1fr)) 148px; gap: 2px; }
+  .dc-wk { height: 40px; font-size: .66rem; }
+  .dc-day { font-size: .78rem; }
+  .dc-we { padding: 4px 8px; gap: 0 6px; min-height: 48px; }
+  .dc-we-d { font-size: 1.1rem; }
+  .dc-we-s { font-size: .72rem; }
+
+}

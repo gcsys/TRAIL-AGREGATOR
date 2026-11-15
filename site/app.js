@@ -1640,8 +1640,8 @@
     const c = Dispo.config();
     const kept = evs.filter((ev) => evStatus(ev) === "ok").length;
     $("#dispo-bar-text").innerHTML = c.hide
-      ? `<strong>Week-ends dispo activé.</strong> ${n ? `${plural(n, "course")} retirée${n > 1 ? "s" : ""} car elle${n > 1 ? "s tombent" : " tombe"} un week-end indisponible` : "Aucune course retirée"} (un week-end sur ${c.every}). ${plural(kept, "course")} en vert.`
-      : `<strong>Week-ends dispo activé.</strong> Les courses d'un week-end indisponible restent affichées en rouge.`;
+      ? `<strong>Week-ends dispo activé.</strong> ${n ? `${plural(n, "course")} retirée${n > 1 ? "s" : ""} car vous êtes pris ce jour-là` : "Aucune course retirée"}. ${plural(kept, "course")} en vert.`
+      : `<strong>Week-ends dispo activé.</strong> Les courses où vous êtes pris restent affichées en rouge.`;
   }
   $("#dispo-off").addEventListener("click", () => {
     Dispo.set({ on: false });
@@ -1654,36 +1654,123 @@
     $("#dispo-toggle").setAttribute("aria-pressed", on);
     document.body.classList.toggle("dispo-on", on);
   }
-  const fmtWe = (iso) => {
-    const d = new Date(iso + "T00:00");
-    const e = new Date(d.getTime() + 864e5);
-    return `${d.getDate()}${d.getMonth() === e.getMonth() ? "" : " " + d.toLocaleDateString("fr-FR", { month: "short" })}-${e.toLocaleDateString("fr-FR", { day: "numeric", month: "short" })}`;
+  const fmtWe = (iso) => Dispo.weLabel(iso);
+
+  /* Réglage « Mes week-ends » : on travaille sur un brouillon, enregistré seulement à la validation. */
+  let draft = null, dcYm = null, dcCounts = new Map();
+  const ymOf = (iso) => iso.slice(0, 7);
+  const ymAdd = (ym, n) => {
+    const [y, m] = ym.split("-").map(Number);
+    return new Date(Date.UTC(y, m - 1 + n, 1)).toISOString().slice(0, 7);
   };
-  function dispoPreview() {
-    const ref = $("#dispo-ref").value, every = Number($("#dispo-every").value);
-    if (!ref) return ($("#dispo-preview").textContent = "Choisissez une date pour voir les prochains week-ends concernés.");
-    const keep = Dispo.config();
-    Dispo.set({ ref, every });
-    const nx = Dispo.next(4);
-    Dispo.set({ ref: keep.ref, every: keep.every });
-    $("#dispo-preview").textContent = "Prochains week-ends indisponibles : " + nx.map(fmtWe).join(", ") + ", etc.";
+  // Courses des filtres en cours (sans tenir compte des disponibilités), par week-end.
+  function weekendCounts() {
+    const c = readCriteria(), z = zone(), seen = new Map();
+    for (const r of state.races) {
+      if (!r.date || r.date.length !== 10) continue;
+      const dow = new Date(r.date + "T12:00").getDay();
+      if ((dow !== 6 && dow !== 0) || !Filtres.dansZone(r, z, pip) || !Filtres.passe(r, c)) continue;
+      const sat = Dispo.saturdayOf(r.date);
+      (seen.get(sat) || seen.set(sat, new Set()).get(sat)).add(evKey(r));
+    }
+    return new Map([...seen].map(([k, v]) => [k, v.size]));
   }
+  function renderDc(focusSel) {
+    const today = Dispo.todayIso();
+    $("#dc-mois").textContent = Dispo.monthTitle(dcYm);
+    $("#dc-prev").disabled = dcYm <= ymOf(today);
+    $("#dc-next").disabled = dcYm >= ymAdd(ymOf(today), 18);
+    $("#dc-grid").innerHTML = Dispo.calendarHtml(draft, dcYm, { count: (s) => dcCounts.get(s) || 0, today });
+    $$("#dc-every button").forEach((b) => {
+      const on = Number(b.dataset.every) === (draft.every || 0);
+      b.classList.toggle("active", on);
+      b.setAttribute("aria-checked", on);
+    });
+    // Choix du premier week-end pris parmi les N prochains (N = rythme).
+    $("#dc-phase").hidden = !draft.every;
+    if (draft.every) {
+      let t = Date.parse(Dispo.saturdayOf(today) + "T00:00Z");
+      const opts = [];
+      for (let i = 0; i < draft.every; i++, t += 7 * 864e5) {
+        const sat = new Date(t).toISOString().slice(0, 10);
+        const on = Dispo.rhythmBusy(draft, sat);
+        opts.push(`<button type="button" class="dc-pick${on ? " active" : ""}" role="radio" aria-checked="${on}" data-ref="${sat}">${i === 0 ? "ce week-end, " : i === 1 ? "le suivant, " : ""}${esc(fmtWe(sat))}</button>`);
+      }
+      $("#dc-phase-opts").innerHTML = opts.join("");
+    }
+    const nx = Dispo.nextIn(draft, 4), tl = Dispo.tally(draft, 13);
+    $("#dispo-preview").innerHTML = Dispo.usable(draft)
+      ? `D'ici 3 mois : <b class="dc-tag free">${plural(tl.free, "week-end")} libre${tl.free > 1 ? "s" : ""}</b> et <b class="dc-tag busy">${tl.busy} pris</b>.` +
+        (nx.length ? ` Prochains pris : ${nx.map((s) => esc(fmtWe(s))).join(", ").replace(/\.?$/, ".")}` : "")
+      : "Aucun week-end pris pour l'instant : touchez ceux où vous n'êtes pas libre, ou choisissez un rythme.";
+    $("#dc-clear").hidden = !Object.keys(draft.marks).length;
+    if (focusSel) {
+      const el = $(focusSel);
+      if (el) el.focus();
+    }
+  }
+  $("#dc-grid").addEventListener("click", (e) => {
+    const we = e.target.closest("[data-we]"), wk = e.target.closest("[data-week]");
+    if (we && !we.disabled) {
+      const sel = `#dc-grid [data-we="${we.dataset.we}"]`;
+      draft = Dispo.toggleWeekend(draft, we.dataset.we);
+      renderDc(sel);
+      $(sel).classList.add("pop");
+    } else if (wk && !wk.disabled) {
+      const sel = `#dc-grid [data-week="${wk.dataset.week}"]`;
+      draft = Dispo.toggleWeek(draft, wk.dataset.week);
+      renderDc(sel);
+      $(sel).closest(".dc-row").classList.add("pop");
+    }
+  });
+  $("#dc-every").addEventListener("click", (e) => {
+    const b = e.target.closest("[data-every]");
+    if (!b) return;
+    // Nouveau rythme : il démarre ce week-end, sauf si un point de départ existait déjà.
+    const ref = draft.ref && draft.every ? draft.ref : Dispo.saturdayOf(Dispo.todayIso());
+    draft = Dispo.clean({ ...draft, every: Number(b.dataset.every), ref });
+    renderDc();
+  });
+  $("#dc-phase-opts").addEventListener("click", (e) => {
+    const b = e.target.closest("[data-ref]");
+    if (!b) return;
+    draft = Dispo.clean({ ...draft, ref: b.dataset.ref });
+    renderDc(`#dc-phase-opts [data-ref="${b.dataset.ref}"]`);
+  });
+  $("#dc-prev").addEventListener("click", () => { dcYm = ymAdd(dcYm, -1); renderDc(); });
+  $("#dc-next").addEventListener("click", () => { dcYm = ymAdd(dcYm, 1); renderDc(); });
+  // Glisser le doigt à gauche ou à droite sur le calendrier change de mois.
+  let swipeX = null;
+  $("#dc-grid").addEventListener("touchstart", (e) => (swipeX = e.touches[0].clientX), { passive: true });
+  $("#dc-grid").addEventListener("touchend", (e) => {
+    if (swipeX == null) return;
+    const dx = e.changedTouches[0].clientX - swipeX;
+    swipeX = null;
+    if (Math.abs(dx) < 60) return;
+    const btn = dx < 0 ? $("#dc-next") : $("#dc-prev");
+    if (!btn.disabled) btn.click();
+  });
+  $("#dc-clear").addEventListener("click", () => {
+    draft = { ...draft, marks: {} };
+    renderDc();
+    toast("Coches effacées (le rythme reste)");
+  });
   function openDispo() {
-    const c = Dispo.config();
-    $("#dispo-ref").value = c.ref || "";
-    $("#dispo-every").value = String(c.every || 2);
-    $("#dispo-hide").checked = !!c.hide;
-    dispoPreview();
+    draft = Dispo.config();
+    dcYm = ymOf(Dispo.todayIso());
+    dcCounts = weekendCounts();
+    $("#dispo-hide").checked = !!draft.hide;
+    renderDc();
     $("#dlg-dispo").returnValue = "";
     openDlg("#dlg-dispo");
   }
-  ["#dispo-ref", "#dispo-every"].forEach((id) => $(id).addEventListener("input", dispoPreview));
   $("#dlg-dispo").addEventListener("close", () => {
-    if ($("#dlg-dispo").returnValue !== "save" || !$("#dispo-ref").value) return;
-    Dispo.set({ ref: $("#dispo-ref").value, every: $("#dispo-every").value, hide: $("#dispo-hide").checked, on: true });
+    if ($("#dlg-dispo").returnValue !== "save" || !draft) return;
+    const ok = Dispo.usable(draft);
+    Dispo.set({ ...draft, hide: $("#dispo-hide").checked, on: ok });
     syncDispoUi();
     refresh({ keep: true });
-    toast("Indicateur de disponibilité activé");
+    toast(ok ? "Week-ends dispo activé" : "Aucun week-end pris : indicateur désactivé");
   });
   $("#dispo-toggle").addEventListener("click", () => {
     if (!Dispo.ready()) return openDispo(); // réglage effacé : on le redemande

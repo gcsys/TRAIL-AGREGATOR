@@ -122,10 +122,14 @@ cercle), puis filtrez les courses dans un tableau.
   et un onglet resté ouvert sur une ancienne version relit les listes au lieu de les écraser (événement `storage`).
   Une adresse `?liste=…` absente de ce navigateur renvoie à l'accueil avec un message vers « Restaurer ».
 - Disponibilités (bêta) : puce « Week-ends dispo » (première des filtres rapides). Un clic retire
-  les courses qui tombent un week-end indisponible (un sur deux, toute l'année) et
-  affiche une pastille verte (date confirmée, week-end libre) ou orange (date à
-  confirmer). Un bandeau résume l'effet ; le rythme se règle via « Régler l'alternance » (week-end de référence, période, garder
-  ou non les rouges) ; réglage stocké dans le navigateur (`site/dispo.js`).
+  les courses qui tombent un week-end (ou une semaine) où l'on est pris et affiche une pastille
+  verte (date confirmée, libre) ou orange (date à confirmer). Le réglage « Mes week-ends » est un
+  calendrier à toucher : chaque week-end passe de libre (vert) à pris (rouge), le bouton « sem. »
+  bloque une semaine entière (vacances), et le nombre de courses du week-end s'affiche dans la case.
+  Raccourci facultatif : un rythme « 1 week-end sur 2, 3 ou 4 » dont on choisit le premier week-end
+  pris ; une coche peut libérer un week-end du rythme (↻). Bilan sur 3 mois, glisser pour changer
+  de mois. Réglage stocké dans le navigateur (`site/dispo.js`) ; l'ancien réglage (samedi de
+  référence + période) est repris tel quel comme rythme.
 
 ## Application installable et hors ligne
 
