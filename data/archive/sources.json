@@ -71,6 +71,41 @@
      "ville": 1.0
     }
    }
+  },
+  {
+   "le": "2026-11-15",
+   "releve": {
+    "colonnes": [
+     "code_postal",
+     "course",
+     "date",
+     "date_confirmee",
+     "denivele_pos_m",
+     "departement",
+     "distance_km",
+     "id",
+     "lat",
+     "lon",
+     "nocturne",
+     "nom",
+     "site_web",
+     "source",
+     "source_url",
+     "type",
+     "utmb_world_series",
+     "ville"
+    ],
+    "etat": "direct",
+    "lignes": 205,
+    "remplissage": {
+     "date": 1.0,
+     "denivele_pos_m": 0.073,
+     "distance_km": 0.341,
+     "lat": 1.0,
+     "site_web": 0.81,
+     "ville": 1.0
+    }
+   }
   }
  ],
  "gotrail": [
@@ -101,6 +136,39 @@
      "date": 1.0,
      "denivele_pos_m": 0.079,
      "distance_km": 0.751,
+     "lat": 1.0,
+     "site_web": 0.998,
+     "ville": 1.0
+    }
+   }
+  },
+  {
+   "le": "2026-11-15",
+   "releve": {
+    "colonnes": [
+     "course",
+     "date",
+     "date_confirmee",
+     "denivele_pos_m",
+     "detail",
+     "distance_km",
+     "id",
+     "lat",
+     "lon",
+     "nocturne",
+     "nom",
+     "site_web",
+     "source",
+     "source_url",
+     "type",
+     "utmb_world_series",
+     "ville"
+    ],
+    "lignes": 1006,
+    "remplissage": {
+     "date": 1.0,
+     "denivele_pos_m": 0.074,
+     "distance_km": 0.746,
      "lat": 1.0,
      "site_web": 0.998,
      "ville": 1.0
