@@ -1,0 +1,90 @@
+name: Mise à jour complète des données (PR)
+
+# Relit entièrement RunTrail et GoTrail (dates, D+, nouvelles courses), régénère la base
+# sur une branche dédiée (data/maj-AAAA-MM-JJ) et écrit le résumé des changements dans
+# data/derniere_maj.md. Se lance en poussant une telle branche ; la PR est ouverte ensuite.
+on:
+  push:
+    branches: ["data/maj-*"]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  runtrail:
+    if: "!contains(github.event.head_commit.message, '[sans collecte]')"
+    runs-on: ubuntu-latest
+    timeout-minutes: 240
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: python scripts/collect_runtrail.py
+        env:
+          RAFRAICHIR: "1"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: runtrail
+          path: data/sources/runtrail.csv
+
+  gotrail:
+    if: "!contains(github.event.head_commit.message, '[sans collecte]')"
+    runs-on: ubuntu-latest
+    timeout-minutes: 240
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: python scripts/collect_gotrail.py
+        env:
+          RAFRAICHIR: "1"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: gotrail
+          path: data/sources/gotrail.csv
+
+  base:
+    needs: [runtrail, gotrail]
+    if: always() && !failure() && !cancelled()
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - uses: actions/download-artifact@v4
+        continue-on-error: true
+        with:
+          path: collecte
+      - name: Sources relues
+        run: |
+          cp collecte/runtrail/runtrail.csv data/sources/ 2>/dev/null || echo "RunTrail : fichier de la branche"
+          cp collecte/gotrail/gotrail.csv data/sources/ 2>/dev/null || echo "GoTrail : fichier de la branche"
+      - name: Génération de la base
+        run: |
+          git fetch --depth=1 origin main
+          git show FETCH_HEAD:site/data/races.json > /tmp/avant.json  # comparaison avec la base publiée
+          python scripts/build_db.py
+      - name: Contrôle des données générées
+        run: |
+          python -m unittest discover -s tests/python -p "test_site_data.py"
+          node --test tests/js/donnees.test.js
+      - name: Résumé des changements
+        run: |
+          python scripts/tools/diff_base.py /tmp/avant.json site/data/races.json > data/derniere_maj.md
+          cat data/derniere_maj.md >> "$GITHUB_STEP_SUMMARY"
+          cat data/derniere_maj.md
+      - name: Commit sur la branche
+        run: |
+          git config user.name "trail-bot"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add site/data/races.json site/data/index.json site/data/detail data/geocode_cache.json site/data/historique.json data/archive data/sources/runtrail.csv data/sources/gotrail.csv data/derniere_maj.md
+          git add data/sources/datatourisme_cache.csv 2>/dev/null || true
+          git commit -m "data: mise à jour complète (RunTrail et GoTrail relus)" || echo "Aucun changement"
+          git push origin HEAD:${{ github.ref_name }}

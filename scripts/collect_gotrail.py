@@ -10,6 +10,7 @@ Collecte incrémentale : seuls les nouveaux événements sont lus (3 s entre req
 import csv
 import html as htmlmod
 import json
+import os
 import re
 import sys
 import time
@@ -125,7 +126,7 @@ def main():
         d = (ev.get("startDate") or "")[:10]
         if not re.fullmatch(r"\d{4}-\d{2}-\d{2}", d) or d < today:
             continue
-        if url in known:
+        if url in known and os.environ.get("RAFRAICHIR") != "1":
             rows.extend(known[url])
             continue
         todo += 1
@@ -135,6 +136,9 @@ def main():
         ville = (loc.get("address") or {}).get("addressLocality", "").strip()
         geo = loc.get("geo") or {}
         det = details(url)
+        if det is None and url in known:  # page illisible : on garde l'ancien relevé
+            rows.extend(known[url])
+            continue
         site, kms, dplus = det if det else ("", [], {})
         courses = [(k, next((dp for kk, dp in dplus.items() if abs(kk - k) <= max(1.0, 0.05 * k)), None)) for k in kms]
         if not courses:
@@ -166,6 +170,12 @@ def main():
             })
         if todo % 50 == 0:
             print(f"  {todo} pages lues, {len(rows)} formats", flush=True)
+    # La pagination du calendrier n'est pas stable (des événements sautent d'une page à
+    # l'autre) : un événement à venir déjà connu mais absent de ce passage est conservé.
+    gardes = [u for u in known if u not in events]
+    for u in gardes:
+        rows.extend(known[u])
+    print(f"{len(gardes)} événements connus absents des listes, conservés")
     if not rows:
         sys.exit("Aucune course récupérée : fichier non modifié")
     rows.sort(key=lambda r: (r["date"], r["nom"], r["distance_km"]))
