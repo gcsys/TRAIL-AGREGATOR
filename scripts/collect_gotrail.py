@@ -10,6 +10,7 @@ Collecte incrémentale : seuls les nouveaux événements sont lus (3 s entre req
 import csv
 import html as htmlmod
 import json
+import os
 import re
 import sys
 import time
@@ -125,7 +126,7 @@ def main():
         d = (ev.get("startDate") or "")[:10]
         if not re.fullmatch(r"\d{4}-\d{2}-\d{2}", d) or d < today:
             continue
-        if url in known:
+        if url in known and os.environ.get("RAFRAICHIR") != "1":
             rows.extend(known[url])
             continue
         todo += 1
@@ -135,6 +136,9 @@ def main():
         ville = (loc.get("address") or {}).get("addressLocality", "").strip()
         geo = loc.get("geo") or {}
         det = details(url)
+        if det is None and url in known:  # page illisible : on garde l'ancien relevé
+            rows.extend(known[url])
+            continue
         site, kms, dplus = det if det else ("", [], {})
         courses = [(k, next((dp for kk, dp in dplus.items() if abs(kk - k) <= max(1.0, 0.05 * k)), None)) for k in kms]
         if not courses:

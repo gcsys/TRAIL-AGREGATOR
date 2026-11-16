@@ -10,6 +10,7 @@ accès au site). Une requête toutes les ~1,5 s pour rester discret.
 import csv
 import html as htmlmod
 import json
+import os
 import re
 import sys
 import time
@@ -222,14 +223,17 @@ def main():
             for r in (rd if set(FIELDS) <= set(rd.fieldnames or []) else []):
                 if r["date"] >= today:
                     known.setdefault(r["source_url"][len(BASE):], []).append(r)
-    rows = [r for path, rs in known.items() if path in events for r in rs]
-    todo = [(p, d) for p, d in events.items() if p not in known]
+    # RAFRAICHIR=1 : relecture complète (dates, D+…) ; une page illisible garde l'ancien relevé
+    full = os.environ.get("RAFRAICHIR") == "1"
+    rows = [] if full else [r for path, rs in known.items() if path in events for r in rs]
+    todo = [(p, d) for p, d in events.items() if full or p not in known]
     print(f"{len(events)} événements, {len(todo)} nouveaux à lire", flush=True)
     failed = 0
     for i, (path, dep) in enumerate(todo, 1):
         got = parse_event(path, dep, today)
         if got is None:
             failed += 1
+            rows.extend(known.get(path, []))
         else:
             rows.extend(got)
         if i % 50 == 0:
