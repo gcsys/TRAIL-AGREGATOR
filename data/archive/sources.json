@@ -242,6 +242,39 @@
      "ville": 1.0
     }
    }
+  },
+  {
+   "le": "2026-11-16",
+   "releve": {
+    "colonnes": [
+     "course",
+     "date",
+     "date_confirmee",
+     "denivele_pos_m",
+     "detail",
+     "distance_km",
+     "id",
+     "lat",
+     "lon",
+     "nocturne",
+     "nom",
+     "site_web",
+     "source",
+     "source_url",
+     "type",
+     "utmb_world_series",
+     "ville"
+    ],
+    "lignes": 1054,
+    "remplissage": {
+     "date": 1.0,
+     "denivele_pos_m": 0.085,
+     "distance_km": 0.751,
+     "lat": 1.0,
+     "site_web": 0.998,
+     "ville": 1.0
+    }
+   }
   }
  ],
  "runtrail": [

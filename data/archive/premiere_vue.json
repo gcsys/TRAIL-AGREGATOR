@@ -675,7 +675,7 @@
  "la verticale de la transju|haut valromey":{"dplus": 1, "le": "2026-11-13", "massif": true},
  "la verticale de rochefort|beaujeu":{"dplus": 1, "le": "2026-11-13", "massif": true},
  "la verticale du petit manarou|valdeblore":{"conf": "2027-08-08", "dplus": 0, "le": "2026-11-13", "massif": true},
- "la verticale du valbuche|saint francois longchamp":{"conf": "2027-08-08", "dplus": 0, "le": "2026-11-13", "massif": true},
+ "la verticale du valbuche|saint francois longchamp":{"conf": "2027-08-08", "dplus": 1, "dplus_le": "2026-11-16", "le": "2026-11-13", "massif": true},
  "la verticale ilhetoise|ilhet":{"dplus": 1, "le": "2026-11-13", "massif": true},
  "la vic king trail|vic le fesq":{"conf": "2027-09-26", "dplus": 0, "le": "2026-11-13", "massif": true},
  "la vigneronde|puget":{"dplus": 0, "le": "2026-11-13", "massif": true},
