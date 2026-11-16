@@ -170,6 +170,12 @@ def main():
             })
         if todo % 50 == 0:
             print(f"  {todo} pages lues, {len(rows)} formats", flush=True)
+    # La pagination du calendrier n'est pas stable (des événements sautent d'une page à
+    # l'autre) : un événement à venir déjà connu mais absent de ce passage est conservé.
+    gardes = [u for u in known if u not in events]
+    for u in gardes:
+        rows.extend(known[u])
+    print(f"{len(gardes)} événements connus absents des listes, conservés")
     if not rows:
         sys.exit("Aucune course récupérée : fichier non modifié")
     rows.sort(key=lambda r: (r["date"], r["nom"], r["distance_km"]))

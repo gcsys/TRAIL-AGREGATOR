@@ -13,6 +13,7 @@ permissions:
 
 jobs:
   runtrail:
+    if: "!contains(github.event.head_commit.message, '[sans collecte]')"
     runs-on: ubuntu-latest
     timeout-minutes: 240
     steps:
@@ -29,6 +30,7 @@ jobs:
           path: data/sources/runtrail.csv
 
   gotrail:
+    if: "!contains(github.event.head_commit.message, '[sans collecte]')"
     runs-on: ubuntu-latest
     timeout-minutes: 240
     steps:
@@ -46,6 +48,7 @@ jobs:
 
   base:
     needs: [runtrail, gotrail]
+    if: always() && !failure() && !cancelled()
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -56,13 +59,17 @@ jobs:
         with:
           node-version: "22"
       - uses: actions/download-artifact@v4
+        continue-on-error: true
         with:
           path: collecte
       - name: Sources relues
-        run: cp collecte/runtrail/runtrail.csv collecte/gotrail/gotrail.csv data/sources/
+        run: |
+          cp collecte/runtrail/runtrail.csv data/sources/ 2>/dev/null || echo "RunTrail : fichier de la branche"
+          cp collecte/gotrail/gotrail.csv data/sources/ 2>/dev/null || echo "GoTrail : fichier de la branche"
       - name: Génération de la base
         run: |
-          cp site/data/races.json /tmp/avant.json
+          git fetch --depth=1 origin main
+          git show FETCH_HEAD:site/data/races.json > /tmp/avant.json  # comparaison avec la base publiée
           python scripts/build_db.py
       - name: Contrôle des données générées
         run: |

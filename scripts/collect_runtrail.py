@@ -239,6 +239,10 @@ def main():
         if i % 50 == 0:
             print(f"  {i}/{len(todo)} événements, {len(rows)} formats", flush=True)
     print(f"{failed} pages illisibles (retentées au prochain passage)")
+    gardes = [p for p in known if p not in events]  # absents des listes ce jour-là : conservés
+    for p in gardes:
+        rows.extend(known[p])
+    print(f"{len(gardes)} événements connus absents des listes, conservés")
     if not rows:
         sys.exit("Aucune course récupérée : fichier non modifié")
     rows.sort(key=lambda r: (r["date"], r["nom"], r["distance_km"]))
