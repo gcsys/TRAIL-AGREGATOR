@@ -1,9 +1,5 @@
 {
- "_alertes": {
-  "datatourisme": [
-   "collecte en échec (indisponible : <urlopen error timed out>) : la dernière version connue a été utilisée"
-  ]
- },
+ "_alertes": {},
  "catalogue": [
   {
    "le": "2026-11-13",
@@ -177,6 +173,41 @@
      "distance_km": 0.349,
      "lat": 1.0,
      "site_web": 0.821,
+     "ville": 1.0
+    }
+   }
+  },
+  {
+   "le": "2026-11-20",
+   "releve": {
+    "colonnes": [
+     "code_postal",
+     "course",
+     "date",
+     "date_confirmee",
+     "denivele_pos_m",
+     "departement",
+     "distance_km",
+     "id",
+     "lat",
+     "lon",
+     "nocturne",
+     "nom",
+     "site_web",
+     "source",
+     "source_url",
+     "type",
+     "utmb_world_series",
+     "ville"
+    ],
+    "etat": "direct",
+    "lignes": 199,
+    "remplissage": {
+     "date": 1.0,
+     "denivele_pos_m": 0.075,
+     "distance_km": 0.347,
+     "lat": 1.0,
+     "site_web": 0.819,
      "ville": 1.0
     }
    }
