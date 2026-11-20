@@ -29,7 +29,7 @@ RACES = ROOT / "site" / "data" / "races.json"
 OUT = ROOT / "site" / "qualite" / "index.html"
 
 REGIONS = {"76": "Occitanie", "93": "Provence-Alpes-Côte d'Azur", "84": "Auvergne-Rhône-Alpes"}
-SOURCES = {"catalogue": "Miles Republic", "runtrail": "RunTrail", "gotrail": "GoTrail", "datatourisme": "DATAtourisme"}
+SOURCES = {"catalogue": "Miles Republic", "runtrail": "RunTrail", "gotrail": "GoTrail", "datatourisme": "DATAtourisme", "membres": "Membres"}
 MAX_LIGNES = 150  # lignes affichées par liste d'anomalies (le total est toujours donné)
 
 # Taux de remplissage : (clé, libellé, test sur un format)

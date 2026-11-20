@@ -24,11 +24,29 @@ jobs:
   build:
     needs: tests # rien n'est publié si un test échoue
     runs-on: ubuntu-latest
+    env:
+      # Adresse du site sur OVH (variable du dépôt, ex. https://agregatrail.gcsports.fr/). Vide : GitHub Pages seul.
+      SITE_URL: ${{ vars.SITE_URL }}
+      # Accès FTP OVH : secrets du dépôt, jamais dans le code. Vides : pas d'envoi sur OVH.
+      OVH_FTP_HOST: ${{ secrets.OVH_FTP_HOST }}
+      OVH_FTP_USER: ${{ secrets.OVH_FTP_USER }}
+      OVH_FTP_PASSWORD: ${{ secrets.OVH_FTP_PASSWORD }}
+      OVH_FTP_DIR: ${{ vars.OVH_FTP_DIR }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
+      - name: Courses ajoutées sur le site et validées (export public de l'API OVH)
+        if: env.SITE_URL != ''
+        run: |
+          if curl -fsS --max-time 60 "${SITE_URL%/}/api/courses.php?action=csv" -o membres.tmp && head -1 membres.tmp | grep -q '^id,nom,'; then
+            mv membres.tmp data/sources/membres.csv
+            echo "$(($(wc -l < data/sources/membres.csv) - 1)) format(s) ajouté(s) sur le site"
+          else
+            echo "::warning::API du site injoignable : la dernière copie de data/sources/membres.csv est utilisée"
+            rm -f membres.tmp
+          fi
       - name: Import des sources et génération de la base
         run: python scripts/build_db.py
       - uses: actions/setup-node@v4
@@ -44,6 +62,7 @@ jobs:
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add site/data/races.json site/data/index.json site/data/detail data/geocode_cache.json site/data/historique.json data/archive
           git add data/sources/datatourisme_cache.csv 2>/dev/null || true
+          git add data/sources/membres.csv 2>/dev/null || true
           if git diff --cached --quiet; then
             echo "Aucun changement"
           else
@@ -71,7 +90,15 @@ jobs:
       - name: Pages par événement, par région et département, sitemap (/course/, /trails/, /sitemap.xml)
         run: python scripts/pages.py
       - name: Version des fichiers (évite l'ancien code en cache dans les navigateurs)
-        run: sed -i "s/__BUILD__/${GITHUB_SHA::8}/g" site/index.html site/sw.js
+        run: sed -i "s/__BUILD__/${GITHUB_SHA::8}/g" site/index.html site/sw.js site/compte/index.html site/ajouter/index.html site/admin/index.html
+      - name: Adresse du site dans les liens canoniques, le sitemap et le flux
+        if: env.SITE_URL != ''
+        run: |
+          grep -rlZ "https://gcsys.github.io/TRAIL-AGREGATOR/" site --include=*.html --include=*.xml --include=*.txt \
+            | xargs -0 -r sed -i "s#https://gcsys.github.io/TRAIL-AGREGATOR/#${SITE_URL%/}/#g"
+      - name: Envoi sur l'hébergement OVH (FTP, seulement les fichiers modifiés)
+        if: env.OVH_FTP_HOST != ''
+        run: python scripts/deploy_ftp.py
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3
         with:

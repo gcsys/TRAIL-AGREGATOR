@@ -4,7 +4,7 @@ Agrégateur de courses de trail en France : sélectionnez une zone sur la carte
 (départements, régions, périmètre dessiné à main levée, polygone, rectangle ou
 cercle), puis filtrez les courses dans un tableau.
 
-**Site :** https://gcsys.github.io/TRAIL-AGREGATOR/
+**Site :** https://gcsys.github.io/TRAIL-AGREGATOR/ (migration en cours vers https://agregatrail.gcsports.fr/)
 
 ## Fonctionnalités
 
@@ -162,7 +162,10 @@ cercle), puis filtrez les courses dans un tableau.
 
 ## Architecture
 
-Site 100 % statique, hébergé sur GitHub Pages, sans serveur ni base à administrer.
+Le site est construit en fichiers statiques (HTML/JS/CSS et JSON) par GitHub Actions. Il est publié
+sur GitHub Pages et, une fois configuré, envoyé sur l'hébergement OVH (agregatrail.gcsports.fr), où une
+petite API PHP + MySQL ajoute les comptes, l'ajout de courses par les membres et l'administration.
+Détails, installation et secrets : [docs/ovh.md](docs/ovh.md).
 
 ```
 data/sources/catalogue.csv   catalogue des courses, éditable à la main ou par PR
@@ -178,7 +181,12 @@ scripts/pages.py             pages par événement et par région/département -
                              sitemap.xml, data/pages.json (au déploiement)
 scripts/sources/             une source = un module avec fetch()
 site/                        le site publié (HTML/JS/CSS, données, contours)
-.github/workflows/           routine hebdomadaire + déploiement Pages
+.github/workflows/           routine hebdomadaire + déploiement Pages et OVH
+scripts/deploy_ftp.py        envoi FTP sur OVH (seulement les fichiers modifiés)
+scripts/sources/membres.py   courses ajoutées sur le site et validées (export de l'API)
+site/api/                    API PHP : comptes (auth.php), courses ajoutées (courses.php), admin (admin.php)
+site/compte/, ajouter/, admin/  pages Mon compte, Ajouter une course, Administration
+site/session.js              appels à l'API ; sans API (GitHub Pages), le site reste sans compte
 ```
 
 ### La « base de données »
@@ -291,7 +299,8 @@ signalées dans le journal du build et ignorées.
 
 ### Ajouter une course
 
-Ajoutez une ligne à `data/sources/catalogue.csv`. `lat`/`lon` sont facultatifs :
+Sur le site OVH : Mon compte, puis « Ajouter une course » (validation par l'administrateur).
+Dans le dépôt : ajoutez une ligne à `data/sources/catalogue.csv`. `lat`/`lon` sont facultatifs :
 s'ils sont vides, la ville est géocodée automatiquement.
 
 ### Ajouter une source
@@ -308,6 +317,8 @@ la réutilisation (open data, API publiques, flux fournis par les organisateurs)
 python3 -m unittest discover -s tests/python   # fusion des sources, calculs, géographie, index, qualité
 node --test tests/js/*.test.js                 # filtres, zone, disponibilités, favoris, décodage de l'index
 ```
+
+`tests/python/test_api.py` lance l'API PHP sur une base SQLite temporaire (ignoré si PHP manque).
 
 Aucune dépendance : `unittest` (Python) et `node --test` (Node 18 ou plus) sont fournis d'origine.
 La logique des filtres et de la zone est dans `site/filtres.js`, sans DOM, pour être testable.
@@ -337,6 +348,14 @@ Les cas restants sont listés dans la page [/qualite](https://gcsys.github.io/TR
 python3 scripts/build_db.py        # NO_GEOCODE=1 : géocodage par le cache seulement
 cd site && python3 -m http.server 8000
 # puis http://localhost:8000
+```
+
+Avec les comptes (PHP 8.1+ et pdo_sqlite) : créez un `config.php` de test (voir `site/api/config.sample.php`,
+avec `'db_dsn' => 'sqlite:/tmp/agregatrail.sqlite'`, `'mail_mode' => 'log'`, `'mail_log' => '/tmp/mails.log'`,
+`'cookie_secure' => false`), puis :
+
+```bash
+AGREGATRAIL_CONFIG=/chemin/config.php php -S localhost:8000 -t site
 ```
 
 ## Avertissement

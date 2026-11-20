@@ -32,6 +32,9 @@ HISTORIQUE = 12  # relevés gardés par source
 CHAMPS = ["date", "ville", "distance_km", "denivele_pos_m", "lat", "site_web"]
 
 
+# Sources sans alerte quand elles sont vides.
+FACULTATIVES = {"membres"}
+
 def releve(rows, etat=None):
     """Résumé d'une source : nombre de lignes, colonnes renseignées, remplissage des champs utiles."""
     n = len(rows)
@@ -73,6 +76,8 @@ def verifier(par_source, etats, aujourdhui=None, archive_path=ARCHIVE, alertes_p
     archive = json.loads(archive_path.read_text(encoding="utf-8")) if archive_path.exists() else {}
     resultat = {}
     for nom, rows in sorted(par_source.items()):
+        if not rows and nom in FACULTATIVES:
+            continue  # source qui peut légitimement être vide (aucune contribution validée)
         r = releve(rows, etats.get(nom))
         hist = archive.setdefault(nom, [])
         precedent = hist[-1]["releve"] if hist else None
