@@ -9,3 +9,7 @@ site/course/
 site/trails/
 site/sitemap.xml
 site/data/pages.json
+
+# Configuration de l API (secrets) : jamais dans le dépôt
+site/api/config.php
+agregatrail-prive/

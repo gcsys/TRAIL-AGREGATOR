@@ -1,0 +1,64 @@
+<!doctype html>
+<html lang="fr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Administration · Agregatrail</title>
+<meta name="robots" content="noindex">
+<link rel="stylesheet" href="../espace.css?v=__BUILD__">
+<style>
+.ev .formats{margin:6px 0}.ev .fmt{display:flex;flex-wrap:wrap;gap:4px 10px;align-items:baseline;padding:4px 0}
+.ev .fmt .edit{margin-left:auto}
+.ev form.modif{background:var(--bg);border-radius:10px;padding:4px 12px 12px;margin:6px 0}
+.ev .note-admin{max-width:420px}
+.compte{font-size:.8rem;background:var(--border);border-radius:999px;padding:0 7px;margin-left:4px}
+</style>
+</head><body><main class="wrap large" id="contenu">
+<div class="haut"><a href="../">← Toutes les courses</a><a href="../compte/">Mon compte</a></div>
+<h1>Administration</h1>
+<div class="msg" id="msg" role="status" aria-live="polite"></div>
+<p id="chargement" class="note">Chargement…</p>
+<div id="refus" class="card" hidden><p>Cette page est réservée à l'administrateur. <a href="../compte/?retour=admin/">Se connecter</a></p></div>
+
+<div id="admin" hidden>
+  <div class="onglets" role="tablist">
+    <button type="button" role="tab" data-vue="attente" aria-selected="true">À valider<span class="compte" id="n-attente">0</span></button>
+    <button type="button" role="tab" data-vue="publiee" aria-selected="false">Publiées<span class="compte" id="n-publiee">0</span></button>
+    <button type="button" role="tab" data-vue="refusee" aria-selected="false">Refusées<span class="compte" id="n-refusee">0</span></button>
+    <button type="button" role="tab" data-vue="membres" aria-selected="false">Membres</button>
+    <button type="button" role="tab" data-vue="donnees" aria-selected="false">Import / export</button>
+  </div>
+
+  <section id="v-courses" class="card"></section>
+
+  <section id="v-membres" class="card" hidden><div class="tableau"><table>
+    <thead><tr><th>Membre</th><th>Inscrit le</th><th>Courses</th><th>État</th><th></th></tr></thead><tbody id="membres"></tbody></table></div></section>
+
+  <section id="v-donnees" hidden>
+    <div class="card">
+      <h2 style="margin-top:0">Exporter</h2>
+      <p class="note">Fichiers CSV (séparateur virgule, UTF-8) qui s'ouvrent dans un tableur.</p>
+      <div class="actions">
+        <a class="btn" href="../api/admin.php?action=export">Courses ajoutées sur le site</a>
+        <a class="btn" href="../api/admin.php?action=catalogue">Toute la base publiée</a>
+      </div>
+    </div>
+    <form class="card" id="f-import">
+      <h2 style="margin-top:0">Importer des courses</h2>
+      <p class="note">Même colonnes que l'export « Courses ajoutées » (au minimum nom, date, ville, distance_km).
+      Une ligne dont l'id est « membre-123 » met à jour cette course ; une ligne sans id est ajoutée et publiée.
+      La colonne statut (attente, publiee, refusee) est respectée si elle est remplie. Le séparateur point-virgule
+      d'Excel est accepté.</p>
+      <label for="fichier">Fichier CSV</label><input id="fichier" name="fichier" type="file" accept=".csv,text/csv" required>
+      <label class="check"><input type="checkbox" name="essai" value="1" checked>Simuler seulement (rien n'est enregistré)</label>
+      <div class="actions"><button class="btn primaire">Importer</button></div>
+      <div id="import-res"></div>
+    </form>
+    <div class="card note">
+      <b>Mise à jour de la base principale.</b> Chaque lundi, la collecte des sources met à jour la base et le site
+      est renvoyé sur l'hébergement. Les courses publiées ici apparaissent tout de suite sur la carte, puis entrent
+      dans la base principale (pages par course, doublons, qualité) à la mise à jour suivante.
+    </div>
+  </section>
+</div>
+</main>
+<script src="../session.js?v=__BUILD__"></script>
+<script src="admin.js?v=__BUILD__"></script>
+</body></html>

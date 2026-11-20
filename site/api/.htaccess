@@ -1,0 +1,8 @@
+# La bibliothèque interne et la configuration ne sont jamais servies directement.
+<IfModule mod_rewrite.c>
+  RewriteEngine On
+  RewriteRule ^(lib/|config) - [F,L]
+</IfModule>
+<FilesMatch "^(config.*\.php|.*\.sql)$">
+  Require all denied
+</FilesMatch>

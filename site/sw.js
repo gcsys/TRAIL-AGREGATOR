@@ -85,6 +85,7 @@ self.addEventListener("fetch", (e) => {
   const url = new URL(req.url);
   if (url.origin !== self.location.origin) return; // fonds de carte et API : comportement normal du navigateur
   const chemin = url.pathname.slice(new URL(self.registration.scope).pathname.length);
+  if (/^api\//.test(chemin)) return; // comptes et courses ajoutées : toujours le réseau, jamais de cache
   if (req.mode === "navigate") {
     // Hors ligne, une page jamais visitée retombe sur l'application (qui sait afficher les courses en cache).
     e.respondWith(reseauDabord(req, DATA, "./"));

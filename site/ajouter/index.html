@@ -1,0 +1,87 @@
+<!doctype html>
+<html lang="fr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Ajouter une course · Agregatrail</title>
+<meta name="robots" content="noindex">
+<link rel="stylesheet" href="../espace.css?v=__BUILD__">
+<style>
+.sugg{list-style:none;margin:4px 0 0;padding:0;border:1px solid var(--border);border-radius:8px;background:var(--card);overflow:hidden}
+.sugg button{display:block;width:100%;text-align:left;padding:10px 12px;min-height:44px;border:0;border-bottom:1px solid var(--border);background:none;color:inherit;font:inherit;cursor:pointer}
+.sugg li:last-child button{border-bottom:0}.sugg button:hover,.sugg button:focus{background:var(--bg)}
+.trouvee{font-size:.88rem;color:var(--accent);margin-top:4px}
+</style>
+</head><body><main class="wrap" id="contenu">
+<a href="../">← Toutes les courses</a>
+<h1>Ajouter une course</h1>
+<p class="intro">Une course manque ? Indiquez-la ici. Elle apparaîtra sur la carte après vérification.
+Une course peut avoir plusieurs formats (par exemple 12 km et 25 km).</p>
+<div class="msg" id="msg" role="status" aria-live="polite"></div>
+<p id="chargement" class="note">Chargement…</p>
+<div id="indispo" class="card" hidden><p>L'ajout de course n'est pas disponible sur cette version du site.
+<a href="https://github.com/gcsys/TRAIL-AGREGATOR/issues/new?template=completer-course.yml" rel="noopener">Signaler une course sur GitHub</a>.</p></div>
+<div id="anonyme" class="card" hidden>
+  <p>Pour proposer une course, connectez-vous ou créez un compte gratuit. Il suffit d'une adresse e-mail.</p>
+  <div class="actions"><a class="btn primaire" href="../compte/?retour=ajouter/">Se connecter</a>
+    <a class="btn" href="../compte/?inscription=1&amp;retour=ajouter/">Créer un compte</a></div>
+</div>
+<div id="merci" class="card" hidden>
+  <p id="merci-txt"></p>
+  <div class="actions"><button type="button" class="btn primaire" id="encore">Ajouter une autre course</button>
+    <a class="btn" href="../compte/">Voir mes propositions</a></div>
+</div>
+
+<form id="form" hidden novalidate>
+  <div class="card">
+    <h2 style="margin-top:0">L'événement</h2>
+    <label for="nom">Nom de la course</label>
+    <input id="nom" name="nom" required minlength="3" maxlength="160" placeholder="Trail des Crêtes">
+    <div class="grille">
+      <div><label for="date">Date</label><input id="date" name="date" type="date" required></div>
+      <div><label for="heure_depart">Heure de départ <span class="opt">(facultatif)</span></label><input id="heure_depart" name="heure_depart" type="time"></div>
+    </div>
+    <label for="ville">Commune de départ</label>
+    <input id="ville" name="ville" required autocomplete="off" aria-autocomplete="list" aria-controls="sugg" placeholder="Tapez le nom de la commune">
+    <ul class="sugg" id="sugg" hidden></ul>
+    <div class="trouvee" id="trouvee" hidden></div>
+    <label for="site_web">Site officiel <span class="opt">(facultatif)</span></label>
+    <input id="site_web" name="site_web" type="url" inputmode="url" placeholder="https://">
+    <label for="lien_inscription">Page d'inscription <span class="opt">(facultatif)</span></label>
+    <input id="lien_inscription" name="lien_inscription" type="url" inputmode="url" placeholder="https://">
+    <label for="organisateur">Organisateur <span class="opt">(facultatif)</span></label>
+    <input id="organisateur" name="organisateur" maxlength="160">
+    <div class="grille">
+      <div><label for="type">Type</label><select id="type" name="type">
+        <option value="trail">Trail</option><option value="ultra">Ultra-trail</option><option value="course nature">Course nature</option>
+        <option value="kv">Kilomètre vertical</option><option value="skyrace">Skyrace</option><option value="autre">Autre</option></select></div>
+      <div><label class="check" style="margin-top:38px"><input type="checkbox" name="nocturne" value="1">Course de nuit</label></div>
+    </div>
+    <label class="check"><input type="checkbox" name="date_confirmee" value="1" checked>La date est confirmée par l'organisateur</label>
+  </div>
+
+  <div class="card">
+    <h2 style="margin-top:0">Les formats</h2>
+    <div id="formats"></div>
+    <button type="button" class="btn" id="plus-format">+ Ajouter un format</button>
+  </div>
+
+  <div class="card">
+    <label for="notes">Remarque pour l'administrateur <span class="opt">(facultatif)</span></label>
+    <textarea id="notes" name="notes" maxlength="1000" placeholder="Source de l'information, précisions…"></textarea>
+    <div class="actions"><button class="btn primaire" id="envoyer">Envoyer la course</button></div>
+  </div>
+</form>
+
+<template id="tpl-format">
+  <div class="format">
+    <div class="tete"><span class="titre">Format</span><button type="button" class="linkish retirer">Retirer</button></div>
+    <div class="grille">
+      <div><label>Nom du format <span class="opt">(facultatif)</span><input name="course" maxlength="120" placeholder="Le Grand Trail"></label></div>
+      <div><label>Distance (km)<input name="distance_km" inputmode="decimal" required placeholder="25"></label></div>
+      <div><label>Dénivelé positif (m) <span class="opt">(facultatif)</span><input name="denivele_pos_m" inputmode="numeric" placeholder="1200"></label></div>
+      <div><label>Prix (€) <span class="opt">(facultatif)</span><input name="prix_eur" inputmode="decimal"></label></div>
+    </div>
+  </div>
+</template>
+</main>
+<script src="../session.js?v=__BUILD__"></script>
+<script src="ajouter.js?v=__BUILD__"></script>
+</body></html>

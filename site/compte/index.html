@@ -1,0 +1,68 @@
+<!doctype html>
+<html lang="fr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Mon compte · Agregatrail</title>
+<meta name="robots" content="noindex">
+<link rel="stylesheet" href="../espace.css?v=__BUILD__">
+</head><body><main class="wrap" id="contenu">
+<a href="../">← Toutes les courses</a>
+<h1>Mon compte</h1>
+<p class="intro">Un compte sert seulement à proposer des courses. La carte, la liste, vos listes de favoris et vos
+semaines libres restent accessibles sans compte et restent enregistrées dans votre navigateur.</p>
+<div class="msg" id="msg" role="status" aria-live="polite"></div>
+
+<p id="chargement" class="note">Chargement…</p>
+<div id="indispo" class="card" hidden><p>Les comptes ne sont pas disponibles sur cette version du site.</p></div>
+
+<!-- Visiteur -->
+<section id="visiteur" hidden>
+  <div class="onglets" role="tablist">
+    <button type="button" role="tab" id="t-connexion" aria-controls="f-connexion" aria-selected="true">Se connecter</button>
+    <button type="button" role="tab" id="t-inscription" aria-controls="f-inscription" aria-selected="false">Créer un compte</button>
+  </div>
+  <form class="card" id="f-connexion" role="tabpanel" aria-labelledby="t-connexion">
+    <label for="c-email">Adresse e-mail</label><input id="c-email" name="email" type="email" autocomplete="email" required>
+    <label for="c-mdp">Mot de passe</label><input id="c-mdp" name="mdp" type="password" autocomplete="current-password" required>
+    <div class="actions"><button class="btn primaire">Se connecter</button>
+      <button type="button" class="linkish" id="vers-oubli">Mot de passe oublié ?</button></div>
+  </form>
+  <form class="card" id="f-inscription" role="tabpanel" aria-labelledby="t-inscription" hidden>
+    <label for="i-nom">Nom ou pseudo <span class="opt">(affiché à l'administrateur seulement)</span></label>
+    <input id="i-nom" name="nom" autocomplete="nickname" required minlength="2" maxlength="80">
+    <label for="i-email">Adresse e-mail</label><input id="i-email" name="email" type="email" autocomplete="email" required>
+    <label for="i-mdp">Mot de passe <span class="opt">(10 caractères au moins)</span></label>
+    <input id="i-mdp" name="mdp" type="password" autocomplete="new-password" required minlength="10">
+    <p class="note">Votre adresse sert uniquement à confirmer le compte, à vous prévenir quand une course que vous avez
+    proposée est validée et à changer de mot de passe. Elle n'est ni publiée ni transmise.</p>
+    <div class="actions"><button class="btn primaire">Créer mon compte</button></div>
+  </form>
+  <form class="card" id="f-oubli" hidden>
+    <h2>Mot de passe oublié</h2>
+    <label for="o-email">Adresse e-mail du compte</label><input id="o-email" name="email" type="email" autocomplete="email" required>
+    <div class="actions"><button class="btn primaire">Recevoir un lien</button><button type="button" class="btn" id="oubli-annuler">Annuler</button></div>
+  </form>
+</section>
+
+<form class="card" id="f-reset" hidden>
+  <h2>Choisir un nouveau mot de passe</h2>
+  <label for="r-mdp">Nouveau mot de passe <span class="opt">(10 caractères au moins)</span></label>
+  <input id="r-mdp" name="mdp" type="password" autocomplete="new-password" required minlength="10">
+  <div class="actions"><button class="btn primaire">Enregistrer</button></div>
+</form>
+
+<!-- Membre connecté -->
+<section id="membre" hidden>
+  <div class="card haut">
+    <div><b id="m-nom"></b><br><span class="note" id="m-email"></span></div>
+    <div class="actions" style="margin:0">
+      <a class="btn primaire" href="../ajouter/">Ajouter une course</a>
+      <a class="btn" href="../admin/" id="m-admin" hidden>Administration</a>
+      <button type="button" class="btn" id="deconnexion">Se déconnecter</button>
+    </div>
+  </div>
+  <h2>Mes propositions</h2>
+  <div class="card" id="mes"><p class="note">Aucune course proposée pour l'instant.</p></div>
+</section>
+</main>
+<script src="../session.js?v=__BUILD__"></script>
+<script src="compte.js?v=__BUILD__"></script>
+</body></html>

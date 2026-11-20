@@ -112,12 +112,14 @@
   const distColor = (km) => css.getPropertyValue(distVar(km)).trim();
 
   // Chargement
-  let depsGeo, regsGeo, data;
+  let depsGeo, regsGeo, data, membres;
   try {
-    [depsGeo, regsGeo, data] = await Promise.all([
+    [depsGeo, regsGeo, data, membres] = await Promise.all([
       fetch("geo/departements.geojson").then((r) => r.json()),
       fetch("geo/regions.geojson").then((r) => r.json()),
       fetch("data/index.json").then((r) => r.json()),
+      // courses ajoutées sur le site et validées (hébergement OVH seulement ; ailleurs : null)
+      window.Session ? Session.api("courses.php?action=publiees", null, { timeout: 3000 }).catch(() => null) : null,
     ]);
   } catch (e) {
     $("#cards").innerHTML = "";
@@ -134,6 +136,14 @@
   // ---------- Données ----------
   // Index léger (data/index.json) : le détail secondaire se charge à la demande (Donnees.withDetails).
   state.base = Donnees.decode(data, depName, regName);
+  if (membres && membres.courses && membres.courses.length) {
+    const code = (geo, pt) => geo.features.find((f) => turf.booleanPointInPolygon(pt, f))?.properties.code || null;
+    const locate = (lon, lat) => {
+      const pt = turf.point([lon, lat]);
+      return { dep: code(depsGeo, pt), reg: code(regsGeo, pt) };
+    };
+    state.base = state.base.concat(Donnees.fromMembres(membres.courses, state.base, depName, regName, locate));
+  }
   // filtre « Inscriptions ouvertes » : affiché seulement quand au moins un format a un état relevé
   $("#f-insc").closest("label").hidden = !state.base.some((r) => r.inscription);
   const baseById = new Map(state.base.map((r) => [r.id, r]));

@@ -40,9 +40,9 @@ SITEMAP = ROOT / "site" / "sitemap.xml"
 TABLE = ROOT / "site" / "data" / "pages.json"
 SITE = "https://gcsys.github.io/TRAIL-AGREGATOR/"
 
-SOURCES_OUVERTES = {"datatourisme"}
+SOURCES_OUVERTES = {"datatourisme", "membres"}  # membres : contributions validées
 SOURCES = {"catalogue": ("Miles Republic", None), "runtrail": ("RunTrail", None), "gotrail": ("GoTrail", None),
-           "datatourisme": ("DATAtourisme", "Licence Ouverte 2.0")}
+           "datatourisme": ("DATAtourisme", "Licence Ouverte 2.0"), "membres": ("Membres d'Agregatrail", None)}
 MOIS = ["janvier", "février", "mars", "avril", "mai", "juin", "juillet", "août", "septembre", "octobre", "novembre",
         "décembre"]
 JOURS = ["lundi", "mardi", "mercredi", "jeudi", "vendredi", "samedi", "dimanche"]
