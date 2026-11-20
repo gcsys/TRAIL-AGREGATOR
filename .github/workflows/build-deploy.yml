@@ -24,14 +24,16 @@ jobs:
   build:
     needs: tests # rien n'est publié si un test échoue
     runs-on: ubuntu-latest
+    # Secrets et variables de l'hébergement OVH : environnement GitHub FTP_TRAILAGR_OVH (voir docs/ovh.md).
+    environment: FTP_TRAILAGR_OVH
     env:
-      # Adresse du site sur OVH (variable du dépôt, ex. https://agregatrail.gcsports.fr/). Vide : GitHub Pages seul.
+      # Adresse du site sur OVH, ex. https://agregatrail.gcsports.fr/. Vide : GitHub Pages seul.
       SITE_URL: ${{ vars.SITE_URL }}
-      # Accès FTP OVH : secrets du dépôt, jamais dans le code. Vides : pas d'envoi sur OVH.
-      OVH_FTP_HOST: ${{ secrets.OVH_FTP_HOST }}
-      OVH_FTP_USER: ${{ secrets.OVH_FTP_USER }}
-      OVH_FTP_PASSWORD: ${{ secrets.OVH_FTP_PASSWORD }}
-      OVH_FTP_DIR: ${{ vars.OVH_FTP_DIR }}
+      # Accès FTP : vides, pas d'envoi sur OVH.
+      OVH_FTP_HOST: ${{ secrets.FTP_SERVER }}
+      OVH_FTP_USER: ${{ secrets.FTP_USER }}
+      OVH_FTP_PASSWORD: ${{ secrets.FTP_PASSWORD }}
+      OVH_FTP_DIR: ${{ vars.FTP_DIR }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -98,6 +100,14 @@ jobs:
             | xargs -0 -r sed -i "s#https://gcsys.github.io/TRAIL-AGREGATOR/#${SITE_URL%/}/#g"
       - name: Envoi sur l'hébergement OVH (FTP, seulement les fichiers modifiés)
         if: env.OVH_FTP_HOST != ''
+        env:
+          # config.php de l'API, écrit hors de la racine web (agregatrail-prive/) si DB_PASSWORD existe
+          DB_SERVER: ${{ secrets.DB_SERVER }}
+          DB_NAME: ${{ secrets.DB_NAME }}
+          DB_USER: ${{ secrets.DB_USER }}
+          DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
+          ADMIN_EMAIL: ${{ secrets.ADMIN_EMAIL }}
+          MAIL_FROM: ${{ vars.MAIL_FROM }}
         run: python scripts/deploy_ftp.py
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3

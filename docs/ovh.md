@@ -19,39 +19,46 @@ en HTTPS.
 4. **E-mail d'envoi** : créez l'adresse d'expédition (par exemple `no-reply@gcsports.fr`). Les e-mails
    partent avec la fonction `mail()` de l'hébergement : aucun mot de passe de boîte n'est stocké.
 
-## 2. Le fichier de configuration (jamais dans le dépôt)
+## 2. Les secrets dans GitHub (environnement `FTP_TRAILAGR_OVH`)
 
-Copiez `site/api/config.sample.php`, remplissez-le, puis déposez-le par FTP **à côté** du dossier
-du site, pas dedans :
-
-```
-/agregatrail/                  <- racine du site (envoyée automatiquement)
-/agregatrail-prive/config.php  <- votre configuration, déposée à la main une seule fois
-```
-
-L'envoi automatique ne touche jamais ce fichier. Les tables MySQL sont créées toutes seules au
-premier appel de l'API.
-
-## 3. Les secrets dans GitHub
-
-Dépôt > Settings > Secrets and variables > Actions :
+Dépôt > Settings > Environments > `FTP_TRAILAGR_OVH` :
 
 | Type | Nom | Valeur |
 |---|---|---|
-| Secret | `OVH_FTP_HOST` | serveur FTP, ex. `ftp.clusterXXX.hosting.ovh.net` |
-| Secret | `OVH_FTP_USER` | identifiant FTP |
-| Secret | `OVH_FTP_PASSWORD` | mot de passe FTP |
-| Variable | `OVH_FTP_DIR` | dossier du site, ex. `agregatrail` |
+| Secret | `FTP_SERVER` | serveur FTP, ex. `ftp.clusterXXX.hosting.ovh.net` |
+| Secret | `FTP_USER` | identifiant FTP |
+| Secret | `FTP_PASSWORD` | mot de passe FTP |
+| Variable | `FTP_DIR` | dossier du site (celui du multisite) |
 | Variable | `SITE_URL` | `https://agregatrail.gcsports.fr/` |
+| Secret | `DB_SERVER` | serveur MySQL, ex. `xxxxx.mysql.db` |
+| Secret | `DB_NAME` | nom de la base |
+| Secret | `DB_USER` | utilisateur MySQL |
+| Secret | `DB_PASSWORD` | mot de passe MySQL |
+| Secret | `ADMIN_EMAIL` | adresse(s) de l'administrateur, séparées par des virgules |
+| Variable | `MAIL_FROM` | adresse d'expédition des e-mails (existante sur l'hébergement) |
 
-Ensuite, Actions > « Mise à jour des données et déploiement » > Run workflow. Le premier envoi
-transfère tout le site (quelques minutes) ; les suivants n'envoient que les fichiers modifiés
+À chaque déploiement, `scripts/deploy_ftp.py` écrit la configuration de l'API dans
+`agregatrail-prive/config.php`, **à côté** du dossier du site (hors de la racine web), à partir
+de ces secrets. Rien n'est écrit dans le dépôt. Sans `DB_PASSWORD`, ce fichier n'est pas écrit :
+on peut alors le déposer à la main à partir de `site/api/config.sample.php`.
+
+```
+/<FTP_DIR>/                    <- racine du site (envoyée automatiquement)
+/agregatrail-prive/config.php  <- configuration de l'API (écrite par le déploiement)
+```
+
+Les tables MySQL sont créées toutes seules au premier appel de l'API.
+
+## 3. Premier envoi
+
+Actions > « Mise à jour des données et déploiement » > Run workflow. Le premier envoi transfère
+tout le site (quelques minutes) ; les suivants n'envoient que les fichiers modifiés
 (`scripts/deploy_ftp.py` garde la liste des empreintes dans `.deploy-manifest.json` sur le serveur).
 
 ## 4. Créer le compte administrateur
 
-Sur le site, Mon compte > Créer un compte, avec une adresse listée dans `admin_emails` de la
-configuration. Après la confirmation par e-mail, le lien « Administration » apparaît.
+Sur le site, Mon compte > Créer un compte, avec une adresse listée dans le secret
+`ADMIN_EMAIL`. Après la confirmation par e-mail, le lien « Administration » apparaît.
 
 ## Fonctionnement
 
@@ -77,5 +84,5 @@ configuration. Après la confirmation par e-mail, le lien « Administration » a
 
 ## Retour arrière
 
-Supprimer les secrets `OVH_FTP_*` et la variable `SITE_URL` arrête l'envoi sur OVH ; GitHub Pages
+Supprimer le secret `FTP_SERVER` et la variable `SITE_URL` arrête l'envoi sur OVH ; GitHub Pages
 reste publié tant qu'il n'est pas désactivé.

@@ -14,6 +14,11 @@ Variables d'environnement (secrets GitHub, jamais dans le dépôt) :
   OVH_FTP_DIR       dossier racine du site sur le serveur, ex. agregatrail
   OVH_FTP_TLS       « 0 » pour désactiver le chiffrement (déconseillé), par défaut essai en FTPS
 
+Configuration de l'API (facultatif) : si DB_PASSWORD est fourni, le fichier
+agregatrail-prive/config.php est écrit à côté du dossier du site, hors de la racine web,
+à partir de DB_SERVER, DB_NAME, DB_USER, DB_PASSWORD, SITE_URL, ADMIN_EMAIL (une ou
+plusieurs adresses séparées par des virgules) et MAIL_FROM.
+
 Bibliothèque standard uniquement.
 """
 import argparse
@@ -22,6 +27,7 @@ import hashlib
 import io
 import json
 import os
+import posixpath
 import sys
 from pathlib import Path
 
@@ -119,6 +125,37 @@ def deploy(site: Path, remote: Remote, dry_run=False, log=print):
     return upload, delete
 
 
+def php_str(v: str) -> str:
+    """Chaîne PHP entre apostrophes, échappée."""
+    return "'" + str(v).replace("\\", "\\\\").replace("'", "\\'") + "'"
+
+
+def config_php(env) -> str:
+    """Contenu de config.php construit à partir des secrets (jamais écrit dans le dépôt)."""
+    dsn = f"mysql:host={env['DB_SERVER']};port=3306;dbname={env['DB_NAME']};charset=utf8mb4"
+    admins = [a.strip() for a in env.get("ADMIN_EMAIL", "").split(",") if a.strip()]
+    lignes = [
+        "<?php",
+        "// Écrit par scripts/deploy_ftp.py à chaque déploiement, depuis les secrets GitHub. Ne pas modifier ici.",
+        "return [",
+        f"    'db_dsn' => {php_str(dsn)},",
+        f"    'db_user' => {php_str(env['DB_USER'])},",
+        f"    'db_pass' => {php_str(env['DB_PASSWORD'])},",
+        f"    'site_url' => {php_str(env.get('SITE_URL') or 'https://agregatrail.gcsports.fr/')},",
+        "    'admin_emails' => [" + ", ".join(php_str(a) for a in admins) + "],",
+        f"    'mail_from' => {php_str(env.get('MAIL_FROM') or 'no-reply@gcsports.fr')},",
+        "];",
+        "",
+    ]
+    return "\n".join(lignes)
+
+
+def config_path(base: str) -> str:
+    """Dossier privé à côté de la racine du site : <parent>/agregatrail-prive/config.php."""
+    parent = posixpath.dirname(base.strip("/"))
+    return posixpath.join(parent, "agregatrail-prive", "config.php")
+
+
 def connect(host, user, password, use_tls=True):
     if use_tls:
         try:
@@ -146,6 +183,14 @@ def main(argv=None):
     ftp = connect(env["OVH_FTP_HOST"], env["OVH_FTP_USER"], env["OVH_FTP_PASSWORD"], env.get("OVH_FTP_TLS", "1") != "0")
     try:
         deploy(Path(a.site), Remote(ftp, env.get("OVH_FTP_DIR", "")), dry_run=a.dry_run)
+        if env.get("DB_PASSWORD") and not a.dry_run:
+            manque = [k for k in ("DB_SERVER", "DB_NAME", "DB_USER") if not env.get(k)]
+            if manque:
+                print("Configuration de l'API non écrite, il manque : " + ", ".join(manque), file=sys.stderr)
+            else:
+                chemin = config_path(env.get("OVH_FTP_DIR", ""))
+                Remote(ftp, "").put(chemin, config_php(env).encode())
+                print(f"Configuration de l'API écrite dans {chemin}")
     finally:
         try:
             ftp.quit()

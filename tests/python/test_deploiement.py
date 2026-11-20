@@ -1,5 +1,7 @@
 """Envoi FTP vers OVH (scripts/deploy_ftp.py) et source « membres »."""
 import json
+import shutil
+import subprocess
 import tempfile
 import unittest
 from pathlib import Path
@@ -65,6 +67,26 @@ class DeploiementTest(unittest.TestCase):
         up, _ = deploy_ftp.deploy(self.site, srv, dry_run=True, log=lambda *_: None)
         self.assertTrue(up)
         self.assertEqual(srv.fichiers, {})
+
+
+class ConfigTest(unittest.TestCase):
+    ENV = {"DB_SERVER": "base.mysql.db", "DB_NAME": "nom", "DB_USER": "moi", "DB_PASSWORD": "a'b\\c$d",
+           "ADMIN_EMAIL": "un@exemple.fr, deux@exemple.fr", "MAIL_FROM": "envoi@exemple.fr"}
+
+    def test_chemin_hors_racine_web(self):
+        self.assertEqual(deploy_ftp.config_path("/site"), "agregatrail-prive/config.php")
+        self.assertEqual(deploy_ftp.config_path("www/site"), "www/agregatrail-prive/config.php")
+
+    @unittest.skipUnless(shutil.which("php"), "PHP absent")
+    def test_config_relue_par_php(self):
+        with tempfile.TemporaryDirectory() as d:
+            f = Path(d) / "config.php"
+            f.write_text(deploy_ftp.config_php(self.ENV))
+            out = subprocess.run(["php", "-r", f"echo json_encode(require '{f}');"], capture_output=True, text=True).stdout
+        c = json.loads(out)
+        self.assertEqual(c["db_pass"], "a'b\\c$d")
+        self.assertEqual(c["db_dsn"], "mysql:host=base.mysql.db;port=3306;dbname=nom;charset=utf8mb4")
+        self.assertEqual(c["admin_emails"], ["un@exemple.fr", "deux@exemple.fr"])
 
 
 class SourceMembresTest(unittest.TestCase):
