@@ -12,7 +12,7 @@ en HTTPS.
 ## 1. Préparer l'hébergement (espace client OVH)
 
 1. **Multisite** : le sous-domaine `agregatrail.gcsports.fr` pointe vers un dossier, par exemple
-   `agregatrail/`. Notez ce nom : c'est `OVH_FTP_DIR`.
+   `agregatrail/`. Notez ce nom : c'est `FTP_DIR`.
 2. **PHP** : Hébergement > Informations générales > Configuration : PHP 8.4.
 3. **Base MySQL** : Hébergement > Bases de données > Créer une base (MySQL 8). Notez le serveur
    (`xxxxx.mysql.db`), le nom de la base, l'utilisateur et le mot de passe.
